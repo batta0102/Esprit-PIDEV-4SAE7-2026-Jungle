@@ -1,0 +1,15 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
+
+import { NavbarComponent } from './shared/navbar/navbar.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [NavbarComponent, RouterLink, RouterOutlet],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class App {
+  protected readonly currentYear = new Date().getFullYear();
+}
