@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppCardComponent } from '../../components/ui/card.component';
 import { AppTabsComponent, type Tab } from '../../components/ui/tabs.component';
 import { AppBadgeComponent } from '../../components/ui/badge.component';
 
@@ -23,7 +22,7 @@ interface Result {
 @Component({
   selector: 'app-assessments',
   standalone: true,
-  imports: [CommonModule, AppCardComponent, AppTabsComponent, AppBadgeComponent],
+  imports: [CommonModule, AppTabsComponent, AppBadgeComponent],
   templateUrl: './assessments.component.html',
   styleUrls: ['./assessments.component.scss']
 })

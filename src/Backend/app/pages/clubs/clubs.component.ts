@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppCardComponent } from '../../components/ui/card.component';
 import { AppEmptyStateComponent } from '../../components/ui/empty-state.component';
 import { ClubCardComponent } from '../../components/club-card/club-card.component';
 
 @Component({
   selector: 'app-clubs',
   standalone: true,
-  imports: [CommonModule, AppCardComponent, AppEmptyStateComponent, ClubCardComponent],
+  imports: [CommonModule, AppEmptyStateComponent, ClubCardComponent],
   templateUrl: './clubs.component.html',
   styleUrls: ['./clubs.component.scss']
 })

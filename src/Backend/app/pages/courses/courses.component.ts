@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppCardComponent } from '../../components/ui/card.component';
 import { AppEmptyStateComponent } from '../../components/ui/empty-state.component';
 import { CourseCardComponent } from '../../components/course-card/course-card.component';
 
 @Component({
   selector: 'app-courses',
   standalone: true,
-  imports: [CommonModule, AppCardComponent, AppEmptyStateComponent, CourseCardComponent],
+  imports: [CommonModule, AppEmptyStateComponent, CourseCardComponent],
   templateUrl: './courses.component.html',
   styleUrls: ['./courses.component.scss']
 })

@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 interface NavItem {
   id: string;
@@ -10,7 +10,7 @@ interface NavItem {
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   template: `
     <nav class="sticky top-0 z-50 w-full border-b border-border bg-primary text-background backdrop-blur-sm px-6 py-4">
       <div class="mx-auto flex max-w-7xl items-center justify-between">
