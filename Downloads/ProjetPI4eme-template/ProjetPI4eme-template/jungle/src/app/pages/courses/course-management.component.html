@@ -1,0 +1,158 @@
+<div class="course-management-container">
+  <div class="header">
+    <h1>Course Management</h1>
+    <button 
+      class="btn btn-primary" 
+      (click)="openCreateForm()"
+      [disabled]="loading">
+      + Add New Course
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages">
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="spinner-container">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Main Content (if not loading) -->
+  <div *ngIf="!loading" class="main-content">
+    <!-- Form Modal -->
+    <div *ngIf="showForm" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ isEditMode ? 'Edit Course' : 'Create New Course' }}</h2>
+          <button class="close-btn" (click)="closeForm()">×</button>
+        </div>
+
+        <form (ngSubmit)="submitForm()" class="course-form">
+          <div class="form-group">
+            <label for="title">Course Title *</label>
+            <input
+              type="text"
+              id="title"
+              [(ngModel)]="formData.title"
+              name="title"
+              placeholder="Enter course title"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              [(ngModel)]="formData.description"
+              name="description"
+              placeholder="Enter course description"
+              rows="4"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="level">Level *</label>
+            <select
+              id="level"
+              [(ngModel)]="formData.level"
+              name="level"
+              required>
+              <option value="BEGINNER">Beginner</option>
+              <option value="INTERMEDIATE">Intermediate</option>
+              <option value="ADVANCED">Advanced</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tutorId">Tutor ID *</label>
+            <input
+              type="number"
+              id="tutorId"
+              [(ngModel)]="formData.tutorId"
+              name="tutorId"
+              placeholder="Enter tutor ID"
+              required>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-success">
+              {{ isEditMode ? 'Update' : 'Create' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Course Details View -->
+    <div *ngIf="selectedCourse && !showForm" class="course-details">
+      <div class="details-header">
+        <h2>{{ selectedCourse.title }}</h2>
+        <button class="close-btn" (click)="selectedCourse = null">×</button>
+      </div>
+
+      <div class="details-body">
+        <p><strong>ID:</strong> {{ selectedCourse.id }}</p>
+        <p><strong>Description:</strong> {{ selectedCourse.description || 'N/A' }}</p>
+        <p><strong>Level:</strong> {{ selectedCourse.level }}</p>
+        <p><strong>Tutor ID:</strong> {{ selectedCourse.tutorId }}</p>
+        <p *ngIf="selectedCourse.createdAt"><strong>Created:</strong> {{ selectedCourse.createdAt }}</p>
+        <p *ngIf="selectedCourse.updatedAt"><strong>Updated:</strong> {{ selectedCourse.updatedAt }}</p>
+      </div>
+
+      <div class="details-actions">
+        <button class="btn btn-warning" (click)="openEditForm(selectedCourse)">
+          Edit
+        </button>
+        <button class="btn btn-danger" (click)="deleteCourse(selectedCourse.id)">
+          Delete
+        </button>
+        <button class="btn btn-secondary" (click)="selectedCourse = null">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Courses List -->
+    <div *ngIf="!selectedCourse || showForm" class="courses-list">
+      <div *ngIf="courses.length === 0" class="empty-state">
+        <p>No courses found. Create your first course!</p>
+      </div>
+
+      <div *ngFor="let course of courses" class="course-card">
+        <div class="course-card-header">
+          <h3>{{ course.title }}</h3>
+          <span class="course-level" [ngClass]="'level-' + course.level.toLowerCase()">
+            {{ course.level }}
+          </span>
+        </div>
+
+        <div class="course-card-body">
+          <p class="description">{{ course.description || 'No description available' }}</p>
+          <p class="meta"><strong>Tutor ID:</strong> {{ course.tutorId }}</p>
+        </div>
+
+        <div class="course-card-footer">
+          <button class="btn btn-sm btn-info" (click)="viewCourseDetails(course.id)">
+            View Details
+          </button>
+          <button class="btn btn-sm btn-warning" (click)="openEditForm(course)">
+            Edit
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="deleteCourse(course.id)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

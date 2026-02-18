@@ -1,0 +1,113 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <header class="mb-10 flex items-start justify-between">
+    <div>
+      <h1 class="font-serif text-5xl font-semibold text-text">Media Library</h1>
+      <p class="mt-2 text-secondary">Educational resources, documents, and multimedia.</p>
+    </div>
+    <button class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:bg-opacity-90">
+      <span class="text-xl">+</span>
+      Add Resource
+    </button>
+  </header>
+
+  <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
+    <!-- Filters Sidebar -->
+    <div class="space-y-8 lg:col-span-1">
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <h3 class="mb-4 font-serif text-lg font-semibold text-text">Filters</h3>
+
+        <div class="space-y-6">
+          <!-- Type Filter -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-text">Type</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleTypeFilter('PDF')" [checked]="selectedTypes.includes('PDF')" class="rounded border-border" />
+                <span>PDF</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleTypeFilter('Video')" [checked]="selectedTypes.includes('Video')" class="rounded border-border" />
+                <span>Video</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleTypeFilter('Audio')" [checked]="selectedTypes.includes('Audio')" class="rounded border-border" />
+                <span>Audio</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Level Filter -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-text">Level</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleLevelFilter('A1-A2')" [checked]="selectedLevels.includes('A1-A2')" class="rounded border-border" />
+                <span>A1-A2 (Beginner)</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleLevelFilter('B1-B2')" [checked]="selectedLevels.includes('B1-B2')" class="rounded border-border" />
+                <span>B1-B2 (Intermediate)</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                <input type="checkbox" (change)="toggleLevelFilter('C1-C2')" [checked]="selectedLevels.includes('C1-C2')" class="rounded border-border" />
+                <span>C1-C2 (Advanced)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:col-span-3">
+      <!-- Search Bar -->
+      <div class="mb-6">
+        <div class="relative">
+          <span class="absolute left-4 top-3.5 text-secondary">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            placeholder="Search resources..." 
+            class="w-full pl-12 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      </div>
+
+      <!-- Resource Cards Grid -->
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div *ngFor="let resource of filteredResources()" class="rounded-xl border border-border bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div class="mb-4 flex items-start justify-between">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-light text-primary text-2xl">
+              {{ getIcon(resource.type) }}
+            </div>
+            <app-badge [variant]="getLevelVariant(resource.level)">
+              {{ resource.level }}
+            </app-badge>
+          </div>
+
+          <div class="mb-6 flex-1">
+            <h3 class="mb-2 font-serif text-lg font-semibold text-text">{{ resource.title }}</h3>
+            <div class="flex gap-3 text-xs text-secondary">
+              <span>{{ resource.type }}</span>
+              <span>•</span>
+              <span>{{ resource.size }}</span>
+            </div>
+          </div>
+
+          <div class="mt-auto flex items-center justify-between border-t border-border pt-4">
+            <span class="text-xs text-secondary">{{ resource.downloads }} downloads</span>
+            <div class="flex gap-2">
+              <button class="p-1 text-secondary hover:text-primary transition-colors text-lg">👁</button>
+              <button class="p-1 text-secondary hover:text-primary transition-colors text-lg">⬇</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredResources().length === 0" class="py-12 text-center text-secondary">
+        No resources match your criteria.
+      </div>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,125 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <header class="mb-8 flex items-start justify-between">
+    <div>
+      <h1 class="font-serif text-5xl font-semibold text-text">Course Management</h1>
+      <p class="mt-2 text-secondary">Manage your academic programs and learning sessions.</p>
+    </div>
+    <div>
+      <button
+        class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:bg-primary-hover"
+        type="button"
+        (click)="openCreateModal()">
+        <span class="text-xl">+</span>
+        New Course
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="font-serif text-2xl font-semibold text-text">Add New Course</h2>
+        <button type="button" class="text-2xl text-secondary hover:text-text" (click)="closeCreateModal()">×</button>
+      </div>
+
+      <form class="space-y-4" (ngSubmit)="saveNewCourse()">
+        <p *ngIf="formError" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {{ formError }}
+        </p>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-text">Course title</label>
+          <input
+            class="w-full rounded-lg border border-border px-4 py-3"
+            placeholder="Course title"
+            name="title"
+            [(ngModel)]="newCourse.title"
+            required />
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-text">Description</label>
+          <textarea
+            class="w-full rounded-lg border border-border px-4 py-3"
+            rows="4"
+            placeholder="Course description"
+            name="description"
+            [(ngModel)]="newCourse.description"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-2 block text-sm font-medium text-text">Level</label>
+            <select
+              class="w-full rounded-lg border border-border px-4 py-3"
+              name="level"
+              [(ngModel)]="newCourse.level">
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-text">Tutor ID</label>
+            <input
+              type="number"
+              class="w-full rounded-lg border border-border px-4 py-3"
+              name="tutorId"
+              [(ngModel)]="newCourse.tutorId"
+              required />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" class="rounded-lg border border-border px-4 py-2" (click)="closeCreateModal()">
+            Cancel
+          </button>
+          <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-hover" (click)="saveNewCourse()">
+            Save Course
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="border-b border-border pb-4 mb-6">
+    <nav class="flex gap-8 text-sm text-secondary">
+      <a class="border-b-2 border-primary pb-2 text-primary font-semibold">All Courses</a>
+      <a class="pb-2 hover:text-text">Active Sessions</a>
+      <a class="pb-2 hover:text-text">Associations</a>
+    </nav>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3 items-center mb-6">
+    <div class="md:col-span-2">
+      <div class="flex items-center gap-4">
+        <div class="relative w-full">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary">🔍</span>
+          <input placeholder="Search courses..." class="w-full pl-12 pr-4 py-3 rounded-lg border border-border placeholder-secondary" />
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-4 justify-end">
+      <select class="px-4 py-3 rounded-lg border border-border bg-white">
+        <option>All Levels</option>
+      </select>
+      <select class="px-4 py-3 rounded-lg border border-border bg-white">
+        <option>All Statuses</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <app-course-card
+      *ngFor="let c of courses"
+      [title]="c.title"
+      [description]="c.description || ''"
+      [level]="c.level"
+      [tutorId]="c.tutorId">
+    </app-course-card>
+  </div>
+
+  <app-empty-state *ngIf="courses.length === 0" title="No courses available" description="Check back soon for new courses" emoji="📚"></app-empty-state>
+</main>
