@@ -7,6 +7,8 @@ import { AssessmentsComponent } from './pages/assessments/assessments.component'
 import { ResourcesComponent } from './pages/resources/resources.component';
 import { ResourceListComponent } from './components/resource-list/resource-list.component';
 import { ResourceFormComponent } from './components/resource-form/resource-form.component';
+import { ResourceReviewsPageComponent } from './pages/resource-reviews/resource-reviews-page.component';
+import { ProductsManagementComponent } from './pages/products-management/products-management.component';
 import { GamesComponent } from './pages/games/games.component';
 import { NotificationsComponent } from './pages/notifications/notifications.component';
 
@@ -26,6 +28,8 @@ export const routes: Routes = [
       { path: ':id/edit', component: ResourceFormComponent }
     ]
   },
+  { path: 'products-management', component: ProductsManagementComponent },
+  { path: 'resource-reviews/:resourceId', component: ResourceReviewsPageComponent },
   { path: 'games', component: GamesComponent },
   { path: 'notifications', component: NotificationsComponent },
   { path: '**', redirectTo: 'dashboard' }

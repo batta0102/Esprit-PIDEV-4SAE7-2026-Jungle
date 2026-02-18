@@ -1,0 +1,106 @@
+<div class="products-container">
+  <!-- Breadcrumb Header -->
+  <header class="lib-header" aria-label="Breadcrumb">
+    <div class="crumb">
+      <span class="muted">Home</span>
+      <span class="muted">›</span>
+      <span>Bibliothèque</span>
+      <span class="muted">›</span>
+      <a routerLink="/products" class="breadcrumb-link">Product</a>
+
+    </div>
+  </header>
+
+  <!-- Header -->
+  <header class="products-header">
+    <h1>Our Products</h1>
+    <p>Discover our collection of high-quality English learning products</p>
+  </header>
+
+  <!-- Search and Filter Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="search"
+        placeholder="Search products..."
+        (input)="onSearchChange($event.target.value)"
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="category-filters">
+      <span class="filter-label">Category:</span>
+      @for (cat of categories; track cat) {
+        <button
+          class="filter-btn"
+          [class.active]="selectedCategory() === cat"
+          (click)="filterByCategory(cat)"
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="retryLoadProducts()">Retry</button>
+    </div>
+  }
+
+  <!-- Products Grid -->
+  @if (!loading()) {
+    <div class="products-grid">
+      @if (filteredProducts().length > 0) {
+        @for (product of filteredProducts(); track product.id || product.idProduct) {
+          <article class="product-card">
+            <div class="product-image">
+              <img [src]="product.image" [alt]="product.title" class="image" />
+              <span class="category-badge">{{ product.category }}</span>
+            </div>
+
+            <div class="product-content">
+              <div class="product-header">
+                <h3 class="product-title">{{ product.title }}</h3>
+                <div class="rating">
+                  @for (star of getStarArray(product.rating || 0); track star) {
+                    <span class="star">★</span>
+                  }
+                  <span class="rating-value">{{ product.rating?.toFixed(1) || '0' }}</span>
+                </div>
+              </div>
+
+              <p class="product-description">{{ product.description }}</p>
+
+              <div class="product-footer">
+                <div class="price">
+                  <span class="currency">$</span>
+                  <span class="amount">{{ product.price?.toFixed(2) || '0.00' }}</span>
+                </div>
+                <button class="btn-add-to-cart">Add to Cart</button>
+              </div>
+            </div>
+          </article>
+        }
+      } @else {
+        <div class="empty-state">
+          <span class="empty-icon">📦</span>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search terms</p>
+        </div>
+      }
+    </div>
+  }
+</div>

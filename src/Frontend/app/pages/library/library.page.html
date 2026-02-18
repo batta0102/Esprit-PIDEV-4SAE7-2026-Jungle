@@ -4,6 +4,9 @@
       <span class="muted">Home</span>
       <span class="muted">›</span>
       <span>Bibliothèque</span>
+      <span class="muted">›</span>
+      <a routerLink="/products" class="breadcrumb-link">Product</a>
+
     </div>
   </header>
 
@@ -130,6 +133,9 @@
                       <button class="btn btn-primary" type="button" disabled>File not available</button>
                     }
                     <button class="btn" type="button">{{ secondaryActionLabel(res) }}</button>
+                    <button class="btn btn-reviews" type="button" (click)="openReviewModal(res)">
+                      💬 Check Reviews
+                    </button>
                   </div>
                 </div>
               </div>
@@ -161,4 +167,10 @@
       </nav>
     </section>
   </div>
-</div>
+  <!-- Review Modal -->
+  <app-review-modal
+    [isOpen]="showReviewModal()"
+    [resourceId]="selectedResourceId()"
+    [resourceTitle]="selectedResourceTitle()"
+    (close)="closeReviewModal()"
+  /></div>

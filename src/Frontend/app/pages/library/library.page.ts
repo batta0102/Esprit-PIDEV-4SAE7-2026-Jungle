@@ -2,8 +2,10 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { ResourceDto, ResourceService } from '../../core/library/resource.service';
+import { ReviewModalComponent } from '../../shared/review-modal/review-modal.component';
 
 type ResourceType = 'Book' | 'PDF' | 'EBook' | 'MP3';
 type PriceFilter = 'Free' | 'Paid';
@@ -15,6 +17,7 @@ type SortMode = 'Most Popular' | 'Newest' | 'Price: Low to High' | 'Price: High 
 
 interface LibraryResource {
   id: string;
+  resourceId: number;
   title: string;
   category: string;
   description: string;
@@ -36,7 +39,7 @@ interface LibraryResource {
 
 @Component({
   selector: 'app-library-page',
-  imports: [FormsModule, NgOptimizedImage],
+  imports: [FormsModule, NgOptimizedImage, ReviewModalComponent, RouterModule],
   templateUrl: './library.page.html',
   styleUrl: './library.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -46,6 +49,11 @@ export class LibraryPage {
   readonly resources = signal<LibraryResource[]>([]);
 
   readonly query = signal('');
+
+  // Review Modal State
+  readonly showReviewModal = signal(false);
+  readonly selectedResourceId = signal<number | null>(null);
+  readonly selectedResourceTitle = signal('');
 
   readonly draftTypes = signal<ResourceType[]>(['Book', 'PDF', 'EBook', 'MP3']);
   readonly draftPrices = signal<PriceFilter[]>(['Free', 'Paid']);
@@ -152,6 +160,18 @@ export class LibraryPage {
 
   trackResourceId = (_: number, r: LibraryResource): string => r.id;
 
+  openReviewModal(resource: LibraryResource): void {
+    this.selectedResourceId.set(resource.resourceId);
+    this.selectedResourceTitle.set(resource.title);
+    this.showReviewModal.set(true);
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal.set(false);
+    this.selectedResourceId.set(null);
+    this.selectedResourceTitle.set('');
+  }
+
   starsLabel(rating: number): string {
     const rounded = Math.round(rating * 10) / 10;
     return `${rounded} out of 5`;
@@ -172,6 +192,7 @@ export class LibraryPage {
     const uploadedAtMs = item.uploadDate ? Date.parse(item.uploadDate) : 0;
     return {
       id: `res-${item.resourceId}`,
+      resourceId: item.resourceId,
       title: item.title,
       category: item.type,
       description: item.description,

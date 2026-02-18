@@ -75,6 +75,11 @@ export const routes: Routes = [
 		loadComponent: () => import('./pages/library/library.page').then((m) => m.LibraryPage)
 	},
 	{
+		path: 'products',
+		title: 'Products | Jungle in English',
+		loadComponent: () => import('./pages/products/products.page').then((m) => m.ProductsPage)
+	},
+	{
 		path: 'qcm',
 		title: 'QCM | Jungle in English',
 		loadComponent: () => import('./pages/qcm/qcm.page').then((m) => m.QcmPage)

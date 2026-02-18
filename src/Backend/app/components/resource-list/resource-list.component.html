@@ -63,6 +63,12 @@
                         class="btn btn-sm btn-danger">
                   Delete
                 </button>
+                <a [routerLink]="['/resource-reviews', getResourceId(resource)]" 
+                   class="btn btn-sm btn-success"
+                   [style.opacity]="!getResourceId(resource) ? '0.5' : '1'"
+                   [title]="getResourceId(resource) ? 'View and manage reviews' : 'Cannot view reviews: ID is missing'">
+                  Check Reviews
+                </a>
               </td>
             </tr>
           }
