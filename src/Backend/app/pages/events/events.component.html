@@ -2,9 +2,12 @@
   <header class="mb-10 flex items-start justify-between">
     <div>
       <h1 class="font-serif text-5xl font-semibold text-text">Events</h1>
-      <p class="mt-2 text-secondary">Workshops, conferences, and cultural outings.</p>
+      <p class="mt-2 text-secondary">Manage events and venues.</p>
     </div>
-    <button (click)="openModal()" class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:bg-opacity-90">
+    <button
+      (click)="openModal()"
+      class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:opacity-90"
+    >
       <span class="text-xl">+</span>
       New Event
     </button>
@@ -13,13 +16,55 @@
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-12">
     <div class="lg:col-span-2">
       <h2 class="font-serif text-2xl font-semibold text-text mb-4">Calendar</h2>
-      <app-calendar></app-calendar>
+      <app-calendar [markers]="calendarMarkers()" (dateSelected)="handleCalendarDateSelected($event)"></app-calendar>
+      <p class="mt-3 text-sm text-secondary">Tip: click a date to prefill the event form.</p>
     </div>
 
     <div>
-      <div class="rounded-xl bg-primary text-white p-6 shadow-md">
-        <h3 class="font-serif text-2xl font-semibold mb-3">Did You Know?</h3>
-        <p class="leading-relaxed">The word "event" comes from the Latin "evenire", meaning "to come out, happen, occur". Every gathering is a new opportunity for learning.</p>
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="font-serif text-2xl font-semibold text-text">Venues</h2>
+        <button
+          type="button"
+          (click)="openCreateVenueModal()"
+          class="inline-flex items-center gap-2 rounded-lg bg-accent text-white px-4 py-2 shadow-sm hover:opacity-90"
+        >
+          + New Venue
+        </button>
+      </div>
+
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+
+        <input
+          type="text"
+          [ngModel]="venueListQuery()"
+          (ngModelChange)="venueListQuery.set($event)"
+          class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Search venues..."
+        />
+
+        <div class="mt-4 space-y-3 max-h-80 overflow-auto">
+          <div
+            *ngFor="let v of filteredVenues()"
+            class="rounded-lg border border-border p-3"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-medium text-text">{{ v.name }}</div>
+                <div class="text-sm text-secondary">{{ v.address }}</div>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" (click)="openEditVenueModal(v)" class="px-3 py-1.5 rounded-lg border border-border hover:bg-background">
+                  Edit
+                </button>
+                <button type="button" (click)="deleteVenue(v.id)" class="px-3 py-1.5 rounded-lg border border-border text-red-700 hover:bg-background">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div *ngIf="v.capacity" class="mt-2 text-sm text-secondary">Capacity: {{ v.capacity }}</div>
+          </div>
+          <div *ngIf="filteredVenues().length === 0" class="text-sm text-secondary">No venues found.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -27,22 +72,39 @@
   <div class="mb-8">
     <h2 class="font-serif text-2xl font-semibold text-text mb-6">Upcoming</h2>
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <app-event-card 
-        *ngFor="let e of events" 
-        [type]="e.type" 
-        [title]="e.title" 
-        [date]="e.date" 
-        [time]="e.time" 
-        [location]="e.location" 
-        [status]="e.status" 
-        [buttonText]="e.buttonText">
-      </app-event-card>
+      <app-event-card
+        *ngFor="let e of upcomingCards()"
+        [type]="e.type"
+        [title]="e.title"
+        [date]="e.date"
+        [time]="e.time"
+        [location]="e.location"
+        [status]="e.status"
+        [buttonText]="e.buttonText"
+        (action)="openManageEvent(e.dto)"
+      ></app-event-card>
     </div>
   </div>
 </main>
 
-<app-create-event-modal 
-  [isOpen]="isModalOpen()" 
-  (onClose)="closeModal()"
-  (onSubmit)="handleEventCreation($event)">
-</app-create-event-modal>
+<app-create-event-modal
+  [isOpen]="isEventModalOpen()"
+  [venues]="venues()"
+  [preferredVenueId]="preferredVenueId()"
+  [prefillStartDate]="prefillStartDate()"
+  [prefillEndDate]="prefillEndDate()"
+  [editingEvent]="editingEvent()"
+  (onAddVenue)="openCreateVenueModal()"
+  (onClose)="closeEventModal()"
+  (onSubmit)="handleEventSubmit($event)"
+  (onDelete)="deleteEvent($event)"
+></app-create-event-modal>
+
+<app-create-venue-modal
+  [isOpen]="isVenueModalOpen()"
+  [title]="venueModalTitle()"
+  [submitLabel]="venueModalSubmitLabel()"
+  [initialData]="venueInitialData()"
+  (onClose)="closeVenueModal()"
+  (onSubmit)="handleVenueSubmit($event)"
+></app-create-venue-modal>

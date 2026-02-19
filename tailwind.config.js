@@ -6,13 +6,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#f7ede2',
-        primary: '#2d5757',
-        secondary: '#6b7280',
-        accent: '#2d5757',
-        border: '#d1d5db',
-        text: '#1f2937',
-        light: '#f9fafb',
+        // Match the global theme used by the Front-office (CSS variables in styles)
+        background: 'var(--jie-bg)',
+        primary: 'var(--jie-teal)',
+        accent: 'var(--jie-accent)',
+        border: 'var(--jie-border)',
+        text: 'var(--jie-text)',
+        secondary: 'var(--jie-muted)',
+
+        // Keep utility-friendly "white" surface where needed
+        light: '#FFFFFF',
       },
       fontFamily: {
         serif: ['Georgia', 'serif'],

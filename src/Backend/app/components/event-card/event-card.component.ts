@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,20 +17,34 @@ import { CommonModule } from '@angular/common';
 
       <div class="space-y-2 text-sm text-secondary mb-4">
         <div class="flex items-center gap-2">
-          <span>📅</span>
+          <span class="inline-flex h-4 w-4" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4 text-secondary">
+              <path d="M7 3v2M17 3v2M4 8h16M6 6h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
           <span>{{ date }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <span>🕐</span>
+          <span class="inline-flex h-4 w-4" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4 text-secondary">
+              <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
           <span>{{ time }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <span>📍</span>
+          <span class="inline-flex h-4 w-4" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4 text-secondary">
+              <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
           <span>{{ location }}</span>
         </div>
       </div>
 
-      <button [ngClass]="buttonClass" class="w-full py-3 rounded-lg font-medium transition-colors">
+      <button (click)="action.emit()" [ngClass]="buttonClass" class="w-full py-3 rounded-lg font-medium transition-colors">
         {{ buttonText }}
       </button>
     </div>
@@ -38,36 +52,28 @@ import { CommonModule } from '@angular/common';
   styles: []
 })
 export class EventCardComponent {
-  @Input() type: 'Workshop' | 'Cultural' | 'Field Trip' = 'Workshop';
+  @Input() type: 'ONLINE' | 'ONSITE' = 'ONSITE';
   @Input() title = '';
   @Input() date = '';
   @Input() time = '';
   @Input() location = '';
-  @Input() status: 'Open' | 'Full' = 'Open';
+  @Input() status = 'ACTIVE';
   @Input() buttonText = 'Register';
 
+  @Output() action = new EventEmitter<void>();
+
   get typeClass(): string {
-    switch (this.type) {
-      case 'Workshop':
-        return 'bg-blue-50 text-blue-700';
-      case 'Cultural':
-        return 'bg-orange-50 text-orange-700';
-      case 'Field Trip':
-        return 'bg-green-50 text-green-700';
-      default:
-        return 'bg-gray-50 text-gray-700';
-    }
+    return this.type === 'ONLINE'
+      ? 'bg-accent/15 text-accent'
+      : 'bg-primary/15 text-primary';
   }
 
   get statusClass(): string {
-    switch (this.status) {
-      case 'Open':
-        return 'text-green-600';
-      case 'Full':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
+    const s = (this.status ?? '').toUpperCase();
+    if (s === 'ACTIVE' || s === 'OPEN') return 'text-green-600';
+    if (s === 'CANCELED' || s === 'CANCELLED' || s === 'FULL') return 'text-red-600';
+    if (s === 'COMPLETED') return 'text-secondary';
+    return 'text-secondary';
   }
 
   get buttonClass(): string {
@@ -77,6 +83,6 @@ export class EventCardComponent {
     if (this.buttonText === 'Waitlist') {
       return 'bg-light text-text hover:bg-border';
     }
-    return 'bg-primary text-white hover:bg-primary-hover';
+    return 'bg-primary text-white hover:opacity-90';
   }
 }
