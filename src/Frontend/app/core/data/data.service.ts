@@ -44,6 +44,10 @@ export class DataService {
     return this._events().find((e) => e.id === eventId);
   }
 
+  setEvents(events: EventModel[]): void {
+    this._events.set(events);
+  }
+
   getClubById(clubId: string): ClubModel | undefined {
     return this._clubs().find((c) => c.id === clubId);
   }
