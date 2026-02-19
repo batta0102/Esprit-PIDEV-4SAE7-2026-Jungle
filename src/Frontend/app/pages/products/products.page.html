@@ -89,7 +89,10 @@
                   <span class="currency">$</span>
                   <span class="amount">{{ product.price?.toFixed(2) || '0.00' }}</span>
                 </div>
-                <button class="btn-add-to-cart">Add to Cart</button>
+                <div class="footer-buttons">
+                  <button class="btn-add-to-cart">Add to Cart</button>
+                  <a href="http://localhost:4300/Backend/orders-management" class="btn-check-orders">Check Orders</a>
+                </div>
               </div>
             </div>
           </article>

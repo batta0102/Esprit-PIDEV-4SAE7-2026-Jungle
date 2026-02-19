@@ -215,6 +215,8 @@
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -228,6 +230,7 @@
   height: 200px;
   overflow: hidden;
   background: #f3f4f6;
+  flex-shrink: 0;
 }
 
 .image {
@@ -257,7 +260,7 @@
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
 }
 
 .product-header {
@@ -303,23 +306,26 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
+  gap: 1rem;
 }
 
 .price {
   display: flex;
   align-items: baseline;
   gap: 0.25rem;
+  font-weight: 700;
 }
 
 .currency {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 1.1rem;
+  color: #10b981;
+  font-weight: 600;
 }
 
 .amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #10b981;
 }
 
 .btn-add-to-cart {
@@ -338,6 +344,35 @@
 }
 
 .btn-add-to-cart:active {
+  transform: scale(0.98);
+}
+
+.footer-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-check-orders {
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.btn-check-orders:hover {
+  background: #2563eb;
+}
+
+.btn-check-orders:active {
   transform: scale(0.98);
 }
 

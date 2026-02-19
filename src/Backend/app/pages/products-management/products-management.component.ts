@@ -1,13 +1,9 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product.service';
 
-/**
- * Products Management Component
- * Full CRUD interface for managing products
- * Backend Admin Area
- */
 @Component({
   selector: 'app-products-management',
   standalone: true,
@@ -17,207 +13,179 @@ import { ProductService, Product } from '../../services/product.service';
 })
 export class ProductsManagementComponent implements OnInit {
   private productService = inject(ProductService);
+  private router = inject(Router);
 
   products = signal<Product[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
-  
+
   showForm = signal(false);
-  editMode = signal(false);
-  showLogs = signal(true);  // Show HTTP logs by default
-  
+  isEditMode = signal(false);
+
   currentProduct = signal<Product>({
     name: '',
-    category: '',
+    category: 'Book',
     description: '',
-    imageUrl: '',
+    image: '',
     price: 0,
     stock: 0
   });
-
-  // Expose API logs from service
-  apiLogs = this.productService.apiLogs;
-  
-  // Computed: Last 10 logs
-  recentLogs = computed(() => this.apiLogs().slice(0, 10));
 
   ngOnInit(): void {
     this.loadProducts();
   }
 
-  /**
-   * Load all products from API
-   */
   loadProducts(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    console.log('\n========================================');
-    console.log('📋 [ProductsManagement] Starting loadProducts()');
-    console.log('========================================');
-
     this.productService.getAllProducts().subscribe({
       next: (data: Product[]) => {
-        console.log('[ProductsManagement] Raw data from service:', data);
-        console.log('[ProductsManagement] First product structure:', data[0]);
-        
-        // Transform if backend returns 'id' or 'product_id' instead of 'idProduct'
-        const transformedData = data.map(p => {
-          const anyP = p as any;
-          if (anyP.id && !p.idProduct) {
-            return { ...p, idProduct: anyP.id };
+        const transformedData = data.map((product) => {
+          const anyProduct = product as unknown as Record<string, unknown>;
+
+          if (anyProduct['id'] && !product.idProduct) {
+            return { ...product, idProduct: anyProduct['id'] as number };
           }
-          if (anyP.product_id && !p.idProduct) {
-            return { ...p, idProduct: anyP.product_id };
+
+          if (anyProduct['product_id'] && !product.idProduct) {
+            return { ...product, idProduct: anyProduct['product_id'] as number };
           }
-          return p;
+
+          return product;
         });
-        
-        console.log('[ProductsManagement] Transformed data:', transformedData);
+
         this.products.set(transformedData);
         this.loading.set(false);
       },
-      error: (err: any) => {
-        console.error('Error loading products:', err);
-        this.error.set('Failed to load products');
+      error: (err) => {
+        this.error.set('Failed to load products. Check if API Gateway is running on port 8085.');
         this.loading.set(false);
+        console.error('[ProductsManagement] Error loading products:', err);
       }
     });
   }
 
-  /**
-   * Open form to add new product
-   */
   openAddForm(): void {
-    this.editMode.set(false);
+    this.isEditMode.set(false);
     this.currentProduct.set({
       name: '',
       category: 'Book',
       description: '',
-      imageUrl: '',
+      image: '',
       price: 0,
       stock: 0
     });
     this.showForm.set(true);
   }
 
-  /**
-   * Open form to edit existing product
-   */
   openEditForm(product: Product): void {
-    this.editMode.set(true);
+    this.isEditMode.set(true);
     this.currentProduct.set({ ...product });
     this.showForm.set(true);
   }
 
-  /**
-   * Close the form
-   */
   closeForm(): void {
     this.showForm.set(false);
     this.currentProduct.set({
       name: '',
-      category: '',
+      category: 'Book',
       description: '',
-      imageUrl: '',
+      image: '',
       price: 0,
       stock: 0
     });
   }
 
-  /**
-   * Save product (create or update)
-   */
   saveProduct(): void {
     const product = this.currentProduct();
 
-    if (!product.name || !product.category || !product.description) {
-      alert('Please fill in all required fields');
+    if (!product.name.trim() || !product.category || !product.description.trim()) {
+      this.error.set('Please fill in all required fields (Name, Category, Description).');
+      return;
+    }
+
+    if (product.stock === undefined || product.stock === null) {
+      this.error.set('Please provide a stock value.');
       return;
     }
 
     this.loading.set(true);
+    this.error.set(null);
 
-    if (this.editMode() && product.idProduct) {
-      // Update existing product
-      console.log('\n========================================');
-      console.log(`🔄 [ProductsManagement] Updating product ID: ${product.idProduct}`);
-      console.log('========================================');
-      
+    if (this.isEditMode() && product.idProduct) {
       this.productService.updateProduct(product.idProduct, product).subscribe({
         next: () => {
-          console.log('✅ [ProductsManagement] Update succeeded, reloading products...');
           this.loadProducts();
           this.closeForm();
         },
-        error: (err: any) => {
-          console.error('❌ [ProductsManagement] Error updating product:', err);
-          alert('Failed to update product');
+        error: (err) => {
+          this.error.set(`Failed to update product: ${err.message ?? err}`);
           this.loading.set(false);
+          console.error('[ProductsManagement] Error updating product:', err);
         }
       });
-    } else {
-      // Create new product
-      console.log('\n========================================');
-      console.log('➕ [ProductsManagement] Creating new product');
-      console.log('========================================');
-      
-      this.productService.addProduct(product).subscribe({
-        next: () => {
-          console.log('✅ [ProductsManagement] Create succeeded, reloading products...');
-          this.loadProducts();
-          this.closeForm();
-        },
-        error: (err: any) => {
-          console.error('❌ [ProductsManagement] Error adding product:', err);
-          alert('Failed to add product');
-          this.loading.set(false);
-        }
-      });
+      return;
     }
+
+    const newProduct: Product = { ...product };
+    delete (newProduct as Partial<Product>).idProduct;
+
+    this.productService.addProduct(newProduct).subscribe({
+      next: () => {
+        this.loadProducts();
+        this.closeForm();
+      },
+      error: (err) => {
+        this.error.set(`Failed to add product: ${err.message ?? err}`);
+        this.loading.set(false);
+        console.error('[ProductsManagement] Error adding product:', err);
+      }
+    });
   }
 
-  /**
-   * Delete a product
-   */
-  deleteProduct(id: number | undefined): void {
-    if (!id) return;
+  deleteProduct(product: Product): void {
+    if (!product.idProduct) {
+      return;
+    }
 
     if (!confirm('Are you sure you want to delete this product?')) {
       return;
     }
 
     this.loading.set(true);
+    this.error.set(null);
 
-    console.log('\n========================================');
-    console.log(`🗑️  [ProductsManagement] Deleting product ID: ${id}`);
-    console.log('========================================');
-
-    this.productService.deleteProduct(id).subscribe({
+    this.productService.deleteProduct(product.idProduct).subscribe({
       next: () => {
-        console.log('✅ [ProductsManagement] Delete succeeded, reloading products...');
         this.loadProducts();
       },
-      error: (err: any) => {
-        console.error('❌ [ProductsManagement] Error deleting product:', err);
-        alert('Failed to delete product');
+      error: (err) => {
+        this.error.set(`Failed to delete product: ${err.message ?? err}`);
         this.loading.set(false);
+        console.error('[ProductsManagement] Error deleting product:', err);
       }
     });
   }
 
-  /**
-   * Update current product field
-   */
-  updateField(field: keyof Product, value: any): void {
-    this.currentProduct.update(p => ({ ...p, [field]: value }));
+  updateField(field: keyof Product, value: Product[keyof Product]): void {
+    this.currentProduct.update((product) => ({ ...product, [field]: value }));
   }
 
-  /**
-   * TrackBy function for ngFor optimization
-   * Prevents unnecessary re-renders and NG0955 errors
-   */
   trackByIdProduct(index: number, product: Product): number {
-    return product.idProduct || index;
+    return product.idProduct ?? index;
+  }
+
+  checkProductOrders(product: Product): void {
+    if (!product.idProduct) {
+      console.error('Product ID is missing');
+      return;
+    }
+
+    console.log(`[ProductsManagement] Navigating to orders for product: ${product.name} (ID: ${product.idProduct})`);
+    // Navigate to orders page with product ID as query parameter
+    this.router.navigate(['/orders-management'], {
+      queryParams: { productId: product.idProduct }
+    });
   }
 }

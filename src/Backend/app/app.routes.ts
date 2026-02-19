@@ -9,6 +9,7 @@ import { ResourceListComponent } from './components/resource-list/resource-list.
 import { ResourceFormComponent } from './components/resource-form/resource-form.component';
 import { ResourceReviewsPageComponent } from './pages/resource-reviews/resource-reviews-page.component';
 import { ProductsManagementComponent } from './pages/products-management/products-management.component';
+import { OrdersManagementComponent } from './pages/orders-management/orders-management.component';
 import { GamesComponent } from './pages/games/games.component';
 import { NotificationsComponent } from './pages/notifications/notifications.component';
 
@@ -29,6 +30,7 @@ export const routes: Routes = [
     ]
   },
   { path: 'products-management', component: ProductsManagementComponent },
+  { path: 'orders-management', component: OrdersManagementComponent },
   { path: 'resource-reviews/:resourceId', component: ResourceReviewsPageComponent },
   { path: 'games', component: GamesComponent },
   { path: 'notifications', component: NotificationsComponent },

@@ -68,6 +68,7 @@ export class ProductsPage implements OnInit {
       id: p.idProduct || index + 1,
       title: p.name,
       image: p.imageUrl || 'https://via.placeholder.com/300x200?text=Book',
+      price: p.price || 0, // Explicitly include price
       rating: 4.5 + Math.random() * 0.5 // Random rating between 4.5-5
     }));
     this.applyFilters(transformed);
