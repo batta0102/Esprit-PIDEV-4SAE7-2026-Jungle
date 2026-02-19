@@ -141,8 +141,7 @@
               "buildTarget": "jungle-in-english-backend:build:production"
             },
             "development": {
-              "buildTarget": "jungle-in-english-backend:build:development",
-              "proxyConfig": "proxy.conf.json"
+              "buildTarget": "jungle-in-english-backend:build:development"
             }
           },
           "defaultConfiguration": "development"

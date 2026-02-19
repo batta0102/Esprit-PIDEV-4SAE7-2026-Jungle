@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 
 import { DataService } from '../../core/data/data.service';
 import { EventModel, PriceType } from '../../core/data/models';
-import { EventApiService } from '../../core/events/event-api.service';
 import { UserContextService } from '../../core/user/user-context.service';
 
 type EventsFilter = 'all' | 'online' | 'onsite' | 'free' | 'paid';
@@ -18,22 +17,9 @@ type Availability = 'Available' | 'Limited' | 'Sold out';
 })
 export class EventsPage {
   private readonly data = inject(DataService);
-  private readonly api = inject(EventApiService);
   private readonly user = inject(UserContextService);
 
   readonly events = this.data.events;
-
-  constructor() {
-    // Prefer live API when available; keep sample data as fallback.
-    this.api.listEvents().subscribe({
-      next: (events) => {
-        if (events?.length) this.data.setEvents(events);
-      },
-      error: () => {
-        // ignore: keep sample events
-      }
-    });
-  }
 
   readonly role = this.user.role;
   readonly participation = this.user.participation;
