@@ -1,5 +1,13 @@
-import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+
+export interface CalendarMarker {
+  dateIso: string; // YYYY-MM-DD
+  title: string;
+  type: 'ONLINE' | 'ONSITE';
+  timeLabel?: string;
+  locationLabel?: string;
+}
 
 @Component({
   selector: 'app-calendar',
@@ -10,8 +18,8 @@ import { CommonModule } from '@angular/common';
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-serif text-lg font-semibold text-text">{{ monthTitle }}</h3>
         <div class="space-x-2 text-secondary">
-          <button (click)="prevMonth()">‹</button>
-          <button (click)="nextMonth()">›</button>
+          <button type="button" (click)="prevMonth()" aria-label="Previous month">‹</button>
+          <button type="button" (click)="nextMonth()" aria-label="Next month">›</button>
         </div>
       </div>
 
@@ -21,7 +29,20 @@ import { CommonModule } from '@angular/common';
 
       <div class="grid grid-cols-7 gap-2 text-center">
         <div *ngFor="let cell of calendarCells" class="py-2">
-          <div [class]="cellClass(cell)">{{ cell.date.getDate() }}</div>
+          <button
+            type="button"
+            [disabled]="!cell.current"
+            [class]="cellClass(cell)"
+            (click)="cell.current && selectDate(cell.date)"
+            [title]="markerTitle(cell.date)"
+          >
+            <span>{{ cell.date.getDate() }}</span>
+            <span
+              *ngIf="markerFor(cell.date) as m"
+              class="mt-1 block mx-auto h-1.5 w-1.5 rounded-full"
+              [ngClass]="m.type === 'ONLINE' ? 'bg-accent' : 'bg-primary'"
+            ></span>
+          </button>
         </div>
       </div>
     </div>
@@ -29,6 +50,9 @@ import { CommonModule } from '@angular/common';
   styles: []
 })
 export class CalendarComponent {
+  @Input() markers: CalendarMarker[] = [];
+  @Output() dateSelected = new EventEmitter<string>();
+
   dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   month = signal(new Date());
 
@@ -41,10 +65,9 @@ export class CalendarComponent {
     const date = new Date(this.month());
     date.setDate(1);
     const startDay = date.getDay();
-    const daysInMonth = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const cells = [] as { date: Date; current: boolean }[];
 
-    // previous month's tail
     for (let i = 0; i < startDay; i++) {
       const prev = new Date(date);
       prev.setDate(i - startDay + 1);
@@ -56,7 +79,6 @@ export class CalendarComponent {
       cells.push({ date: curr, current: true });
     }
 
-    // pad to full weeks
     while (cells.length % 7 !== 0) {
       const next = new Date(date.getFullYear(), date.getMonth(), daysInMonth + (cells.length - startDay) + 1);
       cells.push({ date: next, current: false });
@@ -65,12 +87,33 @@ export class CalendarComponent {
     return cells;
   }
 
+  selectDate(d: Date): void {
+    const iso = d.toISOString().slice(0, 10);
+    this.dateSelected.emit(iso);
+  }
+
+  markerFor(d: Date): CalendarMarker | undefined {
+    const iso = d.toISOString().slice(0, 10);
+    return this.markers.find((m) => m.dateIso === iso);
+  }
+
+  markerTitle(d: Date): string {
+    const m = this.markerFor(d);
+    if (!m) return 'Click to create an event on this date';
+    const parts = [m.title];
+    if (m.timeLabel) parts.push(m.timeLabel);
+    if (m.locationLabel) parts.push(m.locationLabel);
+    return parts.join(' • ');
+  }
+
   cellClass(cell: { date: Date; current: boolean }) {
     const today = new Date();
     const isToday = cell.date.toDateString() === today.toDateString();
-    if (isToday) return 'mx-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white';
-    if (!cell.current) return 'text-secondary';
-    return 'mx-auto inline-flex h-8 w-8 items-center justify-center';
+    if (isToday) return 'mx-auto inline-flex h-10 w-10 flex-col items-center justify-center rounded-full bg-primary text-white';
+    if (!cell.current) {
+      return 'mx-auto inline-flex h-10 w-10 flex-col items-center justify-center text-secondary opacity-50 cursor-not-allowed';
+    }
+    return 'mx-auto inline-flex h-10 w-10 flex-col items-center justify-center rounded-full hover:bg-background';
   }
 
   prevMonth() {

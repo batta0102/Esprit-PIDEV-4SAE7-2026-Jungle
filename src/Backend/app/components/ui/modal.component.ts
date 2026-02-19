@@ -6,10 +6,10 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm p-4 md:p-0">
-      <div class="relative w-full max-w-lg rounded-xl bg-surface shadow-2xl border border-border">
+    <div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overflow-x-hidden p-4 sm:items-center sm:p-0" [ngClass]="overlayClass">
+      <div class="relative flex w-full max-w-lg flex-col rounded-xl shadow-2xl border border-border max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)]" [ngClass]="panelClass">
         <!-- Header -->
-        <div class="flex items-center justify-between border-b border-border px-6 py-4">
+        <div class="shrink-0 flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <h3 class="font-serif text-xl font-semibold text-text">
             {{ title }}
           </h3>
@@ -21,12 +21,12 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <!-- Body -->
-        <div class="p-6">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
           <ng-content></ng-content>
         </div>
 
         <!-- Footer -->
-        <div *ngIf="showFooter" class="flex items-center justify-end space-x-3 border-t border-border bg-light px-6 py-4 rounded-b-xl">
+        <div *ngIf="showFooter" class="shrink-0 flex items-center justify-end space-x-3 border-t border-border px-4 py-3 sm:px-6 sm:py-4 rounded-b-xl" [ngClass]="footerClass">
           <ng-content select="[modal-footer]"></ng-content>
         </div>
       </div>
@@ -38,6 +38,9 @@ export class AppModalComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() showFooter = false;
+  @Input() overlayClass = 'bg-black/40 backdrop-blur-sm';
+  @Input() panelClass = 'bg-surface';
+  @Input() footerClass = 'bg-light';
   @Output() close = new EventEmitter<void>();
 
   onClose(): void {
