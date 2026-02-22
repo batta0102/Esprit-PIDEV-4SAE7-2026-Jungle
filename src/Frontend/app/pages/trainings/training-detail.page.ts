@@ -68,7 +68,7 @@ export class TrainingDetailPage {
   });
 
   back(): void {
-    void this.router.navigate(['/trainings']);
+    void this.router.navigate(['/front/trainings']);
   }
 
   toggleSection(tid: string, chapterId: string, sectionId: string, checked: boolean): void {

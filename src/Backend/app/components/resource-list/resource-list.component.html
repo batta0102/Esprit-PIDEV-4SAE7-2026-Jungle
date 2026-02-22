@@ -1,7 +1,7 @@
 <div class="resource-list-container">
   <div class="list-header">
     <h1>Resources Management</h1>
-    <a routerLink="../resources/create" class="btn btn-primary">
+    <a routerLink="/back/resources/create" class="btn btn-primary">
       + Add New Resource
     </a>
   </div>
@@ -52,7 +52,7 @@
               </td>
               <td>{{ resource.uploadDate | date: 'short' }}</td>
               <td class="actions-cell">
-                <a [routerLink]="['../resources', getResourceId(resource), 'edit']" 
+                <a [routerLink]="['/back/resources', getResourceId(resource), 'edit']" 
                    class="btn btn-sm btn-info"
                    [style.opacity]="!getResourceId(resource) ? '0.5' : '1'">
                   Edit
@@ -63,7 +63,7 @@
                         class="btn btn-sm btn-danger">
                   Delete
                 </button>
-                <a [routerLink]="['/resource-reviews', getResourceId(resource)]" 
+                <a [routerLink]="['/back/resource-reviews', getResourceId(resource)]" 
                    class="btn btn-sm btn-success"
                    [style.opacity]="!getResourceId(resource) ? '0.5' : '1'"
                    [title]="getResourceId(resource) ? 'View and manage reviews' : 'Cannot view reviews: ID is missing'">
@@ -80,7 +80,7 @@
   @if (!loading() && resources().length === 0 && !error()) {
     <div class="empty-state">
       <p>No resources found</p>
-      <a routerLink="../resources/create" class="btn btn-primary">
+      <a routerLink="/back/resources/create" class="btn btn-primary">
         Create First Resource
       </a>
     </div>

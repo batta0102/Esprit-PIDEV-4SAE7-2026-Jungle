@@ -36,14 +36,15 @@ export interface Order {
 /**
  * Order Service
  * Handles all order-related API calls to API Gateway
- * Base URL: http://localhost:8085/orders
+ * Uses proxy /api -> http://localhost:8085
+ * Base URL: /api/orders
  */
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8085/orders';
+  private baseUrl = '/api/orders';
 
   /**
    * HTTP Headers for JSON requests
@@ -60,14 +61,14 @@ export class OrderService {
    * @returns Observable<Order[]>
    */
   getAllOrders(): Observable<Order[]> {
-    console.log('[OrderService] Fetching all orders...');
+    console.log('[OrderService] GET /api/orders/allOrders');
     return this.http.get<Order[]>(`${this.baseUrl}/allOrders`).pipe(
       tap(orders => {
-        console.log(`[OrderService] Loaded ${orders.length} orders`);
-        console.log('[OrderService] First order:', orders[0]);
+        console.log(`[OrderService] ✅ Loaded ${orders.length} orders`);
       }),
       catchError(error => {
-        console.error('[OrderService] Error loading orders:', error);
+        console.error('[OrderService] ❌ Error loading orders:', error);
+        this.logErrorDetails('getAllOrders', error);
         return throwError(() => error);
       })
     );
@@ -79,11 +80,12 @@ export class OrderService {
    * @returns Observable<Order>
    */
   getOrderById(id: number): Observable<Order> {
-    console.log(`[OrderService] Fetching order with ID: ${id}`);
+    console.log(`[OrderService] GET /api/orders/getOrder/${id}`);
     return this.http.get<Order>(`${this.baseUrl}/getOrder/${id}`).pipe(
-      tap(order => console.log('[OrderService] Loaded order:', order)),
+      tap(order => console.log('[OrderService] ✅ Loaded order:', order)),
       catchError(error => {
-        console.error(`[OrderService] Error loading order ${id}:`, error);
+        console.error(`[OrderService] ❌ Error loading order ${id}:`, error);
+        this.logErrorDetails(`getOrder(${id})`, error);
         return throwError(() => error);
       })
     );
@@ -98,8 +100,7 @@ export class OrderService {
     // Remove idOrder for new orders to avoid issues
     const { idOrder, ...orderData } = order;
     
-    console.log('[OrderService] Adding new order:', orderData);
-    console.log('[OrderService] Request URL:', `${this.baseUrl}/addOrder`);
+    console.log('[OrderService] POST /api/orders/addOrder', orderData);
     
     return this.http.post<Order>(
       `${this.baseUrl}/addOrder`,
@@ -107,19 +108,51 @@ export class OrderService {
       this.httpOptions
     ).pipe(
       tap(response => {
-        console.log('[OrderService] Order added successfully:', response);
+        console.log('[OrderService] ✅ Order added successfully:', response);
       }),
       catchError(error => {
-        console.error('[OrderService] Error adding order:', error);
-        console.error('[OrderService] Error details:', {
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          error: error.error
-        });
+        console.error('[OrderService] ❌ Error adding order:', error);
+        this.logErrorDetails('addOrder', error);
         return throwError(() => error);
       })
     );
+  }
+
+  /**
+   * Error logging helper
+   * Provides detailed diagnostic info for CORS, network, and API errors
+   */
+  private logErrorDetails(method: string, error: any): void {
+    console.group(`[OrderService] Error Details for ${method}()`);
+    
+    if (error.status === 0) {
+      console.error('⚠️ CORS/Network Error (Status 0)');
+      console.error('Possible causes:');
+      console.error('  1. API Gateway not running on http://localhost:8085');
+      console.error('  2. CORS preflight (OPTIONS) request failed');
+      console.error('  3. Incorrect endpoint path (/api/orders/...)');
+      console.error('  4. Network connectivity issue');
+      console.error('  5. Proxy not enabled - use: npm start (not ng serve directly)');
+    } else if (error.status === 404) {
+      console.error('404 Not Found - Check endpoint path');
+      console.error('URL attempted:', error.url);
+    } else if (error.status === 400) {
+      console.error('400 Bad Request - Check payload format');
+      console.error('Response:', error.error);
+    } else if (error.status === 415) {
+      console.error('415 Unsupported Media Type - Check Content-Type');
+      console.error('Ensure Content-Type is application/json');
+    } else if (error.status === 500) {
+      console.error('500 Server Error - Backend issue');
+      console.error('Response:', error.error);
+    } else {
+      console.error(`HTTP ${error.status} Error`);
+      console.error('Status:', error.status);
+      console.error('Message:', error.message);
+      console.error('Response:', error.error);
+    }
+    
+    console.groupEnd();
   }
 
   /**
@@ -129,7 +162,7 @@ export class OrderService {
    * @returns Observable<Order>
    */
   updateOrder(id: number, order: Order): Observable<Order> {
-    console.log(`[OrderService] Updating order ${id}:`, order);
+    console.log(`[OrderService] PUT /api/orders/updateOrder/${id}`, order);
     
     return this.http.put<Order>(
       `${this.baseUrl}/updateOrder/${id}`,
@@ -137,10 +170,11 @@ export class OrderService {
       this.httpOptions
     ).pipe(
       tap(response => {
-        console.log('[OrderService] Order updated successfully:', response);
+        console.log('[OrderService] ✅ Order updated successfully:', response);
       }),
       catchError(error => {
-        console.error('[OrderService] Error updating order:', error);
+        console.error('[OrderService] ❌ Error updating order:', error);
+        this.logErrorDetails(`updateOrder(${id})`, error);
         return throwError(() => error);
       })
     );
@@ -152,28 +186,21 @@ export class OrderService {
    * @returns Observable<any>
    */
   deleteOrder(id: number): Observable<any> {
-    console.log(`[OrderService] Deleting order with ID: ${id}`);
-    const deleteUrl = `${this.baseUrl}/deleteOrder/${id}`;
-    console.log(`[OrderService] DELETE URL: ${deleteUrl}`);
+    console.log(`[OrderService] DELETE /api/orders/deleteOrder/${id}`);
     
-    // For DELETE requests, we need minimal headers to avoid CORS issues
     const deleteOptions = {
       headers: new HttpHeaders({
         'Accept': 'application/json, text/plain, */*'
       })
     };
     
-    return this.http.delete<any>(deleteUrl, deleteOptions).pipe(
+    return this.http.delete<any>(`${this.baseUrl}/deleteOrder/${id}`, deleteOptions).pipe(
       tap((response: any) => {
-        console.log(`[OrderService] Order ${id} deleted successfully`);
-        console.log('[OrderService] Delete response:', response);
+        console.log(`[OrderService] ✅ Order ${id} deleted successfully`);
       }),
       catchError((error: any) => {
-        console.error(`[OrderService] Error deleting order ${id}:`, error);
-        console.error('[OrderService] Error status:', error.status);
-        console.error('[OrderService] Error URL:', error.url);
-        console.error('[OrderService] Error statusText:', error.statusText);
-        console.error('[OrderService] Error response body:', error.error);
+        console.error(`[OrderService] ❌ Error deleting order ${id}:`, error);
+        this.logErrorDetails(`deleteOrder(${id})`, error);
         return throwError(() => error);
       })
     );

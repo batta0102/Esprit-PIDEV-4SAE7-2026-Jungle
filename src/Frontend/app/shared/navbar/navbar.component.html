@@ -1,7 +1,7 @@
 <header class="navbar">
   <div class="container">
     <div class="navbar-pill">
-      <a class="brand-link" [routerLink]="['/']" aria-label="Jungle in English">
+      <a class="brand-link" [routerLink]="['/front']" aria-label="Jungle in English">
         <span class="brand-badge" aria-hidden="true">
           <img class="brand-logo" src="/logojungle.png" alt="" />
         </span>
@@ -9,14 +9,14 @@
       </a>
 
       <nav class="nav" aria-label="Primary">
-        <a class="nav-link" [routerLink]="['/']" fragment="about" routerLinkActive="active">About</a>
-        <a class="nav-link" [routerLink]="['/trainings']" routerLinkActive="active">Training</a>
-        <a class="nav-link" [routerLink]="['/clubs']" routerLinkActive="active">Clubs</a>
-        <a class="nav-link" [routerLink]="['/events']" routerLinkActive="active">Events</a>
-        <a class="nav-link" [routerLink]="['/library']" routerLinkActive="active">Library</a>
-        <a class="nav-link" [routerLink]="['/qcm']" routerLinkActive="active">QCM</a>
-        <a class="nav-link" [routerLink]="['/evaluations']" routerLinkActive="active">Evaluations</a>
-        <a class="nav-link" [routerLink]="['/gamification']" routerLinkActive="active">Gamification</a>
+        <a class="nav-link" [routerLink]="['/front']" fragment="about" routerLinkActive="active">About</a>
+        <a class="nav-link" [routerLink]="['/front/trainings']" routerLinkActive="active">Training</a>
+        <a class="nav-link" [routerLink]="['/front/clubs']" routerLinkActive="active">Clubs</a>
+        <a class="nav-link" [routerLink]="['/front/events']" routerLinkActive="active">Events</a>
+        <a class="nav-link" [routerLink]="['/front/library']" routerLinkActive="active">Library</a>
+        <a class="nav-link" [routerLink]="['/front/qcm']" routerLinkActive="active">QCM</a>
+        <a class="nav-link" [routerLink]="['/front/evaluations']" routerLinkActive="active">Evaluations</a>
+        <a class="nav-link" [routerLink]="['/front/gamification']" routerLinkActive="active">Gamification</a>
       </nav>
 
       <div class="actions">
@@ -29,7 +29,7 @@
           <button class="action action-outline" type="button" (click)="login()">Login</button>
           <button class="action action-solid" type="button" (click)="register()">Sign up</button>
         }
-        <a class="action action-solid" [routerLink]="['/']" fragment="contact">Contact</a>
+        <a class="action action-solid" [routerLink]="['/front']" fragment="contact">Contact</a>
         <span class="lang" aria-label="Language: English">EN</span>
       </div>
     </div>

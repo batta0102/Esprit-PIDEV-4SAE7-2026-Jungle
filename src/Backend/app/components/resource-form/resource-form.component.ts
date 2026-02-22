@@ -26,7 +26,8 @@ export class ResourceFormComponent implements OnInit {
   success = signal<string | null>(null);
   resourceId: number | null = null;
 
-  resourceTypes = ['PDF', 'Video', 'Audio', 'Document'];
+  // Resource types - normalized to uppercase for backend compatibility
+  resourceTypes = ['PDF', 'VIDEO', 'AUDIO', 'DOCUMENT'];
 
   ngOnInit(): void {
     this.initializeForm();
@@ -94,7 +95,7 @@ export class ResourceFormComponent implements OnInit {
         this.loading.set(false);
 
         setTimeout(() => {
-          this.router.navigate(['/resources']);
+          this.router.navigate(['/back/resources']);
         }, 1500);
       },
       error: (err) => {
@@ -105,7 +106,7 @@ export class ResourceFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/resources']);
+    this.router.navigate(['/back/resources']);
   }
 
   getFieldError(fieldName: string): string | null {

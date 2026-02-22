@@ -1,6 +1,31 @@
 <div class="products-management-container">
 
-<div class="products-management-container">
+  <!-- Navigation Tabs -->
+  <div class="navigation-tabs">
+    <a 
+      routerLink="/back/resources" 
+      routerLinkActive="active" 
+      [routerLinkActiveOptions]="{exact: true}"
+      class="nav-tab"
+    >
+      Resources Management
+    </a>
+    <a 
+      routerLink="/back/products-management" 
+      routerLinkActive="active"
+      class="nav-tab"
+    >
+      Products Management
+    </a>
+    <a 
+      routerLink="/back/orders-management" 
+      routerLinkActive="active"
+      class="nav-tab"
+    >
+      Orders Management
+    </a>
+  </div>
+
   <!-- Page Header -->
   <div class="header">
     <h1>📦 Products Management</h1>

@@ -65,6 +65,6 @@ export class ClubDetailPage {
   }
 
   back(): void {
-    void this.router.navigate(['/clubs']);
+    void this.router.navigate(['/front/clubs']);
   }
 }

@@ -24,7 +24,7 @@ export class NavbarComponent {
 
   readonly profileLink = computed(() => {
     const role = this.role();
-    return role === 'admin' ? '/profile/admin' : role === 'tutor' ? '/profile/tutor' : '/profile/student';
+    return role === 'admin' ? '/front/profile/admin' : role === 'tutor' ? '/front/profile/tutor' : '/front/profile/student';
   });
 
   readonly spaceLabel = computed(() => {

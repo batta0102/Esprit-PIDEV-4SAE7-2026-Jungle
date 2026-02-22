@@ -1,23 +1,26 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { OrderService, Order } from '../../services/order.service';
+import { ProductService, Product } from '../../services/product.service';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './orders-management.component.html',
   styleUrl: './orders-management.component.scss'
 })
 export class OrdersManagementComponent implements OnInit {
   private orderService = inject(OrderService);
+  private productService = inject(ProductService);
   private route = inject(ActivatedRoute);
 
   orders = signal<Order[]>([]);
   filteredOrders = signal<Order[]>([]);
   filterProductId = signal<number | null>(null);
+  productList = signal<Product[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -32,6 +35,9 @@ export class OrdersManagementComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Load products first, then orders
+    this.loadProducts();
+    
     // Check for productId in query parameters
     this.route.queryParams.subscribe((params) => {
       const productId = params['productId'];
@@ -43,6 +49,24 @@ export class OrdersManagementComponent implements OnInit {
     });
     
     this.loadOrders();
+  }
+
+  /**
+   * Load all available products from API Gateway
+   */
+  loadProducts(): void {
+    console.log('[OrdersManagement] Loading available products...');
+    this.productService.getAllProducts().subscribe({
+      next: (products: Product[]) => {
+        this.productList.set(products);
+        console.log(`[OrdersManagement] ✅ Loaded ${products.length} available products`);
+      },
+      error: (err: any) => {
+        console.error('[OrdersManagement] ⚠️ Failed to load products:', err);
+        // Don't fail the whole page if products fail to load
+        this.productList.set([]);
+      }
+    });
   }
 
   /**
@@ -59,7 +83,10 @@ export class OrdersManagementComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err: any) => {
-        this.error.set('Failed to load orders. Check if API Gateway is running on port 8085.');
+        const errorMsg = err.status === 0 
+          ? 'Failed to load orders. Check if API Gateway is running on http://localhost:8085 or if proxy is enabled (npm start).'
+          : `Failed to load orders: HTTP ${err.status} ${err.statusText}`;
+        this.error.set(errorMsg);
         this.loading.set(false);
         console.error('[OrdersManagement] Error loading orders:', err);
       }
@@ -235,13 +262,56 @@ export class OrdersManagementComponent implements OnInit {
   }
 
   /**
-   * Update product ID in the current order
+   * Update product ID and load product details (name, price)
    */
   updateProductId(productId: number): void {
-    this.currentOrder.update((order) => ({
-      ...order,
-      product: { ...order.product, idProduct: productId }
-    }));
+    const selectedProduct = this.getProductById(productId);
+    
+    if (!selectedProduct) {
+      console.warn(`[OrdersManagement] Product ID ${productId} not found`);
+      this.currentOrder.update((order) => ({
+        ...order,
+        product: { idProduct: productId }
+      }));
+      return;
+    }
+
+    console.log(`[OrdersManagement] Selected product:`, selectedProduct);
+    
+    // Update order with product details and auto-fill total amount if creating new order
+    this.currentOrder.update((order) => {
+      const updatedOrder = {
+        ...order,
+        product: {
+          idProduct: selectedProduct.idProduct,
+          name: selectedProduct.name,
+          price: selectedProduct.price
+        }
+      };
+      
+      // Auto-fill total amount with product price on new order
+      if (!this.isEditMode() && selectedProduct.price && order.totalAmount === 0) {
+        updatedOrder.totalAmount = selectedProduct.price;
+      }
+      
+      return updatedOrder;
+    });
+  }
+
+  /**
+   * Get product by ID from the product list
+   */
+  getProductById(productId: number): Product | undefined {
+    return this.productList().find((p) => p.idProduct === productId);
+  }
+
+  /**
+   * Get product name by ID (for display in table)
+   */
+  getProductName(productId?: number): string {
+    if (!productId) return 'N/A';
+    const product = this.getProductById(productId);
+    return product?.name || `Product #${productId}`;
   }
 
   /**

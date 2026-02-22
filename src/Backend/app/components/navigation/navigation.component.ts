@@ -100,12 +100,15 @@ export class NavigationComponent {
   }
 
   updateCurrentRoute(): void {
-    const route = this.router.url.split('/').pop() || 'dashboard';
+    const url = this.router.url;
+    // Extract the route segment after /back/
+    const match = url.match(/^\/back\/([^/]+)/);
+    const route = match ? match[1] : 'dashboard';
     this.currentRoute.set(route);
   }
 
   navigateTo(page: string): void {
-    this.router.navigate([`/${page}`]);
+    this.router.navigate([`/back/${page}`]);
     this.isMobileMenuOpen.set(false);
   }
 
