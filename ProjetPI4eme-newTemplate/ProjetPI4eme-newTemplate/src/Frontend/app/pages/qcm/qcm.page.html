@@ -1,0 +1,192 @@
+<div class="qcm-container">
+  @switch (pageMode()) {
+    <!-- CATALOG MODE -->
+    @case ('catalog') {
+      <div class="catalog-view">
+        <header class="qcm-header">
+          <h1 class="page-title">Jungle Quiz</h1>
+          <p class="page-subtitle">Master your English with our interactive quizzes</p>
+        </header>
+
+        @if (error()) {
+          <div class="error-banner">
+            <span>⚠️ {{ error() }}</span>
+            <button class="btn-close-banner" (click)="error.set(null)">✕</button>
+          </div>
+        }
+
+        <div class="catalog-content">
+          <!-- Quiz Browsing Section -->
+          <section class="quiz-catalog-section">
+            <div class="section-header">
+              <h2>Available Quizzes</h2>
+              @if (!loading()) {
+                <span class="quiz-count">{{ qcms().length }} quiz{{ qcms().length !== 1 ? 'zes' : '' }}</span>
+              }
+            </div>
+
+            @if (loading()) {
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading quizzes...</p>
+              </div>
+            } @else if (error() && qcms().length === 0) {
+              <div class="empty-state">
+                <p>No quizzes found. Please check back later.</p>
+              </div>
+            } @else if (qcms().length === 0) {
+              <div class="empty-state">
+                <p>No quizzes available yet.</p>
+              </div>
+            } @else {
+              <div class="quiz-grid">
+                @for (quiz of qcms(); track quiz.id) {
+                  <article class="quiz-card">
+                    <div class="quiz-card-header">
+                      <h3 class="quiz-card-title">{{ quiz.titre }}</h3>
+                      <span class="difficulty-badge" [class]="'level-' + (quiz.cible || 'standard')">
+                        {{ quiz.cible || 'General' }}
+                      </span>
+                    </div>
+
+                    <p class="quiz-card-description">{{ quiz.contenu }}</p>
+
+                    <div class="quiz-card-meta">
+                      <div class="meta-item">
+                        <span class="meta-icon">📝</span>
+                        <span>{{ quiz.questions?.length ?? 0 }} questions</span>
+                      </div>
+                      <div class="meta-item">
+                        <span class="meta-icon">⏱️</span>
+                        <span>{{ quiz.dureeMinutes }} min</span>
+                      </div>
+                      <div class="meta-item">
+                        <span class="meta-icon">🔁</span>
+                        <span>{{ quiz.tentativesMax }} attempt{{ quiz.tentativesMax !== 1 ? 's' : '' }}</span>
+                      </div>
+                    </div>
+
+                    <div class="quiz-card-actions">
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-lg"
+                        (click)="startQuiz(quiz)"
+                      >
+                        Start Quiz
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+
+          <!-- History Quick Access -->
+          @if (quizHistory().length > 0) {
+            <section class="quiz-history-preview">
+              <div class="section-header">
+                <h2>Your Recent Attempts</h2>
+                <button type="button" class="btn btn-link" (click)="showHistory()">
+                  View All →
+                </button>
+              </div>
+
+              <div class="history-list">
+                @for (attempt of quizHistory().slice(0, 3); track attempt.id) {
+                  <div class="history-item">
+                    <div class="history-info">
+                      <h4 class="history-title">{{ attempt.title }}</h4>
+                      <span class="history-date">
+                        {{ attempt.date | date: 'short' }}
+                      </span>
+                    </div>
+                    <div class="history-score" [class]="'score-' + (attempt.percentage >= 70 ? 'good' : attempt.percentage >= 50 ? 'okay' : 'poor')">
+                      <span class="score-value">{{ attempt.score }}/{{ attempt.total }}</span>
+                      <span class="score-percentage">{{ attempt.percentage }}%</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- QUIZ ATTEMPT MODE -->
+    @case ('attempt') {
+      @if (activeSession()) {
+        <app-quiz-attempt
+          [quiz]="activeSession()!.quiz"
+          [sessionId]="activeSession()!.sessionId"
+          [startTime]="activeSession()!.startTime"
+          (attemptCompleted)="onAttemptCompleted($event)"
+          (attemptClosed)="onAttemptClosed()"
+        />
+      }
+    }
+
+    <!-- QUIZ RESULTS MODE -->
+    @case ('results') {
+      @if (quizResult()) {
+        <app-quiz-results
+          [quiz]="quizResult()!.quiz"
+          [score]="quizResult()!.score"
+          [total]="quizResult()!.total"
+          [percentage]="quizResult()!.percentage"
+          [timeTaken]="quizResult()!.timeTaken"
+          [sessionId]="quizResult()!.sessionId"
+          (closed)="onResultsClosed()"
+        />
+      }
+    }
+
+    <!-- HISTORY MODE -->
+    @case ('history') {
+      <div class="history-view">
+        <header class="history-header">
+          <button type="button" class="btn btn-back" (click)="backToCatalog()">
+            ← Back to Quizzes
+          </button>
+          <h1>Quiz Attempt History</h1>
+        </header>
+
+        @if (quizHistory().length === 0) {
+          <div class="empty-state">
+            <p>No quiz attempts yet. Start a quiz to see your history here.</p>
+          </div>
+        } @else {
+          <div class="history-full">
+            @for (attempt of quizHistory(); track attempt.id) {
+              <div class="history-card">
+                <div class="history-card-main">
+                  <h3 class="history-quiz-title">{{ attempt.title }}</h3>
+                  <p class="history-quiz-date">
+                    {{ attempt.date | date: 'medium' }}
+                  </p>
+                </div>
+                
+                <div class="history-card-stats">
+                  <div class="stat-box">
+                    <span class="stat-label">Score</span>
+                    <span class="stat-value">{{ attempt.score }}/{{ attempt.total }}</span>
+                  </div>
+                  <div class="stat-box">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value" [class]="'score-' + (attempt.percentage >= 70 ? 'good' : attempt.percentage >= 50 ? 'okay' : 'poor')">
+                      {{ attempt.percentage }}%
+                    </span>
+                  </div>
+                  <div class="stat-box">
+                    <span class="stat-label">Time</span>
+                    <span class="stat-value">{{ (attempt.timeTaken / 60) | number: '1.0-0' }}m</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

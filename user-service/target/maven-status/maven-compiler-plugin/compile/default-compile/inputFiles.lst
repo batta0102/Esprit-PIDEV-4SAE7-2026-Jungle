@@ -1,0 +1,11 @@
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\config\KeycloakProperties.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\service\KeycloakUserService.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\dto\CreateUserRequest.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\dto\CreateUserResponse.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\dto\UserSummaryResponse.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\dto\CurrentUserResponse.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\dto\SignupRequest.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\UserServiceApplication.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\UserController.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\config\SecurityConfig.java
+C:\Users\user\Downloads\PI-TEST\PI-TEST\user-service\src\main\java\tn\esprit\userservice\web\GlobalExceptionHandler.java

@@ -1,0 +1,12 @@
+tn\esprit\userservice\web\dto\SignupRequest.class
+tn\esprit\userservice\config\SecurityConfig.class
+tn\esprit\userservice\config\SecurityConfig$KeycloakRoleConverter.class
+tn\esprit\userservice\web\dto\CurrentUserResponse.class
+tn\esprit\userservice\web\dto\CreateUserRequest.class
+tn\esprit\userservice\web\GlobalExceptionHandler.class
+tn\esprit\userservice\web\UserController.class
+tn\esprit\userservice\service\KeycloakUserService.class
+tn\esprit\userservice\web\dto\UserSummaryResponse.class
+tn\esprit\userservice\web\dto\CreateUserResponse.class
+tn\esprit\userservice\config\KeycloakProperties.class
+tn\esprit\userservice\UserServiceApplication.class

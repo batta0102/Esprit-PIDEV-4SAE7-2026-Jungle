@@ -1,0 +1,81 @@
+<div class="container career-page">
+  <header class="page-header">
+    <h1 class="page-title">Career Center</h1>
+    <p class="page-subtitle">Explore teaching opportunities and apply to join Jungle in English.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Loading job offerings...</p>
+  } @else if (error()) {
+    <p class="muted">{{ error() }}</p>
+  } @else if (activeOffers().length === 0) {
+    <div class="card">
+      <div class="card-body">
+        <h3 class="item-title">No open positions right now</h3>
+        <p class="muted">Please check again soon for new teaching opportunities.</p>
+      </div>
+    </div>
+  } @else {
+    <div class="offers-grid">
+      @for (offer of activeOffers(); track offer.id) {
+        <article class="card offer-card">
+          <div class="card-body">
+            <div class="offer-head">
+              <h3 class="item-title">{{ offer.titre }}</h3>
+              <span class="badge">Open</span>
+            </div>
+
+            <p class="muted">{{ offer.description || offer.contenu || 'No description provided.' }}</p>
+
+            <ul class="offer-meta muted">
+              <li><strong>Level:</strong> {{ offer.niveauRequis || 'Not specified' }}</li>
+              <li><strong>Experience:</strong> {{ offer.experienceRequise || 0 }} years</li>
+              <li><strong>Published:</strong> {{ offer.datePublication || 'N/A' }}</li>
+            </ul>
+
+            <button class="btn btn-primary" type="button" (click)="openApply(offer)">Apply now</button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (applyMessage()) {
+    <p class="muted message">{{ applyMessage() }}</p>
+  }
+</div>
+
+@if (selectedOffer(); as offer) {
+  <div class="modal-backdrop" (click)="closeApply()">
+    <section class="modal card" (click)="$event.stopPropagation()">
+      <div class="card-body">
+        <h2 class="item-title">Apply for {{ offer.titre }}</h2>
+        <p class="muted">Please provide your details and CV link or summary.</p>
+
+        <div class="form-grid">
+          <label>
+            Full name
+            <input type="text" [ngModel]="applicantName()" (ngModelChange)="applicantName.set($event)" />
+          </label>
+
+          <label>
+            Email
+            <input type="email" [ngModel]="applicantEmail()" (ngModelChange)="applicantEmail.set($event)" />
+          </label>
+
+          <label class="full">
+            CV (link or text)
+            <textarea rows="4" [ngModel]="applicantCv()" (ngModelChange)="applicantCv.set($event)"></textarea>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="button" [disabled]="submitting()" (click)="closeApply()">Cancel</button>
+          <button class="btn btn-primary" type="button" [disabled]="submitting()" (click)="submitApplication()">
+            {{ submitting() ? 'Submitting...' : 'Submit application' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+}

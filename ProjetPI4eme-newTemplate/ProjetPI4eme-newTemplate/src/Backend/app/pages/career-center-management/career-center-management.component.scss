@@ -1,0 +1,30 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--jie-secondary);
+}
+
+.field input,
+.field select,
+.field textarea,
+.status-select {
+  border: 1px solid var(--jie-border);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  color: var(--jie-text);
+  background: #fff;
+}
+
+.status-pill {
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  background: var(--jie-primary);
+  color: white;
+}
+
+.status-pill.inactive {
+  background: var(--jie-secondary);
+}
