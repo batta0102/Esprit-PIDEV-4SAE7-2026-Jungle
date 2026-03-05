@@ -131,7 +131,7 @@ Majd – Games & Learning Fun Module
 Academic Context
 
 Developed at Esprit School of Engineering – Tunisia
-PIDEV – 3A Engineering Program
+PIDEV – SAE73A Engineering Program
 Academic Year 2025–2026
 
 This project is part of the Practical Individual Development Project (PIDEV) where students design and implement a full-stack software solution using modern technologies and DevOps practices.
