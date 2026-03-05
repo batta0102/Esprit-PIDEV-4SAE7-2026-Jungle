@@ -26,8 +26,8 @@
           </a>
           <button class="action action-outline" type="button" (click)="logout()">Logout</button>
         } @else {
-          <button class="action action-outline" type="button" (click)="login()">Login</button>
-          <button class="action action-solid" type="button" (click)="register()">Sign up</button>
+          <a class="action action-outline" href="/front/login" (click)="onLogin($event)">Login</a>
+          <a class="action action-solid" href="/front/signup" (click)="onSignup($event)">Sign up</a>
         }
         <a class="action action-solid" [routerLink]="['/front']" fragment="contact">Contact</a>
         <span class="lang" aria-label="Language: English">EN</span>

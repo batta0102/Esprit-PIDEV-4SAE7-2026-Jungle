@@ -1,54 +1,97 @@
 <div class="orders-management-container">
+  <app-admin-page-shell
+    [title]="'Orders'"
+    [addLabel]="'+ Add Order'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search by product, status, payment, address...'"
+    [filters]="filters()"
+    (add)="openAddForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadOrders()">Retry</button>
+      </div>
+    }
 
-  <!-- Navigation Tabs -->
-  <div class="navigation-tabs">
-    <a 
-      routerLink="/back/resources" 
-      routerLinkActive="active" 
-      [routerLinkActiveOptions]="{exact: true}"
-      class="nav-tab"
-    >
-      Resources Management
-    </a>
-    <a 
-      routerLink="/back/products-management" 
-      routerLinkActive="active"
-      class="nav-tab"
-    >
-      Products Management
-    </a>
-    <a 
-      routerLink="/back/orders-management" 
-      routerLinkActive="active"
-      class="nav-tab"
-    >
-      Orders Management
-    </a>
-  </div>
+    @if (loading() && !showForm()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading orders...</p>
+      </div>
+    }
 
-  <!-- Page Header -->
-  <div class="header">
-    <h1>📦 Orders Management</h1>
-    <button class="btn btn-primary" (click)="openAddForm()" [disabled]="loading()">
-      + Add Order
-    </button>
-  </div>
+    @if (filterProductId() !== null) {
+      <div class="alert info">
+        <span>
+          Filtering orders for <strong>{{ getProductName(filterProductId()) }}</strong>
+          ({{ displayedOrders().length }})
+        </span>
+        <button class="btn-outline btn-update" type="button" (click)="clearFilter()">Clear Filter</button>
+      </div>
+    }
 
-  <!-- Error Alert -->
-  @if (error()) {
-    <div class="alert alert-danger">
-      {{ error() }}
-      <button class="btn btn-sm btn-secondary" (click)="loadOrders()">Retry</button>
-    </div>
-  }
+    @if (!loading() && displayedOrders().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Total Amount</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Payment Method</th>
+              <th>Order Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of displayedOrders(); track order.idOrder || $index) {
+              <tr>
+                <td>
+                  @if (order.product?.name) {
+                    {{ order.product?.name }}
+                  } @else if (order.product?.idProduct) {
+                    {{ getProductName(order.product?.idProduct) }}
+                  } @else if (order.productName) {
+                    {{ order.productName }}
+                  } @else {
+                    N/A
+                  }
+                </td>
+                <td>${{ order.totalAmount.toFixed(2) }}</td>
+                <td>{{ order.address || 'N/A' }}</td>
+                <td><span class="badge">{{ order.status }}</span></td>
+                <td>{{ order.paymentMethod }}</td>
+                <td>{{ order.orderDate ? (order.orderDate | date:'short') : 'N/A' }}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-outline" type="button" (click)="openCreateDeliveryForm(order)">Add Delivery</button>
+                    <button class="btn-outline btn-update" type="button" (click)="openEditForm(order)">Update</button>
+                    <button class="btn-outline btn-delete" type="button" (click)="deleteOrder(order)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-  <!-- Loading -->
-  @if (loading() && !showForm()) {
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading orders...</p>
-    </div>
-  }
+    @if (!loading() && displayedOrders().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No Orders Found</h3>
+        <p>Try changing filters or add a new order.</p>
+      </div>
+    }
+  </app-admin-page-shell>
 
   <!-- Order Form Modal -->
   @if (showForm()) {
@@ -117,6 +160,19 @@
             />
           </div>
 
+          <div class="form-group">
+            <label for="address">Address *</label>
+            <input
+              id="address"
+              type="text"
+              class="form-control"
+              [value]="currentOrder().address"
+              (input)="updateField('address', $any($event.target).value)"
+              placeholder="Enter delivery address"
+              required
+            />
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="status">Status *</label>
@@ -168,92 +224,87 @@
     </div>
   }
 
-  <!-- Filter Info -->
-  @if (filterProductId() !== null) {
-    <div class="filter-info alert alert-info">
-      <span>🔍 Showing orders for Product ID: <strong>{{ filterProductId() }}</strong></span>
-      <button class="btn btn-sm btn-secondary" (click)="clearFilter()">
-        Clear Filter (Show All)
-      </button>
+  <!-- Create Delivery Modal -->
+  @if (showDeliveryForm()) {
+    <div class="modal-overlay" (click)="closeDeliveryForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>🚚 Create Delivery</h2>
+          <button class="btn-close" (click)="closeDeliveryForm()">✕</button>
+        </div>
+
+        <form class="order-form" (ngSubmit)="createDeliveryForOrder()">
+          <!-- Order Info (Read-only) -->
+          <div class="form-group">
+            <label>Order</label>
+            <div class="form-control readonly-control">
+              Order #{{ currentDeliveryOrder()?.idOrder }} - 
+              {{ getProductName(currentDeliveryOrder()?.product?.idProduct) }}
+            </div>
+          </div>
+
+          <!-- Delivery Address -->
+          <div class="form-group">
+            <label for="deliveryAddress">Delivery Address *</label>
+            <textarea
+              id="deliveryAddress"
+              class="form-control"
+              rows="3"
+              [value]="deliveryAddress()"
+              (input)="deliveryAddress.set($any($event.target).value)"
+              placeholder="Enter delivery address"
+              required
+            ></textarea>
+            <small class="form-text text-muted">Pre-filled from order address</small>
+          </div>
+
+          <!-- Delivery Status -->
+          <div class="form-group">
+            <label for="deliveryStatus">Delivery Status *</label>
+            <select
+              id="deliveryStatus"
+              class="form-control"
+              [value]="deliveryStatus()"
+              (change)="deliveryStatus.set($any($event.target).value)"
+              required
+            >
+              @for (status of deliveryStatusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Delivery Date (Optional) -->
+          <div class="form-group">
+            <label for="deliveryDate">Delivery Date (optional)</label>
+            <input
+              id="deliveryDate"
+              type="date"
+              class="form-control"
+              [value]="deliveryDate()"
+              (input)="deliveryDate.set($any($event.target).value)"
+            />
+          </div>
+
+          <div class="alert info delivery-note">
+            <span class="note-label">ℹ️ Note:</span> Tracking number will be generated automatically by the system.
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeDeliveryForm()" [disabled]="deliveryLoading()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="deliveryLoading()">
+              @if (deliveryLoading()) {
+                Creating...
+              } @else {
+                Create Delivery
+              }
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   }
 
-  <!-- Orders Table -->
-  @if (!loading() && orders().length > 0) {
-    <div class="table-container">
-      <table class="orders-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Product</th>
-            <th>Total Amount</th>
-            <th>Status</th>
-            <th>Payment Method</th>
-            <th>Order Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (order of filteredOrders(); track order.idOrder || $index) {
-            <tr>
-              <td>{{ order.idOrder }}</td>
-              <td>
-                <span class="product-info">
-                  {{ getProductName(order.product?.idProduct) }}
-                  <small class="text-muted">(#{{ order.product?.idProduct || 'N/A' }})</small>
-                </span>
-              </td>
-              <td>${{ order.totalAmount.toFixed(2) }}</td>
-              <td>
-                <span [class]="'badge badge-' + (order.status === 'Delivered' ? 'success' : order.status === 'Cancelled' ? 'danger' : order.status === 'Shipped' ? 'info' : 'warning')">
-                  {{ order.status }}
-                </span>
-              </td>
-              <td>{{ order.paymentMethod }}</td>
-              <td>{{ order.orderDate ? (order.orderDate | date:'short') : 'N/A' }}</td>
-              <td class="actions-cell">
-                <button
-                  class="btn btn-sm btn-warning"
-                  (click)="openEditForm(order)"
-                  [disabled]="loading()"
-                >
-                  Edit
-                </button>
-                <button
-                  class="btn btn-sm btn-danger"
-                  (click)="deleteOrder(order)"
-                  [disabled]="loading()"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  <!-- Empty State -->
-  @if (!loading() && filteredOrders().length === 0 && !error()) {
-    @if (filterProductId() !== null) {
-      <div class="empty-state">
-        <span class="empty-icon">🔍</span>
-        <h3>No Orders Found for This Product</h3>
-        <p>This product doesn't have any orders yet</p>
-        <button class="btn btn-primary" (click)="clearFilter()">
-          Show All Orders
-        </button>
-      </div>
-    } @else {
-      <div class="empty-state">
-        <span class="empty-icon">📦</span>
-        <h3>No Orders Found</h3>
-        <p>Start by adding your first order</p>
-        <button class="btn btn-primary" (click)="openAddForm()">
-          + Add First Order
-        </button>
-      </div>
-    }
-  }
 </div>

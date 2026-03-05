@@ -32,11 +32,13 @@ export class NavbarComponent {
     return role === 'tutor' ? 'Tutor space' : 'Student space';
   });
 
-  async login(): Promise<void> {
+  async onLogin(event: Event): Promise<void> {
+    event.preventDefault();
     await this.auth.login();
   }
 
-  async register(): Promise<void> {
+  async onSignup(event: Event): Promise<void> {
+    event.preventDefault();
     await this.auth.register();
   }
 

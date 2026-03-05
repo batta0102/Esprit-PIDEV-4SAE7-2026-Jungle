@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { signal, computed } from '@angular/core';
+import { AdminNavTabsComponent } from '../shared/admin-nav-tabs/admin-nav-tabs.component';
 
 interface NavItem {
   id: string;
@@ -16,9 +17,9 @@ interface NavItem {
 @Component({
   selector: 'app-back-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, AdminNavTabsComponent],
   template: `
-    <div class="min-h-screen w-full bg-background">
+    <div class="admin-shell">
       <!-- Navigation Bar -->
       <nav class="sticky top-0 z-50 w-full border-b border-border bg-primary text-background backdrop-blur-sm px-6 py-4">
         <div class="mx-auto flex max-w-7xl items-center justify-between">
@@ -83,13 +84,31 @@ interface NavItem {
         </div>
       </nav>
 
+      <!-- Admin Management Navigation (for management pages only) -->
+      <app-admin-nav-tabs *ngIf="showAdminNav()"></app-admin-nav-tabs>
+
       <!-- Main Content -->
-      <main>
+      <main class="admin-main-content">
         <router-outlet></router-outlet>
       </main>
     </div>
   `,
-  styles: []
+  styles: [`
+    .admin-shell {
+      min-height: 100vh;
+      width: 100%;
+      background-color: #F7EDE2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-main-content {
+      flex: 1;
+      min-height: calc(100vh - 180px);
+      background-color: #F7EDE2;
+      padding: 2rem;
+    }
+  `]
 })
 export class BackLayoutComponent {
   isMobileMenuOpen = signal(false);
@@ -134,6 +153,15 @@ export class BackLayoutComponent {
     return isActive
       ? 'text-background font-semibold'
       : 'text-background/80 hover:text-background';
+  }
+
+  /**
+   * Show admin navigation tabs only for management pages
+   */
+  showAdminNav(): boolean {
+    const route = this.currentRoute();
+    const managementPages = ['resources', 'products-management', 'orders-management', 'delivery-management'];
+    return managementPages.includes(route);
   }
 
   getMobileNavItemClass(itemId: string): string {

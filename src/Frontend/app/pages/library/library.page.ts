@@ -1,4 +1,4 @@
-import { NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage, CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -46,6 +46,7 @@ interface LibraryResource {
 })
 export class LibraryPage {
   private readonly resourceService = inject(ResourceService);
+  
   readonly resources = signal<LibraryResource[]>([]);
 
   readonly query = signal('');

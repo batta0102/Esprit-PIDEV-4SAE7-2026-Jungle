@@ -3,17 +3,18 @@ import { FRONT_ROUTES } from './front.routes';
 import { BACK_ROUTES } from './back.routes';
 import { FrontLayoutComponent } from './layouts/front-layout.component';
 import { BackLayoutComponent } from './layouts/back-layout.component';
+import { AuthCallbackPage } from './pages/auth/auth-callback.page';
+import { adminGuard } from './core/auth/admin.guard';
 
-/**
- * Root application routes with two main namespaces and separate layouts:
- * - /front/... → Frontend user application with navbar
- * - /back/... → Backend admin application with navigation
- */
 export const routes: Routes = [
 	{
 		path: '',
 		redirectTo: 'front',
 		pathMatch: 'full'
+	},
+	{
+		path: 'auth/callback',
+		component: AuthCallbackPage
 	},
 	{
 		path: 'front',
@@ -23,7 +24,11 @@ export const routes: Routes = [
 	{
 		path: 'back',
 		component: BackLayoutComponent,
-		children: BACK_ROUTES
+		children: BACK_ROUTES.map(route => 
+			route.path === 'dashboard' 
+				? { ...route, canActivate: [adminGuard] }
+				: route
+		)
 	},
 	{
 		path: '**',

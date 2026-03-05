@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
 
 /**
  * Frontend application routes
@@ -17,13 +16,11 @@ export const FRONT_ROUTES: Routes = [
 	{
 		path: 'login',
 		title: 'Login | Jungle in English',
-		canActivate: [authGuard],
 		loadComponent: () => import('./pages/auth/login.page').then((m) => m.LoginPage)
 	},
 	{
 		path: 'signup',
 		title: 'Sign up | Jungle in English',
-		canActivate: [authGuard],
 		loadComponent: () => import('./pages/auth/signup.page').then((m) => m.SignupPage)
 	},
 	{
@@ -60,6 +57,11 @@ export const FRONT_ROUTES: Routes = [
 		path: 'products',
 		title: 'Products | Jungle in English',
 		loadComponent: () => import('./pages/products/products.page').then((m) => m.ProductsPage)
+	},
+	{
+		path: 'products/:productId',
+		title: 'Product Details | Jungle in English',
+		loadComponent: () => import('./pages/products/product-detail.page').then((m) => m.ProductDetailPage)
 	},
 	{
 		path: 'qcm',

@@ -6,6 +6,11 @@ import { RouterModule } from '@angular/router';
 
 import { Product, ProductService } from '../../shared/product/product';
 import { TakeOrderDialogComponent, ProductForOrder } from '../../shared/take-order-dialog/take-order-dialog.component';
+import { Delivery } from '@backend/models/delivery.model';
+import { DeliveryService } from '@backend/services/delivery.service';
+import { RecommendationService } from '../../core/recommendations/recommendation.service';
+import { RecommendationProduct } from '../../core/recommendations/recommendation.model';
+import { AuthService } from '../../core/auth/auth.service';
 
 type SortMode = 'Most Popular' | 'Newest' | 'Price: Low to High' | 'Price: High to Low' | 'Top Rated';
 
@@ -31,14 +36,26 @@ interface ProductDisplay {
 })
 export class ProductsPage {
   private readonly productService = inject(ProductService);
+  private readonly deliveryService = inject(DeliveryService);
+  private readonly recommendationService = inject(RecommendationService);
+  private readonly auth = inject(AuthService);
+  
   readonly products = signal<ProductDisplay[]>([]);
+  readonly recommendations = signal<RecommendationProduct[]>([]);
+  readonly isLoadingRecommendations = signal(false);
+  readonly recommendationsError = signal<string | null>(null);
+    
+  
 
+  
   // Take Order Dialog State
   readonly selectedProduct = signal<ProductForOrder | null>(null);
   readonly isOrderDialogOpen = signal(false);
   readonly orderSuccessMessage = signal('');
 
   readonly query = signal('');
+  readonly trackingQuery = signal('');
+  readonly deliveryResult = signal<Delivery | null>(null);
   readonly sortMode = signal<SortMode>('Most Popular');
   readonly page = signal(1);
   readonly pageSize = 6;
@@ -86,6 +103,69 @@ export class ProductsPage {
           this.products.set([]);
         }
       });
+
+    // Load recommendations ONLY if user is logged in
+    if (this.auth.isLoggedIn()) {
+      this.loadRecommendations();
+    } else {
+      console.log('[ProductsPage] User not logged in, skipping recommendations');
+    }
+  }
+
+  private loadRecommendations(): void {
+    // Double-check user is logged in before making API call
+    if (!this.auth.isLoggedIn()) {
+      console.log('[ProductsPage] Cannot load recommendations - user not authenticated');
+      return;
+    }
+
+    this.isLoadingRecommendations.set(true);
+    this.recommendationsError.set(null);
+    
+    this.recommendationService
+      .getRecommendationsForMe(6)
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (recommendations) => {
+          this.recommendations.set(recommendations);
+          this.isLoadingRecommendations.set(false);
+        },
+        error: (error) => {
+          console.error('[ProductsPage] Error loading recommendations:', error);
+          // Handle specific error cases
+          if (error.status === 401 || error.status === 403) {
+            this.recommendationsError.set('Session expired. Please log in again.');
+          } else {
+            this.recommendationsError.set('Failed to load recommendations. Please try again later.');
+          }
+          this.isLoadingRecommendations.set(false);
+          this.recommendations.set([]);
+        }
+      });
+  }
+
+
+  searchDelivery(): void {
+    const trackingNumber = this.trackingQuery().trim();
+    console.log('Searching for tracking number:', trackingNumber);
+    if (!trackingNumber) return;
+
+    this.deliveryService.getDeliveryByTrackingNumber(trackingNumber).subscribe({
+      next: (delivery) => {
+        console.log('Delivery found:', delivery);
+        this.deliveryResult.set(delivery);
+      },
+      error: (err) => {
+  if (err.status === 404) {
+    console.warn('Delivery not found');
+    this.deliveryResult.set(null);
+  } else {
+    console.error('Unexpected error:', err);
+  }
+}
+
+    });
+    
   }
 
   setPage(page: number): void {
@@ -101,6 +181,32 @@ export class ProductsPage {
   }
 
   trackProductId = (_: number, p: ProductDisplay): string => p.id;
+
+  /**
+   * Get the correct image URL for a product
+   * Handles:
+   * - Absolute URLs (http/https)
+   * - Relative URLs (proxy/API paths)
+   * - Placeholders
+   */
+  getImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) {
+      return '/englishimg2.png'; // Default placeholder
+    }
+
+    // If it's already an absolute URL, use it directly
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    // If it's a relative URL or filename, serve it through the API
+    if (imageUrl.startsWith('/')) {
+      return imageUrl; // Already a path
+    }
+
+    // Otherwise, assume it's served through the API gateway
+    return `/api/products/images/${imageUrl}`;
+  }
 
   starsLabel(rating: number): string {
     const rounded = Math.round(rating * 10) / 10;
@@ -141,6 +247,13 @@ export class ProductsPage {
       this.orderSuccessMessage.set('');
     }, 3000);
   }
+
+  recommendationStarsLabel(rating: number): string {
+    const rounded = Math.round(rating * 10) / 10;
+    return `${rounded} out of 5`;
+  }
+
+  trackRecommendationId = (_: number, r: RecommendationProduct): number => r.id;
 
   private mapProduct(item: Product): ProductDisplay {
     return {

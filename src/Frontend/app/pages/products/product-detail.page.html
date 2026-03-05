@@ -1,0 +1,123 @@
+<div class="container">
+  <header class="prod-header" aria-label="Breadcrumb">
+    <div class="crumb">
+      <button class="crumb-link" type="button" (click)="goBack()">‹ Back</button>
+      <span class="muted">›</span>
+      <a routerLink="/front/products" class="breadcrumb-link">Products</a>
+      <span class="muted">›</span>
+      <span class="muted">Product Details</span>
+    </div>
+  </header>
+
+  @if (isLoadingProduct()) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <span class="muted">Loading product details...</span>
+    </div>
+  } @else if (productError()) {
+    <div class="error-message">
+      <span>⚠️ {{ productError() }}</span>
+    </div>
+  } @else if (product()) {
+    <article class="product-detail">
+      <div class="product-header">
+        <div class="product-image">
+          @if (product()!.imageUrl) {
+            <img [src]="product()!.imageUrl" [alt]="product()!.name" />
+          } @else {
+            <div class="image-placeholder">📦</div>
+          }
+        </div>
+
+        <div class="product-info">
+          <h1 class="product-name">{{ product()!.name }}</h1>
+          
+          <div class="product-category badge">{{ product()!.category }}</div>
+
+          <p class="product-description">{{ product()!.description }}</p>
+
+          <div class="product-meta">
+            <div class="meta-item">
+              <span class="meta-label">Price:</span>
+              <span class="meta-value">{{ product()!.price | currency }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Stock:</span>
+              <span class="meta-value" [class.low-stock]="product()!.stock <= 5">
+                {{ product()!.stock > 0 ? product()!.stock + ' units' : 'Out of stock' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="product-actions">
+            <button class="btn btn-primary" type="button" [disabled]="product()!.stock <= 0">
+              {{ product()!.stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
+            </button>
+            <button class="btn" type="button">Add to Wishlist</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  }
+
+  <!-- Similar Products Section -->
+  @if (product()) {
+    <section class="similar-section" aria-label="Similar products">
+      <div class="section-header">
+        <h2 class="section-title">Similar Products</h2>
+      </div>
+
+      @if (isLoadingSimilar()) {
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <span class="muted">Loading similar products...</span>
+        </div>
+      } @else if (similarError()) {
+        <div class="error-message">
+          <span>⚠️ {{ similarError() }}</span>
+        </div>
+      } @else if (similarProducts().length > 0) {
+        <div class="similar-grid">
+          @for (product of similarProducts(); track trackSimilarId($index, product)) {
+            <article class="similar-card card">
+              <div class="sim-media">
+                <div class="sim-placeholder">📦</div>
+              </div>
+              <div class="card-body sim-body">
+                <div class="sim-title">{{ product.title }}</div>
+                <div class="sim-category badge">{{ product.category }}</div>
+                
+                <div class="sim-meta">
+                  <div class="sim-rating">
+                    <span class="stars" [attr.aria-label]="starsLabel(product.avgRating)">
+                      ★ {{ product.avgRating.toFixed(1) }}
+                    </span>
+                    <span class="muted">({{ product.ratingCount }})</span>
+                  </div>
+                  <div class="muted sim-orders">Orders: {{ product.ordersCount }}</div>
+                </div>
+
+                <div class="sim-score">
+                  <span class="score-label">Match:</span>
+                  <span class="score-value">{{ (product.score * 100).toFixed(0) }}%</span>
+                </div>
+
+                <div class="sim-actions">
+                  <button class="btn btn-primary" type="button" (click)="viewSimilarProduct(product.id)">
+                    View
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p class="section-title" style="margin-top: 0.5rem;">No similar products</p>
+          <p class="muted">We couldn't find similar products at the moment.</p>
+        </div>
+      }
+    </section>
+  }
+</div>

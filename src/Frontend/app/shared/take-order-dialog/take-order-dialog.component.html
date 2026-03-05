@@ -33,6 +33,23 @@
           </select>
         </div>
 
+        <!-- Address (Governorate Dropdown) -->
+        <div class="form-group">
+          <label for="address" class="form-label">Address *</label>
+          <select
+            id="address"
+            class="form-select"
+            [ngModel]="address()"
+            (ngModelChange)="address.set($event)"
+            required
+          >
+            <option value="" disabled>Select a governorate</option>
+            @for (governorate of TUNISIA_GOVERNORATES; track governorate) {
+              <option [value]="governorate">{{ governorate }}</option>
+            }
+          </select>
+        </div>
+
         <!-- Status (Hidden, default PENDING) -->
         <!-- Status will be set to PENDING automatically -->
 
@@ -66,12 +83,12 @@
           class="btn btn-primary"
           type="button"
           (click)="onSave()"
-          [disabled]="isLoading()"
+          [disabled]="isLoading() || !isFormValid()"
         >
           @if (isLoading()) {
             <span class="spinner-small"></span> Saving...
           } @else {
-            Save
+            Add Order
           }
         </button>
       </div>

@@ -22,11 +22,11 @@ interface KeycloakToken extends KeycloakTokenParsed {
 
 const keycloakConfig = {
   url: 'http://localhost:8180',
-  realm: 'myrealm',
-  clientId: 'frontend'
+  realm: 'jungle-realm',
+  clientId: 'jungle-angular'
 };
 
-const landingRedirect = () => `${window.location.origin}/`;
+const authCallbackRedirect = () => `${window.location.origin}/auth/callback`;
 
 function readRoles(token: KeycloakToken | undefined, clientId: string): string[] {
   if (!token) return [];
@@ -48,46 +48,73 @@ export class AuthService {
   private readonly keycloak: KeycloakInstance = new Keycloak(keycloakConfig);
   private readonly _currentUser = signal<AuthUser | null>(null);
   private readonly _ready = signal(false);
+  private initPromise: Promise<void> | null = null;
 
   readonly currentUser = this._currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this._currentUser() !== null);
   readonly isReady = this._ready.asReadonly();
 
   async init(): Promise<void> {
+    if (this._ready()) {
+      return;
+    }
+
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
     this.keycloak.onAuthSuccess = () => this.syncUser();
     this.keycloak.onAuthRefreshSuccess = () => this.syncUser();
     this.keycloak.onAuthLogout = () => this.clearUser();
 
-    try {
-      const authenticated = await this.keycloak.init({
-        pkceMethod: 'S256',
-        checkLoginIframe: false,
-        silentCheckSsoFallback: false
-      });
+    this.initPromise = (async () => {
+      try {
+        const authenticated = await this.keycloak.init({
+          pkceMethod: 'S256',
+          onLoad: 'check-sso',
+          checkLoginIframe: false,
+          silentCheckSsoFallback: false,
+          silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
+        });
 
-      this._ready.set(true);
-      if (authenticated) {
-        this.syncUser();
-      } else {
+        this._ready.set(true);
+        if (authenticated) {
+          this.syncUser();
+        } else {
+          this.clearUser();
+        }
+      } catch (error) {
+        console.warn('Keycloak init failed (SSO check), continuing as guest:', error);
+        this._ready.set(true);
         this.clearUser();
+      } finally {
+        this.initPromise = null;
       }
-    } catch (error) {
-      this._ready.set(true);
-      this.clearUser();
-    }
+    })();
+
+    return this.initPromise;
   }
 
   async login(): Promise<void> {
-    await this.keycloak.login({ redirectUri: landingRedirect() });
+    if (!this._ready()) {
+      await this.init();
+    }
+    await this.keycloak.login({ redirectUri: authCallbackRedirect() });
   }
 
   async register(): Promise<void> {
-    await this.keycloak.register({ redirectUri: landingRedirect() });
+    if (!this._ready()) {
+      await this.init();
+    }
+    await this.keycloak.register({ redirectUri: authCallbackRedirect() });
   }
 
   async logout(): Promise<void> {
+    if (!this._ready()) {
+      await this.init();
+    }
     this.clearUser();
-    await this.keycloak.logout({ redirectUri: landingRedirect() });
+    await this.keycloak.logout({ redirectUri: `${window.location.origin}/front` });
   }
 
   getAccessToken(): string | null {

@@ -1,54 +1,83 @@
 <div class="products-management-container">
+  <app-admin-page-shell
+    [title]="'Products'"
+    [addLabel]="'+ Add Product'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search by name, category, description...'"
+    [filters]="filters()"
+    (add)="openAddForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadProducts()">Retry</button>
+      </div>
+    }
 
-  <!-- Navigation Tabs -->
-  <div class="navigation-tabs">
-    <a 
-      routerLink="/back/resources" 
-      routerLinkActive="active" 
-      [routerLinkActiveOptions]="{exact: true}"
-      class="nav-tab"
-    >
-      Resources Management
-    </a>
-    <a 
-      routerLink="/back/products-management" 
-      routerLinkActive="active"
-      class="nav-tab"
-    >
-      Products Management
-    </a>
-    <a 
-      routerLink="/back/orders-management" 
-      routerLinkActive="active"
-      class="nav-tab"
-    >
-      Orders Management
-    </a>
-  </div>
+    @if (loading() && !showForm()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading products...</p>
+      </div>
+    }
 
-  <!-- Page Header -->
-  <div class="header">
-    <h1>📦 Products Management</h1>
-    <button class="btn btn-primary" (click)="openAddForm()" [disabled]="loading()">
-      + Add Product
-    </button>
-  </div>
+    @if (!loading() && displayedProducts().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of displayedProducts(); track product.idProduct || $index) {
+              <tr>
+                <td>
+                  @if (product.imageUrl) {
+                    <img [src]="product.imageUrl" alt="Product" class="product-thumb" />
+                  } @else {
+                    <span class="muted">No image</span>
+                  }
+                </td>
+                <td>{{ product.name }}</td>
+                <td><span class="badge">{{ product.category }}</span></td>
+                <td>{{ product.description }}</td>
+                <td>${{ product.price?.toFixed(2) || '0.00' }}</td>
+                <td><span [class.low-stock]="(product.stock || 0) < 10">{{ product.stock || 0 }}</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-outline" type="button" (click)="checkProductOrders(product)">Orders</button>
+                    <button class="btn-outline btn-update" type="button" (click)="openEditForm(product)">Update</button>
+                    <button class="btn-outline btn-delete" type="button" (click)="deleteProduct(product)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-  <!-- Error Alert -->
-  @if (error()) {
-    <div class="alert alert-danger">
-      {{ error() }}
-      <button class="btn btn-sm btn-secondary" (click)="loadProducts()">Retry</button>
-    </div>
-  }
-
-  <!-- Loading -->
-  @if (loading() && !showForm()) {
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading products...</p>
-    </div>
-  }
+    @if (!loading() && displayedProducts().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No Products Found</h3>
+        <p>Start by adding your first product</p>
+      </div>
+    }
+  </app-admin-page-shell>
 
   <!-- Product Form Modal -->
   @if (showForm()) {
@@ -130,16 +159,35 @@
           </div>
 
           <div class="form-group">
-            <label for="image">Image URL</label>
-            <input
-              id="image"
-              type="url"
-              class="form-control"
-              [value]="currentProduct().image"
-              (input)="updateField('image', $any($event.target).value)"
-              placeholder="https://example.com/image.jpg"
-            />
+            <label>Upload Product Image</label>
+            <div class="file-input-wrapper" (click)="fileInput.click()">
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                class="form-control file-input"
+                title="Upload product image"
+                aria-label="Upload product image"
+                (change)="onFileSelected($event)"
+              />
+              <span class="file-input-label">
+                @if (selectedFile()) {
+                  ✓ {{ selectedFile()!.name }}
+                } @else {
+                  <span class="file-input-placeholder">Select an image file...</span>
+                }
+              </span>
+            </div>
           </div>
+
+          @if (imagePreviewUrl()) {
+            <div class="form-group">
+              <label>Image Preview</label>
+              <div class="image-preview">
+                <img [src]="imagePreviewUrl()" alt="Preview" />
+              </div>
+            </div>
+          }
 
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" (click)="closeForm()">
@@ -154,79 +202,5 @@
     </div>
   }
 
-  <!-- Products Table -->
-  @if (!loading() && products().length > 0) {
-    <div class="table-container">
-      <table class="products-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (product of products(); track product.idProduct || $index) {
-            <tr>
-              <td>{{ product.idProduct }}</td>
-              <td>{{ product.name }}</td>
-              <td>
-                <span class="badge badge-{{ product.category === 'Book' ? 'primary' : 'secondary' }}">
-                  {{ product.category }}
-                </span>
-              </td>
-              <td class="description-cell">{{ product.description }}</td>
-              <td>${{ product.price?.toFixed(2) || '0.00' }}</td>
-              <td>
-                <span [class.low-stock]="(product.stock || 0) < 10">
-                  {{ product.stock || 0 }}
-                </span>
-              </td>
-              <td class="actions-cell">
-                <button
-                  class="btn btn-sm btn-info"
-                  (click)="checkProductOrders(product)"
-                  [disabled]="loading()"
-                  title="View orders for this product"
-                >
-                  📋 Orders
-                </button>
-                <button
-                  class="btn btn-sm btn-warning"
-                  (click)="openEditForm(product)"
-                  [disabled]="loading()"
-                >
-                  Edit
-                </button>
-                <button
-                  class="btn btn-sm btn-danger"
-                  (click)="deleteProduct(product)"
-                  [disabled]="loading()"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  <!-- Empty State -->
-  @if (!loading() && products().length === 0 && !error()) {
-    <div class="empty-state">
-      <span class="empty-icon">📦</span>
-      <h3>No Products Found</h3>
-      <p>Start by adding your first product</p>
-      <button class="btn btn-primary" (click)="openAddForm()">
-        + Add First Product
-      </button>
-    </div>
-  }
 </div>
 

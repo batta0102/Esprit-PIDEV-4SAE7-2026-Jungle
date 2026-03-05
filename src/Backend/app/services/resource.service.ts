@@ -3,55 +3,66 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Resource, ResourceResponse } from '../models/resource.model';
+import { environment } from '../../../Frontend/app/environments/environment';
+import { buildApiUrl } from '../../../Frontend/app/shared/utils/url.helper';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResourceService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/resources';
 
   /**
    * Get all resources
+   * GET /api/resources/displayResources
    */
   getAll(): Observable<ResourceResponse[]> {
-    return this.http.get<ResourceResponse[]>(`${this.apiUrl}/displayResources`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'resources', 'displayResources');
+    return this.http.get<ResourceResponse[]>(url).pipe(
       catchError(this.handleError)
     );
   }
 
   /**
    * Get a single resource by ID
+   * GET /api/resources/getResource/{id}
    */
   getById(id: number): Observable<ResourceResponse> {
-    return this.http.get<ResourceResponse>(`${this.apiUrl}/getResource/${id}`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'resources', 'getResource', id.toString());
+    return this.http.get<ResourceResponse>(url).pipe(
       catchError(this.handleError)
     );
   }
 
   /**
    * Create a new resource
+   * POST /api/resources/addResource
    */
   create(resource: Resource): Observable<ResourceResponse> {
-    return this.http.post<ResourceResponse>(`${this.apiUrl}/addResource`, resource).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'resources', 'addResource');
+    return this.http.post<ResourceResponse>(url, resource).pipe(
       catchError(this.handleError)
     );
   }
 
   /**
    * Update an existing resource
+   * PUT /api/resources/updateResource/{id}
    */
   update(id: number, resource: Resource): Observable<ResourceResponse> {
-    return this.http.put<ResourceResponse>(`${this.apiUrl}/updateResource/${id}`, resource).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'resources', 'updateResource', id.toString());
+    return this.http.put<ResourceResponse>(url, resource).pipe(
       catchError(this.handleError)
     );
   }
 
   /**
    * Delete a resource
+   * DELETE /api/resources/deleteResource/{id}
    */
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/deleteResource/${id}`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'resources', 'deleteResource', id.toString());
+    return this.http.delete<void>(url).pipe(
       catchError(this.handleError)
     );
   }

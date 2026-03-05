@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import '../Backend/app/styles/admin-theme';
+@import './app/app.scss';
 
 :root {
 	--jie-bg: #f7ede2;

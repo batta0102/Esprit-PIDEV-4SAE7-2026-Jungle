@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../../Frontend/app/environments/environment';
+import { buildApiUrl } from '../../../Frontend/app/shared/utils/url.helper';
 
 /**
  * Product Interface
@@ -12,46 +14,41 @@ export interface Product {
   name: string;
   category: string;
   description: string;
-  image?: string;
+  imageUrl?: string;
   price?: number;
   stock: number;
 }
 
 /**
  * Product Service for Backend Admin
- * Handles all product-related API calls to API Gateway
- * Uses proxy /api -> http://localhost:8085
- * Base URL: /api/products
+ * Handles all product-related API calls through API Gateway
+ * All requests route to: http://localhost:8085
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
   private http = inject(HttpClient);
-  private baseUrl = '/api/products';
-
-
-  /**
-   * HTTP Headers for JSON requests
-   */
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    })
-  };
 
   /**
    * GET all products
+   * GET /api/products/allProducts
    */
   getAllProducts(): Observable<Product[]> {
-    console.log('[ProductService] GET /api/products/allProducts');
-    return this.http.get<Product[]>(`${this.baseUrl}/allProducts`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'allProducts');
+    console.log(`[ProductService] 🔄 GET ${url}`);
+    
+    return this.http.get<Product[]>(url).pipe(
       tap(products => {
         console.log(`[ProductService] ✅ Loaded ${products.length} products`);
+        console.log('[ProductService] Products sample:', products.slice(0, 2));
       }),
       catchError(error => {
         console.error('[ProductService] ❌ Error loading products:', error);
+        console.error('[ProductService] Status:', error.status);
+        console.error('[ProductService] Status Text:', error.statusText);
+        console.error('[ProductService] Error Message:', error.message);
+        console.error('[ProductService] Full Error:', error);
         this.logErrorDetails(error);
         return throwError(() => error);
       })
@@ -60,10 +57,12 @@ export class ProductService {
 
   /**
    * GET single product by ID
+   * GET /api/products/getProduct/{id}
    */
   getProductById(id: number): Observable<Product> {
-    console.log(`[ProductService] GET /api/products/getProduct/${id}`);
-    return this.http.get<Product>(`${this.baseUrl}/getProduct/${id}`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'getProduct', id.toString());
+    console.log(`[ProductService] GET ${url}`);
+    return this.http.get<Product>(url).pipe(
       tap(product => console.log('[ProductService] ✅ Loaded product:', product)),
       catchError(error => {
         console.error(`[ProductService] ❌ Error loading product ${id}:`, error);
@@ -76,21 +75,68 @@ export class ProductService {
   /**
    * POST - Add new product
    * Note: Remove idProduct if present (new products don't have IDs)
+   * POST /api/products/addProduct
    */
   addProduct(product: Product): Observable<Product> {
     const { idProduct, ...productData } = product;
     
-    console.log('[ProductService] POST /api/products/addProduct', productData);
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'addProduct');
+    console.log('[ProductService] POST', url, productData);
     return this.http.post<Product>(
-      `${this.baseUrl}/addProduct`,
-      productData,
-      this.httpOptions
+      url,
+      productData
     ).pipe(
       tap(response => {
         console.log('[ProductService] ✅ Product added:', response);
       }),
       catchError(error => {
         console.error('[ProductService] ❌ Error adding product:', error);
+        this.logErrorDetails(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * POST - Add new product with image file (multipart/form-data)
+   * Spring Boot backend expects:
+   * @RequestPart("product") Product product
+   * @RequestPart("image") MultipartFile image
+   */
+  addProductWithFile(product: Product, imageFile: File): Observable<Product> {
+    const { idProduct, ...productData } = product;
+    
+    const formData = new FormData();
+    
+    // Append product as JSON string in "product" part
+    // Spring Boot @RequestPart("product") will deserialize this JSON
+    formData.append(
+      'product',
+      new Blob([JSON.stringify(productData)], { type: 'application/json' })
+    );
+    
+    // Append the image file in "image" part
+    // Spring Boot @RequestPart("image") will bind this to MultipartFile
+    formData.append('image', imageFile, imageFile.name);
+    
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'addProduct');
+    console.log('[ProductService] POST', url, '(multipart with @RequestPart):', {
+      productData,
+      fileName: imageFile.name,
+      fileSize: imageFile.size
+    });
+    
+    // Don't set Content-Type header - let browser set it with boundary
+    // This is CRITICAL for Spring Boot @RequestPart to work correctly
+    return this.http.post<Product>(
+      url,
+      formData
+    ).pipe(
+      tap(response => {
+        console.log('[ProductService] ✅ Product added with image:', response);
+      }),
+      catchError(error => {
+        console.error('[ProductService] ❌ Error adding product with file:', error);
         this.logErrorDetails(error);
         return throwError(() => error);
       })
@@ -129,13 +175,14 @@ export class ProductService {
 
   /**
    * PUT - Update existing product
+   * PUT /api/products/updateProduct/{id}
    */
   updateProduct(id: number, product: Product): Observable<Product> {
-    console.log(`[ProductService] PUT /api/products/updateProduct/${id}`, product);
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'updateProduct', id.toString());
+    console.log(`[ProductService] PUT ${url}`, product);
     return this.http.put<Product>(
-      `${this.baseUrl}/updateProduct/${id}`,
-      product,
-      this.httpOptions
+      url,
+      product
     ).pipe(
       tap(response => {
         console.log('[ProductService] ✅ Product updated:', response);
@@ -149,11 +196,59 @@ export class ProductService {
   }
 
   /**
+   * PUT - Update existing product with image file (multipart/form-data)
+   * Spring Boot backend expects:
+   * @RequestPart("product") Product product
+   * @RequestPart("image") MultipartFile image
+   */
+  updateProductWithFile(id: number, product: Product, imageFile: File): Observable<Product> {
+    const { idProduct, ...productData } = product;
+    
+    const formData = new FormData();
+    
+    // Append product as JSON string in "product" part
+    // Spring Boot @RequestPart("product") will deserialize this JSON
+    formData.append(
+      'product',
+      new Blob([JSON.stringify(productData)], { type: 'application/json' })
+    );
+    
+    // Append the image file in "image" part
+    // Spring Boot @RequestPart("image") will bind this to MultipartFile
+    formData.append('image', imageFile, imageFile.name);
+    
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'updateProduct', id.toString());
+    console.log(`[ProductService] PUT ${url} (multipart with @RequestPart):`, {
+      productData,
+      fileName: imageFile.name,
+      fileSize: imageFile.size
+    });
+    
+    // Don't set Content-Type header - let browser set it with boundary
+    // This is CRITICAL for Spring Boot @RequestPart to work correctly
+    return this.http.put<Product>(
+      url,
+      formData
+    ).pipe(
+      tap(response => {
+        console.log('[ProductService] ✅ Product updated with image:', response);
+      }),
+      catchError(error => {
+        console.error(`[ProductService] ❌ Error updating product ${id} with file:`, error);
+        this.logErrorDetails(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
    * DELETE - Delete product by ID
+   * DELETE /api/products/deleteProduct/{id}
    */
   deleteProduct(id: number): Observable<void> {
-    console.log(`[ProductService] DELETE /api/products/deleteProduct/${id}`);
-    return this.http.delete<void>(`${this.baseUrl}/deleteProduct/${id}`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'products', 'deleteProduct', id.toString());
+    console.log(`[ProductService] DELETE ${url}`);
+    return this.http.delete<void>(url).pipe(
       tap(() => {
         console.log(`[ProductService] ✅ Product ${id} deleted`);
       }),

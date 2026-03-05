@@ -1,0 +1,214 @@
+<div class="delivery-management-container">
+  <app-admin-page-shell
+    [title]="'Deliveries'"
+    [addLabel]="'+ Add Delivery'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search by tracking number, status, address...'"
+    [filters]="filters()"
+    (add)="openAddForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadDeliveries()">Retry</button>
+      </div>
+    }
+
+    @if (loading() && !showForm()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading deliveries...</p>
+      </div>
+    }
+
+    @if (!loading() && displayedDeliveries().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Tracking Number</th>
+              <th>Order</th>
+              <th>Delivery Address</th>
+              <th>Status</th>
+              <th>Delivery Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (delivery of displayedDeliveries(); track delivery.idDelivery || $index) {
+              <tr>
+                <td><span class="tracking-number">{{ delivery.trackingNumber || 'N/A' }}</span></td>
+                <td>{{ getOrderInfo(delivery.order?.idOrder) }}</td>
+                <td>{{ delivery.deliveryAddress }}</td>
+                <td><span class="badge">{{ delivery.deliveryStatus }}</span></td>
+                <td>{{ formatDate(delivery.deliveryDate) }}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-outline btn-update" type="button" (click)="openEditForm(delivery)">Update</button>
+                    <button class="btn-outline btn-delete" type="button" (click)="confirmDelete(delivery.idDelivery!)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!loading() && displayedDeliveries().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">🚚</div>
+        <h3>No Deliveries Found</h3>
+        <p>Start by creating your first delivery.</p>
+      </div>
+    }
+  </app-admin-page-shell>
+
+  <!-- Delivery Form Modal -->
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditMode() ? 'Edit Delivery' : 'Add New Delivery' }}</h2>
+          <button class="btn-close" (click)="closeForm()">✕</button>
+        </div>
+
+        <form class="delivery-form" (ngSubmit)="saveDelivery()">
+          <!-- Tracking Number (Read-only in edit mode) -->
+          @if (isEditMode() && currentDelivery().trackingNumber) {
+            <div class="form-group">
+              <label for="trackingNumber">Tracking Number</label>
+              <input
+                id="trackingNumber"
+                type="text"
+                class="form-control"
+                [value]="currentDelivery().trackingNumber"
+                disabled
+              />
+              <small class="form-text text-muted">Generated automatically by system</small>
+            </div>
+          }
+
+          <!-- Order Selection -->
+          <div class="form-group">
+            <label for="orderId">Order *</label>
+            @if (orders().length > 0) {
+              <select
+                id="orderId"
+                class="form-control"
+                [value]="currentDelivery().order?.idOrder || 0"
+                (change)="updateOrderId(+$any($event.target).value)"
+                [disabled]="isEditMode()"
+                required
+              >
+                <option value="0">-- Select an Order --</option>
+                @for (order of orders(); track order.idOrder) {
+                  <option [value]="order.idOrder">
+                    Order #{{ order.idOrder }} - {{ order.productName || order.product?.name || 'Unknown Product' }} ({{ order.status }})
+                  </option>
+                }
+              </select>
+            } @else {
+              <input
+                id="orderId"
+                type="number"
+                class="form-control"
+                [value]="currentDelivery().order?.idOrder || 0"
+                (input)="updateOrderId(+$any($event.target).value)"
+                [disabled]="isEditMode()"
+                placeholder="Enter order ID"
+                required
+              />
+              <small class="form-text text-muted">Orders not loaded. Enter Order ID manually.</small>
+            }
+            @if (isEditMode()) {
+              <small class="form-text text-muted">Order cannot be changed after creation</small>
+            }
+          </div>
+
+          <!-- Delivery Address -->
+          <div class="form-group">
+            <label for="deliveryAddress">Delivery Address *</label>
+            <textarea
+              id="deliveryAddress"
+              class="form-control"
+              rows="3"
+              [value]="currentDelivery().deliveryAddress"
+              (input)="updateField('deliveryAddress', $any($event.target).value)"
+              placeholder="Enter delivery address"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Delivery Status -->
+          <div class="form-group">
+            <label for="deliveryStatus">Delivery Status *</label>
+            <select
+              id="deliveryStatus"
+              class="form-control"
+              [value]="currentDelivery().deliveryStatus"
+              (change)="updateField('deliveryStatus', $any($event.target).value)"
+              required
+            >
+              @for (status of statusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Delivery Date -->
+          <div class="form-group">
+            <label for="deliveryDate">Delivery Date (optional)</label>
+            <input
+              id="deliveryDate"
+              type="date"
+              class="form-control"
+              [value]="currentDelivery().deliveryDate"
+              (input)="updateField('deliveryDate', $any($event.target).value)"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="loading()">
+              {{ isEditMode() ? 'Update Delivery' : 'Create Delivery' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteConfirm()) {
+    <div class="modal-overlay" (click)="cancelDelete()">
+      <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Confirm Delete</h2>
+          <button class="btn-close" (click)="cancelDelete()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this delivery?</p>
+          <p class="text-muted">This action cannot be undone.</p>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="deleteDelivery()" [disabled]="loading()">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

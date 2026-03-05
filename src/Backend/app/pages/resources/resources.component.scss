@@ -1,40 +1,48 @@
+@import '../../styles/admin-shared';
+
+/* ============================================
+   RESOURCES - SPECIFIC STYLES
+   Extends shared admin styles
+   ============================================ */
+
 .resources-container {
-  min-height: 100vh;
-  background: #f9fafb;
+  @extend .management-container;
 }
 
-.navigation-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: white;
-  border-bottom: 2px solid #e5e7eb;
-  padding: 0 2rem;
+.content-wrapper {
+  @extend .content-wrapper;
 }
 
-.nav-tab {
-  padding: 1rem 1.5rem;
+/* Resource-specific additions */
+.resource-type {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  
+  &.book {
+    color: #2d6460;
+  }
+  
+  &.pdf {
+    color: #d97706;
+  }
+  
+  &.ebook {
+    color: #10b981;
+  }
+  
+  &.mp3 {
+    color: #3b82f6;
+  }
+}
+
+.resource-file-link {
+  color: #2d6460;
   text-decoration: none;
-  color: #6b7280;
   font-weight: 500;
-  font-size: 0.95rem;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  cursor: pointer;
-  position: relative;
-  top: 2px;
-}
-
-.nav-tab:hover {
-  color: #3b82f6;
-  background: #f9fafb;
-}
-
-.nav-tab.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-  font-weight: 600;
-}
-
-.tab-content {
-  padding: 0;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 }

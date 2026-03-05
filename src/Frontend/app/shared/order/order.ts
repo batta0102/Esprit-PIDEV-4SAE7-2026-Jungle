@@ -23,6 +23,8 @@ export interface OrderProduct {
  * - orderDate: LocalDateTime
  * - paymentMethod: String
  * - product: Product (contains idProduct)
+ * - address: String (delivery address)
+ * - productName: String (optional, direct product name from API)
  */
 export interface Order {
   idOrder?: number;
@@ -31,6 +33,8 @@ export interface Order {
   status: string;
   orderDate?: string | Date;
   paymentMethod: string;
+  address?: string;
+  productName?: string;
 }
 
 /**

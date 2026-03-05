@@ -21,9 +21,10 @@ export class LoginPage {
 
     try {
       await this.auth.login();
-    } catch {
-      this.error.set('Login failed. Please try again.');
-      this.busy.set(false);
-    }
+   } catch (e: any) {
+  console.error(e);
+  this.error.set(String(e?.message ?? e));
+  this.busy.set(false);
+}
   }
 }

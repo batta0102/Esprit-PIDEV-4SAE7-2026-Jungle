@@ -1,9 +1,12 @@
 <div class="container">
-  <header class="lib-header" aria-label="Breadcrumb">
+   <header class="lib-header" aria-label="Breadcrumb">
     <div class="crumb">
-      <a routerLink="/front" class="breadcrumb-link">Home</a>
+      <span class="muted">Home</span>
       <span class="muted">›</span>
-      <a routerLink="/front/products" class="breadcrumb-link active">Products</a>
+      <a routerLink="/front/library" class="breadcrumb-link">Library</a>
+      <span class="muted">›</span>
+      <a routerLink="/front/products" class="breadcrumb-link">Product</a>
+
     </div>
   </header>
 
@@ -25,15 +28,15 @@
               </label>
               <label class="check">
                 <input type="checkbox" disabled />
-                <span>Under $25</span>
+                <span>Under 25DT</span>
               </label>
               <label class="check">
                 <input type="checkbox" disabled />
-                <span>$25 - $50</span>
+                <span>25DT - 50DT</span>
               </label>
               <label class="check">
                 <input type="checkbox" disabled />
-                <span>Over $50</span>
+                <span>Over 50DT</span>
               </label>
             </div>
           </details>
@@ -61,7 +64,63 @@
     </aside>
 
     <section class="results" aria-label="Products">
+      <!-- Recommended for You Section -->
+      @if (recommendations().length > 0 || isLoadingRecommendations()) {
+        <div class="recommendations-section">
+          <div class="section-header">
+            <h2 class="section-title">Recommended for you</h2>
+          </div>
+
+          @if (isLoadingRecommendations()) {
+            <div class="loading-spinner">
+              <div class="spinner"></div>
+              <span class="muted">Loading recommendations...</span>
+            </div>
+          } @else if (recommendationsError()) {
+            <div class="error-message">
+              <span>⚠️ {{ recommendationsError() }}</span>
+            </div>
+          } @else if (recommendations().length > 0) {
+            <div class="recommendations-grid">
+              @for (rec of recommendations(); track trackRecommendationId($index, rec)) {
+                <article class="recommendation-card card">
+                  <div class="rec-media">
+                    <div class="rec-placeholder">📦</div>
+                  </div>
+                  <div class="card-body rec-body">
+                    <div class="rec-title">{{ rec.title }}</div>
+                    <div class="rec-category badge">{{ rec.category }}</div>
+                    
+                    <div class="rec-meta">
+                      <div class="rec-rating">
+                        <span class="stars" [attr.aria-label]="recommendationStarsLabel(rec.avgRating)">
+                          ★ {{ rec.avgRating.toFixed(1) }}
+                        </span>
+                        <span class="muted">({{ rec.ratingCount }} reviews)</span>
+                      </div>
+                      <div class="muted rec-orders">Orders: {{ rec.ordersCount }}</div>
+                    </div>
+
+                    <div class="rec-score">
+                      <span class="score-label">Score:</span>
+                      <span class="score-value">{{ rec.score.toFixed(2) }}</span>
+                    </div>
+
+                    <div class="rec-actions">
+                      <button class="btn btn-primary" type="button">View Product</button>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <div class="topbar">
+
+          
+
         <div class="search" aria-label="Search products">
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input
@@ -84,6 +143,33 @@
         </label>
       </div>
 
+      <div class="search" aria-label="Search delivery">
+  <span class="search-icon" aria-hidden="true">⌕</span>
+  <input
+    class="search-input"
+    type="search"
+    placeholder="Enter tracking number..."
+    [ngModel]="trackingQuery()"
+    (ngModelChange)="trackingQuery.set($event)"
+    aria-label="Search delivery"
+  />
+  <button class="btn btn-primary" type="button" (click)="searchDelivery()">Search</button>
+</div>
+
+<div *ngIf="deliveryResult() as delivery" class="card delivery-card">
+  <div class="card-body">
+    <h3>Delivery Status</h3>
+    <p><strong>Tracking Number:</strong> {{ delivery.trackingNumber }}</p>
+    <p><strong>Status:</strong> {{ delivery.deliveryStatus }}</p>
+    <p><strong>Date:</strong> {{ delivery.deliveryDate }}</p>
+  </div>
+</div>
+
+<div *ngIf="!deliveryResult() && trackingQuery()">
+  <p class="muted">No delivery found for tracking number {{ trackingQuery() }}</p>
+</div>
+
+
       @if (orderSuccessMessage()) {
         <div class="alert-success-banner">
           <span class="alert-icon">✓</span>
@@ -96,10 +182,10 @@
           @for (prod of pagedProducts(); track trackProductId($index, prod)) {
             <article class="card prod-card">
               <div class="prod-media">
-                <img class="prod-img" [ngSrc]="prod.imageUrl" width="320" height="170" alt="" />
+                <img class="prod-img" [ngSrc]="getImageUrl(prod.imageUrl)" width="320" height="170" alt="" />
 
                 @if (prod.price > 0) {
-                  <div class="price-badge">{{ prod.price | currency }}</div>
+                  <div class="price-badge">{{ prod.price | currency }} DT</div>
                 }
               </div>
 

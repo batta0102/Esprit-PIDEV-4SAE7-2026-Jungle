@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../../Frontend/app/environments/environment';
+import { buildApiUrl } from '../../../Frontend/app/shared/utils/url.helper';
 
 /**
  * Product Reference Interface
@@ -23,6 +25,8 @@ export interface OrderProduct {
  * - orderDate: LocalDateTime
  * - paymentMethod: String
  * - product: Product (contains idProduct)
+ * - address: String (delivery address)
+ *  - productName: String (optional, direct product name from API)
  */
 export interface Order {
   idOrder?: number;
@@ -31,38 +35,29 @@ export interface Order {
   status: string;
   orderDate?: string | Date;
   paymentMethod: string;
+  address?: string;
+  productName?: string;
 }
 
 /**
  * Order Service for Backend Admin
- * Handles all order-related API calls to API Gateway
- * Uses proxy /api -> http://localhost:8085
- * Base URL: /api/orders
+ * Handles all order-related API calls through API Gateway
+ * Routes all requests to: http://localhost:8085
  */
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
   private http = inject(HttpClient);
-  private baseUrl = '/api/orders';
-
-  /**
-   * HTTP Headers for JSON requests
-   */
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    })
-  };
 
   /**
    * Get all orders
-   * @returns Observable<Order[]>
+   * GET /api/orders/allOrders
    */
   getAllOrders(): Observable<Order[]> {
-    console.log('[OrderService] GET /api/orders/allOrders');
-    return this.http.get<Order[]>(`${this.baseUrl}/allOrders`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'orders', 'allOrders');
+    console.log('[OrderService] GET', url);
+    return this.http.get<Order[]>(url).pipe(
       tap(orders => {
         console.log(`[OrderService] ✅ Loaded ${orders.length} orders`);
       }),
@@ -76,12 +71,12 @@ export class OrderService {
 
   /**
    * Get a single order by ID
-   * @param id - Order ID
-   * @returns Observable<Order>
+   * GET /api/orders/getOrder/{id}
    */
   getOrderById(id: number): Observable<Order> {
-    console.log(`[OrderService] GET /api/orders/getOrder/${id}`);
-    return this.http.get<Order>(`${this.baseUrl}/getOrder/${id}`).pipe(
+    const url = buildApiUrl(environment.apiBaseUrl, 'orders', 'getOrder', id.toString());
+    console.log(`[OrderService] GET ${url}`);
+    return this.http.get<Order>(url).pipe(
       tap(order => console.log('[OrderService] ✅ Loaded order:', order)),
       catchError(error => {
         console.error(`[OrderService] ❌ Error loading order ${id}:`, error);
@@ -100,12 +95,12 @@ export class OrderService {
     // Remove idOrder for new orders to avoid issues
     const { idOrder, ...orderData } = order;
     
-    console.log('[OrderService] POST /api/orders/addOrder', orderData);
+    const url = buildApiUrl(environment.apiBaseUrl, 'orders', 'addOrder');
+    console.log('[OrderService] POST', url, orderData);
     
     return this.http.post<Order>(
-      `${this.baseUrl}/addOrder`,
-      orderData,
-      this.httpOptions
+      url,
+      orderData
     ).pipe(
       tap(response => {
         console.log('[OrderService] ✅ Order added successfully:', response);
@@ -162,12 +157,12 @@ export class OrderService {
    * @returns Observable<Order>
    */
   updateOrder(id: number, order: Order): Observable<Order> {
-    console.log(`[OrderService] PUT /api/orders/updateOrder/${id}`, order);
+    const url = buildApiUrl(environment.apiBaseUrl, 'orders', 'updateOrder', id.toString());
+    console.log(`[OrderService] PUT ${url}`, order);
     
     return this.http.put<Order>(
-      `${this.baseUrl}/updateOrder/${id}`,
-      order,
-      this.httpOptions
+      url,
+      order
     ).pipe(
       tap(response => {
         console.log('[OrderService] ✅ Order updated successfully:', response);
@@ -186,15 +181,10 @@ export class OrderService {
    * @returns Observable<any>
    */
   deleteOrder(id: number): Observable<any> {
-    console.log(`[OrderService] DELETE /api/orders/deleteOrder/${id}`);
+    const url = buildApiUrl(environment.apiBaseUrl, 'orders', 'deleteOrder', id.toString());
+    console.log(`[OrderService] DELETE ${url}`);
     
-    const deleteOptions = {
-      headers: new HttpHeaders({
-        'Accept': 'application/json, text/plain, */*'
-      })
-    };
-    
-    return this.http.delete<any>(`${this.baseUrl}/deleteOrder/${id}`, deleteOptions).pipe(
+    return this.http.delete<any>(url).pipe(
       tap((response: any) => {
         console.log(`[OrderService] ✅ Order ${id} deleted successfully`);
       }),

@@ -1,88 +1,133 @@
 <div class="resource-list-container">
-  <div class="list-header">
-    <h1>Resources Management</h1>
-    <a routerLink="/back/resources/create" class="btn btn-primary">
-      + Add New Resource
-    </a>
-  </div>
+  <app-admin-page-shell
+    [title]="'Resources'"
+    [addLabel]="'+ Add Resource'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search title, type, description...'"
+    [filters]="filters()"
+    (add)="openCreateForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (loading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading resources...</p>
+      </div>
+    }
 
-  @if (loading()) {
-    <div class="loading-container">
-      <p>Loading resources...</p>
-    </div>
-  }
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadResources()">Retry</button>
+      </div>
+    }
 
-  @if (error()) {
-    <div class="alert alert-danger">
-      <strong>Error:</strong> {{ error() }}
-      <button (click)="loadResources()" class="btn btn-sm btn-secondary">
-        Retry
-      </button>
-    </div>
-  }
-
-  @if (!loading() && resources().length > 0) {
-    <div class="table-responsive">
-      <table class="resource-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>File URL</th>
-            <th>Upload Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (resource of resources(); let i = $index; track i) {
-            <tr class="resource-row">
-              <td class="title-cell">
-                <span class="type-icon">{{ getTypeIcon(resource.type) }}</span>
-                {{ resource.title }}
-              </td>
-              <td>{{ resource.type }}</td>
-              <td>{{ resource.description }}</td>
-              <td>
-                @if (resource.fileUrl) {
-                  <a [href]="resource.fileUrl" target="_blank" class="file-link">📎 File</a>
-                } @else {
-                  <span class="text-muted">—</span>
-                }
-              </td>
-              <td>{{ resource.uploadDate | date: 'short' }}</td>
-              <td class="actions-cell">
-                <a [routerLink]="['/back/resources', getResourceId(resource), 'edit']" 
-                   class="btn btn-sm btn-info"
-                   [style.opacity]="!getResourceId(resource) ? '0.5' : '1'">
-                  Edit
-                </a>
-                <button (click)="deleteResource(getResourceId(resource))" 
-                        [disabled]="!getResourceId(resource)"
-                        [title]="getResourceId(resource) ? 'Delete this resource' : 'Cannot delete: ID is missing'"
-                        class="btn btn-sm btn-danger">
-                  Delete
-                </button>
-                <a [routerLink]="['/back/resource-reviews', getResourceId(resource)]" 
-                   class="btn btn-sm btn-success"
-                   [style.opacity]="!getResourceId(resource) ? '0.5' : '1'"
-                   [title]="getResourceId(resource) ? 'View and manage reviews' : 'Cannot view reviews: ID is missing'">
-                  Check Reviews
-                </a>
-              </td>
+    @if (!loading() && displayedResources().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>File URL</th>
+              <th>Upload Date</th>
+              <th>Actions</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
+          </thead>
+          <tbody>
+            @for (resource of displayedResources(); let i = $index; track i) {
+              <tr>
+                <td>
+                  <span class="type-icon">{{ getTypeIcon(resource.type) }}</span>
+                  {{ resource.title }}
+                </td>
+                <td><span class="badge">{{ resource.type }}</span></td>
+                <td>{{ resource.description }}</td>
+                <td>
+                  @if (resource.fileUrl) {
+                    <a [href]="resource.fileUrl" target="_blank" class="file-link">Open File</a>
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td>{{ resource.uploadDate | date: 'short' }}</td>
+                <td>
+                  <div class="actions">
+                    <a [routerLink]="['/back/resources', getResourceId(resource), 'edit']" class="btn-outline btn-update">Update</a>
+                    <button class="btn-outline btn-delete" type="button" (click)="deleteResource(getResourceId(resource))" [disabled]="!getResourceId(resource)">Delete</button>
+                    <a [routerLink]="['/back/resource-reviews', getResourceId(resource)]" class="btn-outline">Reviews</a>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-  @if (!loading() && resources().length === 0 && !error()) {
-    <div class="empty-state">
-      <p>No resources found</p>
-      <a routerLink="/back/resources/create" class="btn btn-primary">
-        Create First Resource
-      </a>
+    @if (!loading() && displayedResources().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>No Resources Found</h3>
+        <p>Create your first resource to get started.</p>
+      </div>
+    }
+  </app-admin-page-shell>
+
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Add New Resource</h2>
+          <button class="btn-close" type="button" (click)="closeCreateForm()">✕</button>
+        </div>
+
+        <form class="resource-form" [formGroup]="createForm" (ngSubmit)="submitCreateForm()">
+          <div class="form-group">
+            <label for="resource-title">Title *</label>
+            <input id="resource-title" class="form-control" type="text" formControlName="title" placeholder="Enter resource title" />
+            @if (fieldError('title')) {
+              <small class="field-error">{{ fieldError('title') }}</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="resource-type">Type *</label>
+            <select id="resource-type" class="form-control" formControlName="type">
+              @for (type of resourceTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+            @if (fieldError('type')) {
+              <small class="field-error">{{ fieldError('type') }}</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="resource-description">Description *</label>
+            <textarea id="resource-description" class="form-control" rows="4" formControlName="description" placeholder="Enter resource description"></textarea>
+            @if (fieldError('description')) {
+              <small class="field-error">{{ fieldError('description') }}</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="resource-file">File URL (optional)</label>
+            <input id="resource-file" class="form-control" type="url" formControlName="fileUrl" placeholder="https://example.com/file.pdf" />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn" type="button" (click)="closeCreateForm()">Cancel</button>
+            <button class="btn btn-primary" type="submit" [disabled]="loading()">Create Resource</button>
+          </div>
+        </form>
+      </div>
     </div>
   }
 </div>

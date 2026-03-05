@@ -32,7 +32,8 @@
     "@angular/ssr": "^21.1.4",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.3",
-    "keycloak-js": "^26.0.0",
+    "keycloak-angular": "^21.0.0",
+    "keycloak-js": "^26.2.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

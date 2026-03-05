@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../Frontend/app/environments/environment';
+import { buildApiUrl } from '../../../Frontend/app/shared/utils/url.helper';
 
 export interface Review {
   idReview?: number;
@@ -12,59 +14,58 @@ export interface Review {
 }
 
 /**
- * Review Service
- * Handles all review-related API calls to Spring Boot backend
- * Base URL: http://localhost:8089/reviews
+ * Review Service - Backend Admin
+ * Handles all review-related API calls through API Gateway
+ * Routes all requests through: http://localhost:8085
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ReviewService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8089/reviews';
 
   /**
    * Get all reviews for a specific resource
-   * @param resourceId - The resource ID
-   * @returns Observable<Review[]>
+   * GET /api/reviews/getReviewsByResource/{resourceId}
    */
   getReviewsByResource(resourceId: number): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.baseUrl}/getReviewsByResource/${resourceId}`);
+    const url = buildApiUrl(environment.apiBaseUrl, 'reviews', 'getReviewsByResource', resourceId.toString());
+    return this.http.get<Review[]>(url);
   }
 
   /**
    * Get all reviews (admin/management use)
-   * @returns Observable<Review[]>
+   * GET /api/reviews/getAllReviews
    */
   getAllReviews(): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.baseUrl}/getAllReviews`);
+    const url = buildApiUrl(environment.apiBaseUrl, 'reviews', 'getAllReviews');
+    return this.http.get<Review[]>(url);
   }
 
   /**
    * Add a new review
-   * @param review - The review payload
-   * @returns Observable<Review>
+   * POST /api/reviews/addReview
    */
   addReview(review: Review): Observable<Review> {
-    return this.http.post<Review>(`${this.baseUrl}/addReview`, review);
+    const url = buildApiUrl(environment.apiBaseUrl, 'reviews', 'addReview');
+    return this.http.post<Review>(url, review);
   }
 
   /**
    * Update an existing review
-   * @param reviewId - The review ID
-   * @param review - The updated review payload
-   * @returns Observable<Review>
+   * PUT /api/reviews/updateReview/{reviewId}
    */
   updateReview(reviewId: number, review: Review): Observable<Review> {
-    return this.http.put<Review>(`${this.baseUrl}/updateReview/${reviewId}`, review);
+    const url = buildApiUrl(environment.apiBaseUrl, 'reviews', 'updateReview', reviewId.toString());
+    return this.http.put<Review>(url, review);
   }
 
   /**
    * Delete a review
-   * @param reviewId - The review ID
-   * @returns Observable<void>
+   * DELETE /api/reviews/deleteReview/{reviewId}
    */
   deleteReview(reviewId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/deleteReview/${reviewId}`);
+    const url = buildApiUrl(environment.apiBaseUrl, 'reviews', 'deleteReview', reviewId.toString());
+    return this.http.delete<void>(url);
   }
 }
