@@ -1,56 +1,140 @@
-# JungleInEnglish
+Jungle In English – English Learning Platform
+Overview
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+Jungle In English is an interactive web platform designed to help students improve their English skills through structured courses, educational resources, games, and community activities.
 
-## Development server
+The platform offers a modern digital learning environment where students can access lessons, participate in clubs and events, take quizzes, and track their progress.
 
-To start a local development server, run:
+This project was developed as part of the PIDEV – 3rd Year Engineering Program at Esprit School of Engineering (Academic Year 2025–2026).
 
-```bash
-ng serve
-```
+Features
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The platform includes several modules designed to enhance the learning experience:
 
-## Code scaffolding
+Course Management
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Create and manage English courses
 
-```bash
-ng generate component component-name
-```
+Manage course sessions
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Assign tutors and students to courses
 
-```bash
-ng generate --help
-```
+Publish learning materials
 
-## Building
+Clubs Management
 
-To build the project run:
+Creation and management of language clubs
 
-```bash
-ng build
-```
+Student registration in clubs
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Club activity management
 
-## Running unit tests
+Events Management
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Organization of workshops and cultural events
 
-```bash
-ng test
-```
+Event registration and participation
 
-## Running end-to-end tests
+Event calendar
 
-For end-to-end (e2e) testing, run:
+QCM & Evaluations
 
-```bash
-ng e2e
-```
+Creation of quizzes and tests
+
+Automatic correction and scoring
+
+Viewing results and statistics
+
+Resources & Media Library
+
+Access to educational resources (PDFs, videos, audio, articles)
+
+Classification by level and topic
+
+Online consultation and download
+
+Educational Games
+
+Interactive games for vocabulary and grammar
+
+Gamification system (scores and progression)
+
+Notifications System
+
+Notifications for courses, events, clubs, and resources
+
+Updates and reminders for users
+
+Tech Stack
+Frontend
+
+Angular
+
+HTML5
+
+CSS3
+
+TypeScript
+
+Backend
+
+Spring Boot
+
+Spring Security
+
+REST APIs
+
+Microservices Architecture
+
+MySQL / PostgreSQL
+
+DevOps
+
+Docker
+
+CI/CD Pipeline
+
+GitHub
+
+Architecture
+
+The project follows a microservices architecture, where each module operates as an independent service communicating through REST APIs.
+
+Main components:
+
+Frontend Application (Angular)
+
+Backend Services (Spring Boot Microservices)
+
+Authentication and Authorization with Spring Security
+
+Database Layer
+
+CI/CD Pipeline for automated build and deployment
+
+Contributors
+
+Project developed by students of Esprit School of Engineering:
+
+Yasmine – Course Management Module
+
+Achkinez – Clubs Management Module
+
+Baya – Events Management Module
+
+Amal – QCM & Evaluation Module
+
+Haama – Resources & Media Library Module
+
+Majd – Games & Learning Fun Module
+
+Academic Context
+
+Developed at Esprit School of Engineering – Tunisia
+PIDEV – 3A Engineering Program
+Academic Year 2025–2026
+
+This project is part of the Practical Individual Development Project (PIDEV) where students design and implement a full-stack software solution using modern technologies and DevOps practices.
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
