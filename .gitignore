@@ -17,4 +17,5 @@ target/
 
 # OS
 .DS_Store
-Thumbs.db
+Thumbs.dbressources.iml
+HELP.md
