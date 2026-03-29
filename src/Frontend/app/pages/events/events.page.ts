@@ -27,6 +27,8 @@ export class EventsPage {
   readonly query = signal('');
   readonly filter = signal<EventsFilter>('all');
   readonly selectedEventId = signal<string | null>(null);
+  readonly page = signal(1);
+  readonly pageSize = 6;
 
   readonly filters: Array<{ key: EventsFilter; label: string }> = [
     { key: 'all', label: 'All' },
@@ -67,6 +69,16 @@ export class EventsPage {
     return filtered.sort((a, b) => a.event.date.localeCompare(b.event.date));
   });
 
+  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.eventRows().length / this.pageSize)));
+
+  readonly pagedEvents = computed(() => {
+    const p = Math.min(this.page(), this.pageCount());
+    const start = (p - 1) * this.pageSize;
+    return this.eventRows().slice(start, start + this.pageSize);
+  });
+
+  readonly pagesArray = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
+
   readonly selectedRow = computed(() => {
     const rows = this.eventRows();
     if (rows.length === 0) return null;
@@ -78,6 +90,7 @@ export class EventsPage {
   setFilter(key: EventsFilter): void {
     this.filter.set(key);
     this.selectedEventId.set(null);
+    this.page.set(1);
   }
 
   selectEvent(eventId: string): void {
@@ -109,6 +122,10 @@ export class EventsPage {
   }
 
   trackEventId = (_: number, row: { event: EventModel }): string => row.event.id;
+
+  setPage(p: number): void { this.page.set(Math.min(Math.max(1, p), this.pageCount())); }
+  prevPage(): void { this.setPage(this.page() - 1); }
+  nextPage(): void { this.setPage(this.page() + 1); }
 
   private isOnline(e: EventModel): boolean {
     return e.location.toLowerCase().includes('online');

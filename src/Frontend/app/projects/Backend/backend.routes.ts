@@ -36,9 +36,14 @@ export const backendRoutes: Routes = [
         loadComponent: () => import('@backend/pages/resources/resources.component').then(m => m.ResourcesComponent)
       },
       {
-        path: 'games',
-        title: 'Backend - Games',
+        path: 'gamification',
+        title: 'Backend - Gamification',
         loadComponent: () => import('@backend/pages/games/games.component').then(m => m.GamesComponent)
+      },
+      {
+        path: 'crosswords',
+        title: 'Backend - Crosswords',
+        loadComponent: () => import('@backend/pages/crosswords/crosswords.component').then(m => m.CrosswordsComponent)
       },
       {
         path: 'notifications',

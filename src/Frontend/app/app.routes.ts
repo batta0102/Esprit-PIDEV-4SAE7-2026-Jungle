@@ -90,6 +90,16 @@ export const routes: Routes = [
 		loadComponent: () => import('./pages/gamification/gamification.page').then((m) => m.GamificationPage)
 	},
 	{
+		path: 'ai-practice',
+		title: 'AI Practice | Jungle in English',
+		loadComponent: () => import('./pages/ai-practice/ai-practice.page').then((m) => m.AiPracticePage)
+	},
+	{
+		path: 'games/crossword',
+		title: 'Crossword | Jungle in English',
+		loadComponent: () => import('./pages/crossword/crossword.page').then((m) => m.CrosswordPage)
+	},
+	{
 		path: 'profile',
 		redirectTo: 'profile/student',
 		pathMatch: 'full'

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppBadgeComponent } from '../../components/ui/badge.component';
@@ -24,6 +24,8 @@ export class ResourcesComponent {
   searchQuery = '';
   selectedTypes: ('PDF' | 'Video' | 'Audio')[] = [];
   selectedLevels: string[] = [];
+  page = signal(1);
+  readonly pageSize = 6;
 
   resources: Resource[] = [
     {
@@ -71,6 +73,7 @@ export class ResourcesComponent {
     } else {
       this.selectedTypes.push(type);
     }
+    this.page.set(1);
   }
 
   toggleLevelFilter(level: string): void {
@@ -80,6 +83,7 @@ export class ResourcesComponent {
     } else {
       this.selectedLevels.push(level);
     }
+    this.page.set(1);
   }
 
   filteredResources(): Resource[] {
@@ -91,6 +95,32 @@ export class ResourcesComponent {
       return matchesSearch && matchesType && matchesLevel;
     });
   }
+
+  get pageCount(): number {
+    return Math.max(1, Math.ceil(this.filteredResources().length / this.pageSize));
+  }
+
+  get pagedResources(): Resource[] {
+    const p = Math.min(this.page(), this.pageCount);
+    const start = (p - 1) * this.pageSize;
+    return this.filteredResources().slice(start, start + this.pageSize);
+  }
+
+  get pagesArray(): number[] {
+    return Array.from({ length: this.pageCount }, (_, i) => i + 1);
+  }
+
+  onSearchChange(): void {
+    this.page.set(1);
+  }
+
+  onFilterChange(): void {
+    this.page.set(1);
+  }
+
+  setPage(p: number): void { this.page.set(Math.min(Math.max(1, p), this.pageCount)); }
+  prevPage(): void { this.setPage(this.page() - 1); }
+  nextPage(): void { this.setPage(this.page() + 1); }
 
   getIcon(type: string): string {
     switch (type) {

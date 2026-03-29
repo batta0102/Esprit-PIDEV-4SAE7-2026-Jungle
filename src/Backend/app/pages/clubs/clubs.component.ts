@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AppCardComponent } from '../../components/ui/card.component';
 import { AppEmptyStateComponent } from '../../components/ui/empty-state.component';
 import { ClubCardComponent } from '../../components/club-card/club-card.component';
@@ -7,7 +8,7 @@ import { ClubCardComponent } from '../../components/club-card/club-card.componen
 @Component({
   selector: 'app-clubs',
   standalone: true,
-  imports: [CommonModule, AppCardComponent, AppEmptyStateComponent, ClubCardComponent],
+  imports: [CommonModule, FormsModule, AppCardComponent, AppEmptyStateComponent, ClubCardComponent],
   templateUrl: './clubs.component.html',
   styleUrls: ['./clubs.component.scss']
 })
@@ -41,4 +42,35 @@ export class ClubsComponent {
     { title: 'Latin Roots', desc: 'Completed lesson 4.2', time: '2h ago' },
     { title: 'Phoneme Master', desc: 'Finished pronunciation drills', time: '5h ago' }
   ];
+
+  searchQuery = signal('');
+  page = signal(1);
+  readonly pageSize = 4;
+
+  filteredClubs = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.clubs;
+    return this.clubs.filter(c =>
+      c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.location.toLowerCase().includes(q)
+    );
+  });
+
+  pageCount = computed(() => Math.max(1, Math.ceil(this.filteredClubs().length / this.pageSize)));
+
+  pagedClubs = computed(() => {
+    const p = Math.min(this.page(), this.pageCount());
+    const start = (p - 1) * this.pageSize;
+    return this.filteredClubs().slice(start, start + this.pageSize);
+  });
+
+  pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.page.set(1);
+  }
+
+  setPage(p: number): void { this.page.set(Math.min(Math.max(1, p), this.pageCount())); }
+  prevPage(): void { this.setPage(this.page() - 1); }
+  nextPage(): void { this.setPage(this.page() + 1); }
 }

@@ -36,6 +36,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.3",
     "keycloak-js": "^26.0.0",
+    "lottie-web": "^5.13.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

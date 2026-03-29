@@ -7,6 +7,9 @@ import { AssessmentsComponent } from './pages/assessments/assessments.component'
 import { ResourcesComponent } from './pages/resources/resources.component';
 import { GamesComponent } from './pages/games/games.component';
 import { NotificationsComponent } from './pages/notifications/notifications.component';
+import { AvatarsComponent } from './pages/avatars/avatars.component';
+import { SkinsComponent } from './pages/skins/skins.component';
+import { CrosswordsComponent } from './pages/crosswords/crosswords.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -16,7 +19,10 @@ export const routes: Routes = [
   { path: 'events', component: EventsComponent },
   { path: 'assessments', component: AssessmentsComponent },
   { path: 'resources', component: ResourcesComponent },
-  { path: 'games', component: GamesComponent },
+  { path: 'gamification', component: GamesComponent },
+  { path: 'crosswords', component: CrosswordsComponent },
+  { path: 'avatars', component: AvatarsComponent },
+  { path: 'skins', component: SkinsComponent },
   { path: 'notifications', component: NotificationsComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];

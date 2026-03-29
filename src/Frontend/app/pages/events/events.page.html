@@ -36,7 +36,7 @@
   </nav>
 
   <section class="events-grid" aria-label="Upcoming events">
-    @for (row of eventRows(); track trackEventId($index, row)) {
+    @for (row of pagedEvents(); track trackEventId($index, row)) {
       <article class="card event-card" [class.selected]="selectedEventId() ? selectedEventId() === row.event.id : $index === 0">
         <button class="event-click" type="button" (click)="selectEvent(row.event.id)" aria-label="Open event details">
           <div class="event-media">
@@ -118,6 +118,17 @@
       </div>
     }
   </section>
+
+  <!-- Pagination -->
+  @if (pageCount() > 1) {
+    <nav class="pagination" aria-label="Pagination" style="margin-top: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+      <button class="btn" type="button" (click)="prevPage()" [disabled]="page() <= 1">‹</button>
+      @for (p of pagesArray(); track p) {
+        <button class="btn" type="button" [class.btn-primary]="p === page()" (click)="setPage(p)">{{ p }}</button>
+      }
+      <button class="btn" type="button" (click)="nextPage()" [disabled]="page() >= pageCount()">›</button>
+    </nav>
+  }
 
   @if (selectedRow(); as sel) {
     <section class="detail" aria-label="Event details">

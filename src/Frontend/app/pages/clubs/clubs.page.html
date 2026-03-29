@@ -7,6 +7,19 @@
     <p class="page-subtitle">Explore our clubs and take your English learning journey to the next level! 🚀</p>
   </header>
 
+  <!-- Search -->
+  <div class="search-bar" style="margin-bottom: 1rem;">
+    <input
+      class="search-input"
+      type="search"
+      placeholder="Search clubs by name or description..."
+      [ngModel]="query()"
+      (ngModelChange)="onSearch($event)"
+      aria-label="Search clubs"
+      style="width: 100%; max-width: 28rem; padding: 0.6rem 1rem; border: 1px solid #ddd; border-radius: 0.5rem;"
+    />
+  </div>
+
   <hr class="divider" />
 
   <section class="clubs-list" aria-label="Club list">

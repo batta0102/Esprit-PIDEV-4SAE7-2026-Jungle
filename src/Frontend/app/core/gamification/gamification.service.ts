@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
 import {
   AchievementModel,
@@ -9,9 +9,17 @@ import {
   LeaderboardPeriod
 } from './models';
 import { SAMPLE_BADGES, SAMPLE_CHALLENGES } from './sample-data';
+import { AuthService } from '../auth/auth.service';
 
+/** Type representing the completion state of tasks */
 type CompletionState = Record<string, true>;
 
+/**
+ * Safely reads and parses JSON from localStorage
+ * @param key - The localStorage key
+ * @param fallback - The fallback value if key doesn't exist or parsing fails
+ * @returns The parsed value or fallback
+ */
 function readJson<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -22,101 +30,191 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
+/**
+ * Safely writes JSON to localStorage
+ * @param key - The localStorage key
+ * @param value - The value to stringify and store
+ */
 function writeJson<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // ignore
+    // Silently ignore localStorage errors (e.g., quota exceeded)
   }
 }
 
+/** Returns today's date in ISO format (YYYY-MM-DD) */
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Returns yesterday's date in ISO format (YYYY-MM-DD) */
 function yesterdayIso(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Service managing gamification features including challenges, badges,
+ * XP tracking, achievements, and leaderboards.
+ */
 @Injectable({ providedIn: 'root' })
 export class GamificationService {
-  private readonly completionKey = 'jie-gami-completion-v1';
-  private readonly xpKey = 'jie-gami-xp-v1';
-  private readonly badgeKey = 'jie-gami-badges-v1';
-  private readonly activityKey = 'jie-gami-activity-v1';
+  private readonly auth = inject(AuthService);
 
+  // User-scoped localStorage key helpers
+  private get userId(): string {
+    return this.auth.currentUser()?.id ?? 'guest';
+  }
+  private get completionKey(): string { return `jie-gami-completion-v1-${this.userId}`; }
+  private get xpKey(): string { return `jie-gami-xp-v1-${this.userId}`; }
+  private get badgeKey(): string { return `jie-gami-badges-v1-${this.userId}`; }
+  private get activityKey(): string { return `jie-gami-activity-v1-${this.userId}`; }
+
+  // Signals for challenges and badges
   private readonly _challenges = signal<ChallengeModel[]>(SAMPLE_CHALLENGES);
   private readonly _badges = signal<BadgeModel[]>(SAMPLE_BADGES);
 
-  private readonly _completed = signal<CompletionState>(readJson<CompletionState>(this.completionKey, {}));
-  private readonly _xp = signal<number>(readJson<number>(this.xpKey, 0));
-  private readonly _earnedBadges = signal<Record<string, true>>(readJson(this.badgeKey, {} as Record<string, true>));
-  private readonly _activityDays = signal<Record<string, true>>(readJson(this.activityKey, {} as Record<string, true>));
+  // Signals for user progress state (loaded on init)
+  private readonly _completed = signal<CompletionState>({});
+  private readonly _xp = signal<number>(0);
+  private readonly _earnedBadges = signal<Record<string, true>>({});
+  private readonly _activityDays = signal<Record<string, true>>({});
 
+  /**
+   * Loads all gamification state for the currently authenticated user.
+   * Call this after authentication completes.
+   */
+  initForUser(): void {
+    this._completed.set(readJson<CompletionState>(this.completionKey, {}));
+    this._xp.set(readJson<number>(this.xpKey, 0));
+    this._earnedBadges.set(readJson(this.badgeKey, {} as Record<string, true>));
+    this._activityDays.set(readJson(this.activityKey, {} as Record<string, true>));
+  }
+
+  // Public readonly signals
   readonly challenges = this._challenges.asReadonly();
   readonly badges = this._badges.asReadonly();
   readonly completed = computed(() => this._completed());
   readonly xp = computed(() => this._xp());
 
+  // Badge-related computed values
   readonly earnedBadges = computed(() => Object.keys(this._earnedBadges()).sort());
   readonly earnedBadgeCount = computed(() => this.earnedBadges().length);
 
+  // Progress-related computed values
   readonly completedTasksCount = computed(() => Object.keys(this._completed()).length);
   readonly completedChallengesCount = computed(() =>
     this._challenges().filter((c) => this.getChallengeProgress(c.id).percent === 100).length
   );
 
+  // Level and XP computed values
   readonly level = computed(() => Math.floor(this._xp() / 500) + 1);
   readonly nextLevelAt = computed(() => this.level() * 500);
   readonly xpToNext = computed(() => Math.max(0, this.nextLevelAt() - this._xp()));
   readonly xpInLevel = computed(() => this._xp() - (this.level() - 1) * 500);
 
+  // Activity streak calculation
   readonly streakDays = computed(() => {
     const days = this._activityDays();
     const today = todayIso();
     const yesterday = yesterdayIso();
+    
+    // If no activity today or yesterday, streak is broken
     if (!days[today] && !days[yesterday]) return 0;
+    
     let streak = 0;
-    let cursor = new Date(today);
+    const cursor = new Date(today);
+    
+    // Count consecutive days backwards from today
     while (true) {
       const iso = cursor.toISOString().slice(0, 10);
       if (!days[iso]) break;
       streak += 1;
       cursor.setDate(cursor.getDate() - 1);
     }
+    
     return streak;
   });
 
+  /**
+   * Finds a challenge by its ID
+   * @param id - The challenge ID
+   * @returns The challenge model or undefined
+   */
   getChallengeById(id: string): ChallengeModel | undefined {
     return this._challenges().find((c) => c.id === id);
   }
 
+  /**
+   * Checks if a specific task is complete
+   * @param challengeId - The challenge ID
+   * @param sectionId - The section ID
+   * @param taskId - The task ID
+   * @returns True if the task is completed
+   */
   isTaskComplete(challengeId: string, sectionId: string, taskId: string): boolean {
     return Boolean(this._completed()[this.taskKey(challengeId, sectionId, taskId)]);
   }
 
+  /**
+   * Checks if a task is unlocked (available to complete)
+   * Tasks are typically unlocked sequentially within a challenge
+   * @param challengeId - The challenge ID
+   * @param sectionId - The section ID
+   * @param taskId - The task ID
+   * @returns True if the task is unlocked
+   */
   isTaskUnlocked(challengeId: string, sectionId: string, taskId: string): boolean {
     const challenge = this.getChallengeById(challengeId);
     if (!challenge) return false;
-    const linear = challenge.sections.flatMap((s) => s.tasks.map((t) => ({ sectionId: s.id, taskId: t.id })));
+    
+    // Flatten all tasks in linear order
+    const linear = challenge.sections.flatMap((s) => 
+      s.tasks.map((t) => ({ sectionId: s.id, taskId: t.id }))
+    );
+    
     const idx = linear.findIndex((x) => x.sectionId === sectionId && x.taskId === taskId);
+    
+    // First task is always unlocked
     if (idx <= 0) return true;
+    
+    // Check if previous task is completed
     const prev = linear[idx - 1];
     return this.isTaskComplete(challengeId, prev.sectionId, prev.taskId);
   }
 
+  /**
+   * Calculates the progress of a challenge
+   * @param challengeId - The challenge ID
+   * @returns Object with completed count, total count, and percentage
+   */
   getChallengeProgress(challengeId: string): { completed: number; total: number; percent: number } {
     const challenge = this.getChallengeById(challengeId);
     if (!challenge) return { completed: 0, total: 0, percent: 0 };
-    const allTasks = challenge.sections.flatMap((s) => s.tasks.map((t) => ({ sectionId: s.id, taskId: t.id })));
+    
+    const allTasks = challenge.sections.flatMap((s) => 
+      s.tasks.map((t) => ({ sectionId: s.id, taskId: t.id }))
+    );
+    
     const total = allTasks.length;
-    const completed = allTasks.filter((t) => this.isTaskComplete(challengeId, t.sectionId, t.taskId)).length;
+    const completed = allTasks.filter((t) => 
+      this.isTaskComplete(challengeId, t.sectionId, t.taskId)
+    ).length;
+    
     const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+    
     return { completed, total, percent };
   }
 
+  /**
+   * Marks a task as complete and processes all resulting gamification events
+   * @param challengeId - The challenge ID
+   * @param sectionId - The section ID
+   * @param taskId - The task ID
+   * @returns Array of gamification events triggered by completing this task
+   */
   completeTask(challengeId: string, sectionId: string, taskId: string): GamificationEvent[] {
     const challenge = this.getChallengeById(challengeId);
     if (!challenge) return [];
@@ -126,20 +224,79 @@ export class GamificationService {
     if (!section || !task) return [];
 
     const key = this.taskKey(challengeId, sectionId, taskId);
+    
+    // Check if already completed
     if (this._completed()[key]) return [];
+    
+    // Check if task is unlocked
     if (!this.isTaskUnlocked(challengeId, sectionId, taskId)) return [];
 
     const events: GamificationEvent[] = [];
     const beforeLevel = this.level();
 
+    // Mark task as complete
     this._completed.update((state) => {
       const next = { ...state, [key]: true } as CompletionState;
       writeJson(this.completionKey, next);
       return next;
     });
 
+    // Award XP
     this._xp.update((xp) => {
       const next = xp + task.xp;
+      writeJson(this.xpKey, next);
+      return next;
+    });
+
+    // Track daily activity
+    this._activityDays.update((days) => {
+      const next = { ...days, [todayIso()]: true } as Record<string, true>;
+      writeJson(this.activityKey, next);
+      return next;
+    });
+
+    events.push({ type: 'xp', delta: task.xp });
+
+    // Check for level up
+    const afterLevel = this.level();
+    if (afterLevel > beforeLevel) {
+      events.push({ type: 'levelUp', level: afterLevel });
+    }
+
+    // Check for challenge completion
+    const progress = this.getChallengeProgress(challengeId);
+    if (progress.percent === 100) {
+      events.push({ type: 'challengeCompleted', challengeId });
+      
+      // Award challenge badge if available
+      if (challenge.rewardBadgeId) {
+        const earned = this.tryEarnBadge(challenge.rewardBadgeId);
+        if (earned) {
+          events.push({ type: 'badgeEarned', badgeId: challenge.rewardBadgeId });
+        }
+      }
+    }
+
+    // Check global badge rules
+    this.checkGlobalBadges(events);
+
+    return events;
+  }
+
+  /**
+   * Awards XP directly (e.g. from games, AI scripts) without a challenge task.
+   * Also records daily activity.
+   * @param amount - The amount of XP to award
+   * @returns Array of gamification events triggered
+   */
+  awardXp(amount: number): GamificationEvent[] {
+    if (amount <= 0) return [];
+
+    const events: GamificationEvent[] = [];
+    const beforeLevel = this.level();
+
+    this._xp.update((xp) => {
+      const next = xp + amount;
       writeJson(this.xpKey, next);
       return next;
     });
@@ -150,46 +307,51 @@ export class GamificationService {
       return next;
     });
 
-    events.push({ type: 'xp', delta: task.xp });
+    events.push({ type: 'xp', delta: amount });
 
     const afterLevel = this.level();
     if (afterLevel > beforeLevel) {
       events.push({ type: 'levelUp', level: afterLevel });
     }
 
-    const progress = this.getChallengeProgress(challengeId);
-    if (progress.percent === 100) {
-      events.push({ type: 'challengeCompleted', challengeId });
-      if (challenge.rewardBadgeId) {
-        const earned = this.tryEarnBadge(challenge.rewardBadgeId);
-        if (earned) events.push({ type: 'badgeEarned', badgeId: challenge.rewardBadgeId });
-      }
-    }
+    this.checkGlobalBadges(events);
+    return events;
+  }
 
-    // Global badge rules
+  /**
+   * Checks and awards global badges based on overall progress
+   * @param events - Array to push new badge events into
+   */
+  private checkGlobalBadges(events: GamificationEvent[]): void {
+    // First steps badge
     if (this.completedTasksCount() === 1) {
       const earned = this.tryEarnBadge('b-first-steps');
       if (earned) events.push({ type: 'badgeEarned', badgeId: 'b-first-steps' });
     }
 
+    // Streak badge
     if (this.streakDays() >= 3) {
       const earned = this.tryEarnBadge('b-streak-3');
       if (earned) events.push({ type: 'badgeEarned', badgeId: 'b-streak-3' });
     }
 
+    // Quiz hunter badge
     if (this.countQuizTasksCompleted() >= 5) {
       const earned = this.tryEarnBadge('b-quiz-hunter');
       if (earned) events.push({ type: 'badgeEarned', badgeId: 'b-quiz-hunter' });
     }
-
-    return events;
   }
 
+  /**
+   * Gets all available achievements with current progress
+   * @returns Array of achievement models
+   */
   getAchievements(): AchievementModel[] {
     const completedTasks = this.completedTasksCount();
     const completedChallenges = this.completedChallengesCount();
     const quizTasks = this.countQuizTasksCompleted();
     const streak = this.streakDays();
+    
     return [
       {
         id: 'a-tasks',
@@ -222,6 +384,11 @@ export class GamificationService {
     ];
   }
 
+  /**
+   * Gets the leaderboard for a specific time period
+   * @param period - Time period ('week', 'month', or 'all')
+   * @returns Sorted array of leaderboard entries
+   */
   leaderboard(period: LeaderboardPeriod): LeaderboardEntry[] {
     const you: LeaderboardEntry = {
       id: 'you',
@@ -231,6 +398,7 @@ export class GamificationService {
       badges: this.earnedBadgeCount()
     };
 
+    // Sample leaderboard data based on period
     const base: LeaderboardEntry[] =
       period === 'week'
         ? [
@@ -253,37 +421,59 @@ export class GamificationService {
               { id: 'u4', name: 'Noah', xp: 11050, completedChallenges: 20, badges: 12 }
             ];
 
+    // Combine and sort by XP descending
     const all = [...base, you].sort((a, b) => b.xp - a.xp);
     return all;
   }
 
+  /**
+   * Creates a unique key for a task
+   * @param challengeId - The challenge ID
+   * @param sectionId - The section ID
+   * @param taskId - The task ID
+   * @returns Composite key string
+   */
   private taskKey(challengeId: string, sectionId: string, taskId: string): string {
     return `${challengeId}:${sectionId}:${taskId}`;
   }
 
+  /**
+   * Attempts to earn a badge
+   * @param badgeId - The badge ID to earn
+   * @returns True if badge was newly earned, false if already earned
+   */
   private tryEarnBadge(badgeId: string): boolean {
     if (this._earnedBadges()[badgeId]) return false;
+    
     this._earnedBadges.update((state) => {
       const next = { ...state, [badgeId]: true } as Record<string, true>;
       writeJson(this.badgeKey, next);
       return next;
     });
+    
     return true;
   }
 
+  /**
+   * Counts the number of quiz tasks completed
+   * @returns Count of completed quiz tasks
+   */
   private countQuizTasksCompleted(): number {
-    // heuristic: tasks with word "Quiz" in label
     const completed = this._completed();
     let count = 0;
+    
     for (const challenge of this._challenges()) {
       for (const section of challenge.sections) {
         for (const task of section.tasks) {
+          // Check if task label contains 'quiz' (case-insensitive)
           if (!task.label.toLowerCase().includes('quiz')) continue;
+          
           const key = this.taskKey(challenge.id, section.id, task.id);
           if (completed[key]) count += 1;
         }
       }
     }
+    
     return count;
   }
 }
