@@ -22,17 +22,13 @@ public class CalendrierService {
     private final BuddySessionService sessionService;
     private final BuddySessionRep buddySessionRep;
 
-    /**
-     * Récupère les disponibilités d'un buddy pair
-     */
+
     public List<Disponibilite> getDisponibilites(Long buddyPairId) {
         System.out.println("📅 Récupération des disponibilités pour buddyPairId: " + buddyPairId);
         return disponibiliteRepository.findByBuddyPairId(buddyPairId);
     }
 
-    /**
-     * Ajoute une disponibilité
-     */
+
     @Transactional
     public Disponibilite ajouterDisponibilite(Long buddyPairId, Long userId, LocalDateTime debut, LocalDateTime fin) {
         BuddyPair buddyPair = buddyPairRepository.findById(buddyPairId)
@@ -48,9 +44,7 @@ public class CalendrierService {
         return disponibiliteRepository.save(dispo);
     }
 
-    /**
-     * Supprime une disponibilité
-     */
+
     @Transactional
     public void supprimerDisponibilite(Long id) {
         System.out.println("🗑️ Suppression de la disponibilité id: " + id);
@@ -62,25 +56,19 @@ public class CalendrierService {
         System.out.println("✅ Disponibilité supprimée");
     }
 
-    /**
-     * Récupère les disponibilités d'un buddy pair sur une période
-     */
+
     public List<Disponibilite> getDisponibilitesParPeriode(Long buddyPairId, LocalDateTime debut, LocalDateTime fin) {
         System.out.println("📅 Récupération des disponibilités pour période - buddyPairId: " + buddyPairId);
         return disponibiliteRepository.findByBuddyPairIdAndDebutBetween(buddyPairId, debut, fin);
     }
 
-    /**
-     * Récupère les disponibilités d'un utilisateur spécifique dans un buddy pair
-     */
+
     public List<Disponibilite> getDisponibilitesUtilisateur(Long buddyPairId, Long userId) {
         System.out.println("📅 Récupération des disponibilités de l'utilisateur " + userId + " pour buddyPairId: " + buddyPairId);
         return disponibiliteRepository.findByBuddyPairIdAndUserId(buddyPairId, userId);
     }
 
-    /**
-     * Récupère les disponibilités communes des deux buddies
-     */
+
     public List<LocalDateTime[]> getDisponibilitesCommunes(Long buddyPairId, int dureeMinutes) {
         System.out.println("🔍 RECHERCHE DES DISPONIBILITÉS COMMUNES");
         System.out.println("BuddyPairId: " + buddyPairId);
@@ -103,7 +91,7 @@ public class CalendrierService {
                     " - " + d.getDebut() + " -> " + d.getFin());
         }
 
-        // Maintenant la recherche spécifique
+
         List<Disponibilite> dispoUser1 = disponibiliteRepository
                 .findByBuddyPairIdAndUserId(buddyPairId, buddyPair.getUserID_1());
         List<Disponibilite> dispoUser2 = disponibiliteRepository
@@ -112,7 +100,7 @@ public class CalendrierService {
         System.out.println("📊 Disponibilités user1 trouvées: " + dispoUser1.size());
         System.out.println("📊 Disponibilités user2 trouvées: " + dispoUser2.size());
 
-        // Afficher les détails
+
         for (Disponibilite d : dispoUser1) {
             System.out.println("  User1 dispo: " + d.getDebut() + " -> " + d.getFin());
         }
@@ -141,9 +129,7 @@ public class CalendrierService {
         return creneauxCommuns;
     }
 
-    /**
-     * Suggère des créneaux pour une session
-     */
+
     public List<LocalDateTime> suggererCreneaux(Long buddyPairId, int dureeMinutes) {
         System.out.println("💡 Génération de suggestions pour buddyPairId: " + buddyPairId + ", durée: " + dureeMinutes + "min");
 
@@ -158,9 +144,7 @@ public class CalendrierService {
         return suggestions;
     }
 
-    /**
-     * Vérifie les rappels à envoyer
-     */
+
     @Transactional
     public List<EvenementCalendrier> getRappelsAEnvoyer() {
         System.out.println("🔔 Vérification des rappels à envoyer");
@@ -174,9 +158,7 @@ public class CalendrierService {
         return rappels;
     }
 
-    /**
-     * Marque un rappel comme envoyé
-     */
+
     @Transactional
     public void marquerRappelEnvoye(Long evenementId) {
         System.out.println("📨 Marquage du rappel " + evenementId + " comme envoyé");
@@ -189,9 +171,7 @@ public class CalendrierService {
         System.out.println("✅ Rappel marqué comme envoyé");
     }
 
-    /**
-     * Crée automatiquement un événement pour une session
-     */
+
     @Transactional
     public EvenementCalendrier creerEvenementPourSession(BuddySession session) {
         System.out.println("📅 Création d'un événement pour la session " + session.getIdSession());
@@ -213,5 +193,15 @@ public class CalendrierService {
         EvenementCalendrier saved = evenementRepository.save(evenement);
         System.out.println("✅ Événement créé avec id: " + saved.getId());
         return saved;
+    }
+
+    public List<EvenementCalendrier> getEvenementsEntre(LocalDateTime debut, LocalDateTime fin) {
+        System.out.println("📅 Recherche des événements entre " + debut + " et " + fin);
+        return evenementRepository.findByDateDebutBetween(debut, fin);
+    }
+    @Transactional
+    public EvenementCalendrier mettreAJourEvenement(EvenementCalendrier evenement) {
+        System.out.println("📝 Mise à jour de l'événement " + evenement.getId());
+        return evenementRepository.save(evenement);
     }
 }

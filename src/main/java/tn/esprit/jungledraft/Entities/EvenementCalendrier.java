@@ -31,4 +31,7 @@ public class EvenementCalendrier {
 
     private Long sessionId;
     private boolean rappelEnvoye;
+
+    @Column(nullable = false)
+    private boolean rappelUrgentEnvoye = false;
 }

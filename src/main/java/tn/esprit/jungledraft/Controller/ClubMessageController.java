@@ -6,8 +6,11 @@ import org.springframework.web.bind.annotation.*;
 import tn.esprit.jungledraft.DTO.CreateMessageDTO;
 import tn.esprit.jungledraft.Entities.ClubMessage;
 import tn.esprit.jungledraft.Services.ClubMessageService;
+import tn.esprit.jungledraft.Services.MessageEpingleService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class ClubMessageController {
 
     private final ClubMessageService clubMessageService;
+    private final MessageEpingleService messageEpingleService;
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateMessageDTO request) {
@@ -77,5 +81,50 @@ public class ClubMessageController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur: " + e.getMessage());
         }
+    }
+
+
+    @PostMapping("/{id}/epinger")
+    public ResponseEntity<?> epinglerMessage(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
+        try {
+            String raison = body != null ? body.get("raison") : null;
+            ClubMessage message = messageEpingleService.epinglerManuellement(id, raison);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("Erreur: " + e.getMessage());
+        }
+    }
+
+
+    @DeleteMapping("/{id}/desepingler")
+    public ResponseEntity<?> desepinglerMessage(@PathVariable Long id) {
+        try {
+            ClubMessage message = messageEpingleService.desepingler(id);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body("Erreur: " + e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/club/{clubId}/epingles")
+    public ResponseEntity<List<ClubMessage>> getMessagesEpingle(@PathVariable Long clubId) {
+        return ResponseEntity.ok(messageEpingleService.getMessagesEpingle(clubId));
+    }
+
+
+    @GetMapping("/club/{clubId}/peut-epinger")
+    public ResponseEntity<Map<String, Object>> peutEpinger(@PathVariable Long clubId) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("peutEpinger", messageEpingleService.peutEpingle(clubId));
+        response.put("restantes", messageEpingleService.getEpingleRestantes(clubId));
+        response.put("max", 3);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/test-auto-epingle/{clubId}")
+    public ResponseEntity<String> testAutoEpinglage(@PathVariable Long clubId) {
+        messageEpingleService.autoEpinglerMessagesViraux();
+        return ResponseEntity.ok("✅ Auto-épinglage déclenché manuellement");
     }
 }

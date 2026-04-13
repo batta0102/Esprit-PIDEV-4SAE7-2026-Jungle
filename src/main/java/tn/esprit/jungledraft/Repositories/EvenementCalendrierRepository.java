@@ -19,4 +19,5 @@ public interface EvenementCalendrierRepository extends JpaRepository<EvenementCa
     // Cette méthode n'a pas besoin de correction
     List<EvenementCalendrier> findByRappelEnvoyeFalseAndDateDebutLessThan(LocalDateTime date);
     List<EvenementCalendrier> findByRappelEnvoyeFalseAndDateDebutBetween(LocalDateTime debut, LocalDateTime fin);
+    List<EvenementCalendrier> findByDateDebutBetween(LocalDateTime debut, LocalDateTime fin);
 }

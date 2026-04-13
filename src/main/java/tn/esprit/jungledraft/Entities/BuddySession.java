@@ -38,6 +38,10 @@ public class BuddySession {
     private boolean confirmeParUtilisateur1;
     private boolean confirmeParUtilisateur2;
 
+    @Column(nullable = false)
+    private boolean rappelEnvoye = false;
+    private String lieu;
+
     @Enumerated(EnumType.STRING)
     private SatisfactionLevel satisfactionUtilisateur1;
 

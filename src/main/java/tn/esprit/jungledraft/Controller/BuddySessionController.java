@@ -51,6 +51,7 @@ public class BuddySessionController {
             session.setDuree(sessionDTO.getDuree());
             session.setSujet(sessionDTO.getSujet());
             session.setNotes(sessionDTO.getNotes());
+            session.setLieu(sessionDTO.getLieu());
 
             // Gérer le statut
             if (sessionDTO.getStatus() != null) {

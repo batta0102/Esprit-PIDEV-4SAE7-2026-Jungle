@@ -26,6 +26,11 @@ public class ClubMessage {
     private int likes;
 
     private Date dateEnvoi;
+
+    private boolean epingle = false;           // Est-ce que le message est épinglé ?
+    private Date dateEpingle;                   // Date à laquelle il a été épinglé
+    private String raisonEpingle;               // Pourquoi il a été épinglé (auto/manual)
+
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.ALL)
     private Club club;

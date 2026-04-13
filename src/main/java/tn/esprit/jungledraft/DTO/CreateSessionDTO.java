@@ -16,6 +16,7 @@ public class CreateSessionDTO {
     private String notes;
     private String status;
 
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
