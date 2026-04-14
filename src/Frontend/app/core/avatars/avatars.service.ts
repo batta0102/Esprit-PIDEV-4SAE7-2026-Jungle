@@ -21,8 +21,8 @@ export interface SkinDto {
 
 @Injectable({ providedIn: 'root' })
 export class AvatarsService {
-  private avatarsUrl = 'http://localhost:8083/api/avatars';
-  private skinsUrl = 'http://localhost:8083/api/skins';
+  private avatarsUrl = '/api/avatars';
+  private skinsUrl = '/api/skins';
 
   constructor(private http: HttpClient) {}
 

@@ -36,7 +36,7 @@ export interface ValidateResponse {
 
 @Injectable({ providedIn: 'root' })
 export class CrosswordService {
-  private apiUrl = 'http://localhost:8083/api/crosswords';
+  private apiUrl = '/api/crosswords';
 
   constructor(private http: HttpClient) {}
 

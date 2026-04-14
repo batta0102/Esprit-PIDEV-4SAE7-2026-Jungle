@@ -57,7 +57,7 @@ export interface UserMemory {
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8083/api/chat';
+  private readonly apiUrl = '/api/chat';
 
   /** Reactive memory snapshot for the UI */
   readonly memory = signal<UserMemory | null>(null);

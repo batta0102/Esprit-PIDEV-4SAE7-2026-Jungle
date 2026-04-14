@@ -100,6 +100,11 @@ export const routes: Routes = [
 		loadComponent: () => import('./pages/crossword/crossword.page').then((m) => m.CrosswordPage)
 	},
 	{
+		path: 'games/spelling-battle',
+		title: 'Spelling Battle | Jungle in English',
+		loadComponent: () => import('./pages/spelling-battle/spelling-battle.page').then((m) => m.SpellingBattlePage)
+	},
+	{
 		path: 'profile',
 		redirectTo: 'profile/student',
 		pathMatch: 'full'

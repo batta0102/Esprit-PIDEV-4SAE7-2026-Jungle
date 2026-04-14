@@ -150,7 +150,9 @@ export class GamificationPage {
    * @param game - The game to play
    */
   playGame(game: Game): void {
-    if (game.category === 'Crossword') {
+    const category = (game.category || '').toLowerCase();
+
+    if (category === 'crossword') {
       void this.router.navigate(['/games/crossword'], {
         queryParams: {
           timerDuration: game.timerDuration || 0,
@@ -158,6 +160,18 @@ export class GamificationPage {
           gameTitle: game.title
         }
       });
+      return;
+    }
+
+    if (category.includes('spelling')) {
+      void this.router.navigate(['/games/spelling-battle'], {
+        queryParams: {
+          timerDuration: 10,
+          xpReward: game.xpReward || 0,
+          gameTitle: game.title
+        }
+      });
+      return;
     } else {
       console.log('Playing game:', game.title);
     }

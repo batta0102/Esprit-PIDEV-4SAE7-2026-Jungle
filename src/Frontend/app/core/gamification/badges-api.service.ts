@@ -12,7 +12,7 @@ export interface ApiBadge {
 
 @Injectable({ providedIn: 'root' })
 export class BadgesApiService {
-  private apiUrl = 'http://localhost:8083/api/badges';
+  private apiUrl = '/api/badges';
 
   constructor(private http: HttpClient) {}
 

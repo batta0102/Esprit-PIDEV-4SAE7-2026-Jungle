@@ -1,8 +1,23 @@
 {
-  "/api/*": {
+  "/api": {
     "target": "http://localhost:8083",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/resources": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/admin": {
+    "target": "http://localhost:4300",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/admin": ""
+    }
   }
 }
