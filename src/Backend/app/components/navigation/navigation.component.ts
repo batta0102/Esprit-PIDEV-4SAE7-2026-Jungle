@@ -88,7 +88,8 @@ export class NavigationComponent {
     { id: 'assessments', label: 'Assessments' },
     { id: 'resources', label: 'Resources' },
     { id: 'gamification', label: 'Gamification' },
-    { id: 'crosswords', label: 'Crosswords' }
+    { id: 'crosswords', label: 'Crosswords' },
+    { id: 'spelling-battle', label: 'Spelling Battle' }
   ];
 
   currentRoute = signal('dashboard');

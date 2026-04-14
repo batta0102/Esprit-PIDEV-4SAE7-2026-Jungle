@@ -46,6 +46,11 @@ export const backendRoutes: Routes = [
         loadComponent: () => import('@backend/pages/crosswords/crosswords.component').then(m => m.CrosswordsComponent)
       },
       {
+        path: 'spelling-battle',
+        title: 'Backend - Spelling Battle',
+        loadComponent: () => import('@backend/pages/spelling-battle/spelling-battle.component').then(m => m.SpellingBattleComponent)
+      },
+      {
         path: 'notifications',
         title: 'Backend - Notifications',
         loadComponent: () => import('@backend/pages/notifications/notifications.component').then(m => m.NotificationsComponent)

@@ -26,8 +26,7 @@ export interface Game {
  */
 @Injectable({ providedIn: 'root' })
 export class GamesService {
-  // Use absolute API URL to avoid proxy 404s
-  private readonly apiUrl = 'http://localhost:8083/api/games';
+  private readonly apiUrl = '/api/games';
 
   constructor(private http: HttpClient) {}
 

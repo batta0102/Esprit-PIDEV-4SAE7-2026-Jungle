@@ -1,0 +1,29 @@
+<section class="spell-admin">
+  <header>
+    <h1>Spelling Battle Manager</h1>
+    <p>Maintain the word list used by the Spelling Battle game. One word per line.</p>
+  </header>
+
+  <div class="card">
+    <label for="wordBank">Word Bank</label>
+    <textarea
+      id="wordBank"
+      rows="18"
+      [ngModel]="inputText()"
+      (ngModelChange)="inputText.set($event)"
+      placeholder="type one word per line"
+    ></textarea>
+
+    <div class="meta">
+      <span>Total valid words: {{ words().length }}</span>
+      @if (message()) {
+        <span class="msg">{{ message() }}</span>
+      }
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="button" (click)="save()">Save Words</button>
+      <button class="btn btn-ghost" type="button" (click)="resetDefaults()">Reset Defaults</button>
+    </div>
+  </div>
+</section>

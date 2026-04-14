@@ -14,7 +14,7 @@ export interface ResourceDto {
 @Injectable({ providedIn: 'root' })
 export class ResourceService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8089/resources';
+  private readonly baseUrl = '/resources';
 
   listResources(): Observable<ResourceDto[]> {
     return this.http.get<ResourceDto[]>(`${this.baseUrl}/displayResources`);

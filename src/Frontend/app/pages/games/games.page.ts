@@ -52,6 +52,13 @@ export class FrontendGamesPage implements OnInit {
     this.page.set(1);
   }
 
+  routeFor(game: Game): string | null {
+    const category = (game.category || '').toLowerCase();
+    if (category === 'crossword') return '/games/crossword';
+    if (category.includes('spelling')) return '/games/spelling-battle';
+    return null;
+  }
+
   setPage(p: number): void { this.page.set(Math.min(Math.max(1, p), this.pageCount())); }
   prevPage(): void { this.setPage(this.page() - 1); }
   nextPage(): void { this.setPage(this.page() + 1); }
