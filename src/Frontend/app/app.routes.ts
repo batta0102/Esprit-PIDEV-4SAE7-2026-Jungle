@@ -17,6 +17,22 @@ export const routes: Routes = [
 		component: AuthCallbackPage
 	},
 	{
+		path: 'tracking/:deliveryId',
+		redirectTo: 'front/tracking/:deliveryId'
+	},
+	{
+		path: 'livreur/location-test',
+		redirectTo: 'front/livreur/location-test'
+	},
+	{
+		path: 'delivery/assign-test',
+		redirectTo: 'front/delivery/assign-test'
+	},
+	{
+		path: 'my-deliveries',
+		redirectTo: 'front/my-deliveries'
+	},
+	{
 		path: 'front',
 		component: FrontLayoutComponent,
 		children: FRONT_ROUTES

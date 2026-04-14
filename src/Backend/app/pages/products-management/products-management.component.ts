@@ -40,6 +40,24 @@ export class ProductsManagementComponent implements OnInit {
   selectedFile = signal<File | null>(null);
   imagePreviewUrl = signal<string | null>(null);
 
+  // Form validation signals
+  nameError = signal<string | null>(null);
+  categoryError = signal<string | null>(null);
+  descriptionError = signal<string | null>(null);
+  stockError = signal<string | null>(null);
+  priceError = signal<string | null>(null);
+
+  isFormValid = computed(() => {
+    const product = this.currentProduct();
+    return (
+      product.name?.trim()?.length > 0 &&
+      product.category?.trim()?.length > 0 &&
+      product.description?.trim()?.length > 0 &&
+      (product.stock !== undefined && product.stock !== null && product.stock >= 0) &&
+      (product.price === undefined || product.price === null || product.price >= 0)
+    );
+  });
+
   readonly tabs = [
     { label: 'All', value: 'all' },
     { label: 'Book', value: 'book' },
@@ -128,22 +146,8 @@ export class ProductsManagementComponent implements OnInit {
       next: (data: Product[]) => {
         console.log(`[ProductsManagement] ✅ Loaded ${data.length} products`);
         console.log('[ProductsManagement] Raw data sample:', data[0]);
-        
-        const transformedData = data.map((product) => {
-          const anyProduct = product as unknown as Record<string, unknown>;
 
-          if (anyProduct['id'] && !product.idProduct) {
-            return { ...product, idProduct: anyProduct['id'] as number };
-          }
-
-          if (anyProduct['product_id'] && !product.idProduct) {
-            return { ...product, idProduct: anyProduct['product_id'] as number };
-          }
-
-          return product;
-        });
-
-        this.products.set(transformedData);
+        this.products.set(data);
         this.loading.set(false);
         console.log('[ProductsManagement] ✅ Products ready for display');
       },
@@ -203,52 +207,31 @@ export class ProductsManagementComponent implements OnInit {
   }
 
   saveProduct(): void {
+    // Validate form before saving
+    if (!this.validateForm()) {
+      this.error.set('Please fix all validation errors before saving.');
+      return;
+    }
+
     const product = this.currentProduct();
-
-    if (!product.name.trim() || !product.category || !product.description.trim()) {
-      this.error.set('Please fill in all required fields (Name, Category, Description).');
-      return;
-    }
-
-    if (product.stock === undefined || product.stock === null) {
-      this.error.set('Please provide a stock value.');
-      return;
-    }
 
     this.loading.set(true);
     this.error.set(null);
 
     if (this.isEditMode() && product.idProduct) {
-      // For update mode, check if there's a new image file
       const file = this.selectedFile();
-      
-      if (file) {
-        // If new image file is selected, use multipart update
-        this.productService.updateProductWithFile(product.idProduct, product, file).subscribe({
-          next: () => {
-            this.loadProducts();
-            this.closeForm();
-          },
-          error: (err) => {
-            this.error.set(`Failed to update product: ${err.message ?? err}`);
-            this.loading.set(false);
-            console.error('[ProductsManagement] Error updating product with file:', err);
-          }
-        });
-      } else {
-        // Otherwise, use normal JSON update
-        this.productService.updateProduct(product.idProduct, product).subscribe({
-          next: () => {
-            this.loadProducts();
-            this.closeForm();
-          },
-          error: (err) => {
-            this.error.set(`Failed to update product: ${err.message ?? err}`);
-            this.loading.set(false);
-            console.error('[ProductsManagement] Error updating product:', err);
-          }
-        });
-      }
+
+      this.productService.updateProductWithFile(product.idProduct, product, file ?? undefined).subscribe({
+        next: () => {
+          this.loadProducts();
+          this.closeForm();
+        },
+        error: (err) => {
+          this.error.set(`Failed to update product: ${err.message ?? err}`);
+          this.loading.set(false);
+          console.error('[ProductsManagement] Error updating product:', err);
+        }
+      });
       return;
     }
 
@@ -258,33 +241,17 @@ export class ProductsManagementComponent implements OnInit {
 
     const file = this.selectedFile();
 
-    if (file) {
-      // If file is selected, use FormData
-      this.productService.addProductWithFile(newProduct, file).subscribe({
-        next: () => {
-          this.loadProducts();
-          this.closeForm();
-        },
-        error: (err) => {
-          this.error.set(`Failed to add product: ${err.message ?? err}`);
-          this.loading.set(false);
-          console.error('[ProductsManagement] Error adding product:', err);
-        }
-      });
-    } else {
-      // Otherwise, just add with imageUrl
-      this.productService.addProduct(newProduct).subscribe({
-        next: () => {
-          this.loadProducts();
-          this.closeForm();
-        },
-        error: (err) => {
-          this.error.set(`Failed to add product: ${err.message ?? err}`);
-          this.loading.set(false);
-          console.error('[ProductsManagement] Error adding product:', err);
-        }
-      });
-    }
+    this.productService.addProductWithFile(newProduct, file ?? undefined).subscribe({
+      next: () => {
+        this.loadProducts();
+        this.closeForm();
+      },
+      error: (err) => {
+        this.error.set(`Failed to add product: ${err.message ?? err}`);
+        this.loading.set(false);
+        console.error('[ProductsManagement] Error adding product:', err);
+      }
+    });
   }
 
   deleteProduct(product: Product): void {
@@ -313,6 +280,146 @@ export class ProductsManagementComponent implements OnInit {
 
   updateField(field: keyof Product, value: Product[keyof Product]): void {
     this.currentProduct.update((product) => ({ ...product, [field]: value }));
+    // Clear error when user starts editing
+    this.validateField(field as string);
+  }
+
+  /**
+   * Validate individual field
+   */
+  validateField(field: string): void {
+    const product = this.currentProduct();
+    
+    switch (field) {
+      case 'name':
+        if (!product.name?.trim()) {
+          this.nameError.set('Product name is required');
+        } else if (product.name.trim().length < 2) {
+          this.nameError.set('Product name must be at least 2 characters');
+        } else if (product.name.trim().length > 100) {
+          this.nameError.set('Product name must not exceed 100 characters');
+        } else {
+          this.nameError.set(null);
+        }
+        break;
+
+      case 'category':
+        if (!product.category?.trim()) {
+          this.categoryError.set('Category is required');
+        } else {
+          this.categoryError.set(null);
+        }
+        break;
+
+      case 'description':
+        if (!product.description?.trim()) {
+          this.descriptionError.set('Description is required');
+        } else if (product.description.trim().length < 10) {
+          this.descriptionError.set('Description must be at least 10 characters');
+        } else if (product.description.trim().length > 1000) {
+          this.descriptionError.set('Description must not exceed 1000 characters');
+        } else {
+          this.descriptionError.set(null);
+        }
+        break;
+
+      case 'stock':
+        if (product.stock === undefined || product.stock === null) {
+          this.stockError.set('Stock quantity is required');
+        } else if (product.stock < 0) {
+          this.stockError.set('Stock cannot be negative');
+        } else if (!Number.isInteger(product.stock)) {
+          this.stockError.set('Stock must be a whole number');
+        } else {
+          this.stockError.set(null);
+        }
+        break;
+
+      case 'price':
+        if (product.price !== undefined && product.price !== null) {
+          if (product.price < 0) {
+            this.priceError.set('Price cannot be negative');
+          } else if (product.price > 999999.99) {
+            this.priceError.set('Price is too high');
+          } else {
+            this.priceError.set(null);
+          }
+        }
+        break;
+    }
+  }
+
+  /**
+   * Validate all fields and return true if form is valid
+   */
+  validateForm(): boolean {
+    const product = this.currentProduct();
+    let isValid = true;
+
+    // Validate name
+    if (!product.name?.trim()) {
+      this.nameError.set('Product name is required');
+      isValid = false;
+    } else if (product.name.trim().length < 2) {
+      this.nameError.set('Product name must be at least 2 characters');
+      isValid = false;
+    } else if (product.name.trim().length > 100) {
+      this.nameError.set('Product name must not exceed 100 characters');
+      isValid = false;
+    } else {
+      this.nameError.set(null);
+    }
+
+    // Validate category
+    if (!product.category?.trim()) {
+      this.categoryError.set('Category is required');
+      isValid = false;
+    } else {
+      this.categoryError.set(null);
+    }
+
+    // Validate description
+    if (!product.description?.trim()) {
+      this.descriptionError.set('Description is required');
+      isValid = false;
+    } else if (product.description.trim().length < 10) {
+      this.descriptionError.set('Description must be at least 10 characters');
+      isValid = false;
+    } else if (product.description.trim().length > 1000) {
+      this.descriptionError.set('Description must not exceed 1000 characters');
+      isValid = false;
+    } else {
+      this.descriptionError.set(null);
+    }
+
+    // Validate stock
+    if (product.stock === undefined || product.stock === null) {
+      this.stockError.set('Stock quantity is required');
+      isValid = false;
+    } else if (product.stock < 0) {
+      this.stockError.set('Stock cannot be negative');
+      isValid = false;
+    } else if (!Number.isInteger(product.stock)) {
+      this.stockError.set('Stock must be a whole number');
+      isValid = false;
+    } else {
+      this.stockError.set(null);
+    }
+
+    // Validate price
+    if (product.price !== undefined && product.price !== null) {
+      if (product.price < 0) {
+        this.priceError.set('Price cannot be negative');
+        isValid = false;
+      } else if (product.price > 999999.99) {
+        this.priceError.set('Price is too high');
+        isValid = false;
+      } else {
+        this.priceError.set(null);
+      }
+    }
+
+    return isValid;
   }
 
   /**
@@ -328,6 +435,8 @@ export class ProductsManagementComponent implements OnInit {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         this.error.set('Please select a valid image file.');
+        this.selectedFile.set(null);
+        this.imagePreviewUrl.set(null);
         return;
       }
 
@@ -346,6 +455,10 @@ export class ProductsManagementComponent implements OnInit {
 
   trackByIdProduct(index: number, product: Product): number {
     return product.idProduct ?? index;
+  }
+
+  getImageUrl(imageUrl: string | null | undefined): string {
+    return this.productService.resolveImageUrl(imageUrl);
   }
 
   onTabChange(tab: string): void {

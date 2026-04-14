@@ -44,10 +44,10 @@
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  inline-size: 40px;
+  block-size: 40px;
   border: 4px solid var(--jie-border);
-  border-top-color: var(--jie-primary);
+  border-block-start-color: var(--jie-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -87,7 +87,7 @@
 }
 
 .product-image {
-  width: 100%;
+  inline-size: 100%;
   aspect-ratio: 1;
   border-radius: 0.5rem;
   overflow: hidden;
@@ -95,20 +95,24 @@
 }
 
 .product-image img {
-  width: 100%;
-  height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
   object-fit: cover;
 }
 
 .image-placeholder {
-  width: 100%;
-  height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.no-similar-title {
+  margin-block-start: 0.5rem;
 }
 
 .product-name {
@@ -127,7 +131,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-block-end: 1rem;
 }
 
 .badge {
@@ -138,7 +142,7 @@
   font-size: 1rem;
   line-height: 1.6;
   color: var(--jie-text);
-  margin: 0 0 1.5rem;
+  margin-block-end: 1.5rem;
 }
 
 .product-meta {
@@ -148,7 +152,7 @@
   padding: 1.5rem;
   background-color: var(--jie-bg-alt);
   border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-block-end: 1.5rem;
 }
 
 .meta-item {
@@ -185,15 +189,15 @@
 /* Similar Products Section */
 .similar-section {
   padding: 2rem 0 1.5rem;
-  border-top: 1px solid var(--jie-border);
-  margin-top: 2rem;
+  border-block-start: 1px solid var(--jie-border);
+  margin-block-start: 2rem;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-block-end: 1.5rem;
 }
 
 .section-title {
@@ -207,13 +211,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 1rem;
+  margin-block-end: 1rem;
 }
 
 .similar-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  block-size: 100%;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -223,8 +227,8 @@
 }
 
 .sim-media {
-  width: 100%;
-  height: 120px;
+  inline-size: 100%;
+  block-size: 120px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
@@ -252,6 +256,7 @@
   color: var(--jie-text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -265,7 +270,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  width: fit-content;
+  inline-size: -webkit-fill-available;
 }
 
 .sim-meta {
@@ -313,7 +318,7 @@
 .sim-actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: auto;
+  margin-block-start: auto;
 }
 
 .sim-actions .btn {
@@ -333,5 +338,5 @@
 
 .empty-icon {
   font-size: 3rem;
-  margin-bottom: 0.5rem;
+  margin-block-end: 0.5rem;
 }

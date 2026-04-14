@@ -1,0 +1,51 @@
+.assign-test {
+  display: grid;
+  gap: 1rem;
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.links {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.state {
+  margin-block-start: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--jie-border);
+}
+
+.state-success {
+  background: color-mix(in srgb, #dcfce7 68%, white);
+  border-color: #16a34a;
+  color: #166534;
+}
+
+.state-error {
+  background: color-mix(in srgb, #fee2e2 70%, white);
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.next-action {
+  margin-block-start: 1rem;
+}

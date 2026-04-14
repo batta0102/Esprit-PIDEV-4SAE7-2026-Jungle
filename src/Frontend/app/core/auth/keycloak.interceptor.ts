@@ -30,8 +30,9 @@ export class KeycloakInterceptor implements HttpInterceptor {
     }
 
     // Only attach token to API Gateway requests (starting with /api or environment.apiBaseUrl)
-    const isApiRequest = request.url.startsWith(environment.apiBaseUrl) || 
-                         request.url.startsWith('/api');
+    const isApiRequest = request.url.startsWith(environment.apiBaseUrl) ||
+               request.url.startsWith('/api') ||
+               request.url.startsWith(`${environment.gatewayUrl}/api`);
     
     if (!isApiRequest) {
       console.log(`[Interceptor] Skipping non-API request: ${request.method} ${request.url}`);

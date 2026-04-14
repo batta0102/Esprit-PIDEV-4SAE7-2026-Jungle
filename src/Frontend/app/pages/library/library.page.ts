@@ -67,7 +67,7 @@ export class LibraryPage {
   readonly sortMode = signal<SortMode>('Most Popular');
 
   readonly page = signal(1);
-  readonly pageSize = 6;
+  readonly pageSize = 3; // Changed from 6 to 3 for better pagination visibility
 
   readonly filteredResources = computed(() => {
     const q = this.query().trim().toLowerCase();
@@ -105,6 +105,22 @@ export class LibraryPage {
   });
 
   readonly pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
+
+  readonly paginationInfo = computed(() => {
+    const total = this.filteredResources().length;
+    const page = this.page();
+    const pageSize = this.pageSize;
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+    
+    return {
+      start,
+      end,
+      total,
+      currentPage: page,
+      totalPages: this.pageCount()
+    };
+  });
 
   readonly types: ResourceType[] = ['Book', 'PDF', 'EBook', 'MP3'];
   readonly prices: PriceFilter[] = ['Free', 'Paid'];
@@ -187,6 +203,28 @@ export class LibraryPage {
   secondaryActionLabel(r: LibraryResource): string {
     if (r.delivery === 'Online') return r.priceUsd === 0 ? 'View Online' : 'View Online';
     return r.priceUsd === 0 ? 'Download' : 'Buy Now';
+  }
+
+  shouldShowPage(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Always show first and last page
+    if (pageNum === 1 || pageNum === totalPages) return true;
+    // Show current page and 2 pages around it
+    if (Math.abs(pageNum - current) <= 1) return true;
+    return false;
+  }
+
+  shouldShowEllipsis(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Show ellipsis after page 1 if page 3 is hidden
+    if (pageNum === 2 && !this.shouldShowPage(3, totalPages) && this.shouldShowPage(1, totalPages)) {
+      return true;
+    }
+    // Show ellipsis before last page if page before is hidden
+    if (pageNum === totalPages - 1 && !this.shouldShowPage(totalPages - 2, totalPages) && this.shouldShowPage(totalPages, totalPages)) {
+      return true;
+    }
+    return false;
   }
 
   private mapResource(item: ResourceDto): LibraryResource {

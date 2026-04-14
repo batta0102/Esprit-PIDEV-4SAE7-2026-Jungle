@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { buildApiUrl } from '../utils/url.helper';
 
@@ -40,6 +40,7 @@ export class ProductService {
     const url = buildApiUrl(environment.apiBaseUrl, 'products', 'allProducts');
     console.log('[ProductService] Fetching all products:', url);
     return this.http.get<Product[]>(url).pipe(
+      map(products => products.map(product => this.normalizeProduct(product))),
       tap(products => {
         console.log(`[ProductService] Loaded ${products.length} products`);
         console.log('[ProductService] First product:', products[0]);
@@ -62,6 +63,7 @@ export class ProductService {
     const url = buildApiUrl(environment.apiBaseUrl, 'products', `getProduct/${id}`);
     console.log(`[ProductService] Fetching product with ID ${id}:`, url);
     return this.http.get<Product>(url).pipe(
+      map(product => this.normalizeProduct(product)),
       tap(product => console.log('[ProductService] Loaded product:', product)),
       catchError(error => {
         console.error(`[ProductService] Error loading product ${id}:`, error);
@@ -148,5 +150,53 @@ export class ProductService {
         return throwError(() => error);
       })
     );
+  }
+
+  resolveImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) {
+      return '/englishimg2.png';
+    }
+
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    if (imageUrl.startsWith('/uploads/')) {
+      return `${environment.resourcesBaseUrl}${imageUrl}`;
+    }
+
+    if (imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
+
+    return `${environment.resourcesBaseUrl}/uploads/products/${imageUrl}`;
+  }
+
+  private normalizeProduct(product: Product): Product {
+    const raw = product as unknown as Record<string, unknown>;
+    const idProduct = product.idProduct ?? (raw['id'] as number | undefined);
+    const imageUrl = this.normalizeImagePath(product.imageUrl);
+
+    return {
+      ...product,
+      idProduct,
+      imageUrl
+    };
+  }
+
+  private normalizeImagePath(imageUrl: string | null | undefined): string | undefined {
+    if (!imageUrl) {
+      return undefined;
+    }
+
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/uploads/')) {
+      return imageUrl;
+    }
+
+    if (imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
+
+    return `/uploads/products/${imageUrl}`;
   }
 }

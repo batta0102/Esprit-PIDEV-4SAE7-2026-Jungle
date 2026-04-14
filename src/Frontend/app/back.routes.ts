@@ -13,8 +13,10 @@ import { ResourceReviewsPageComponent } from '../../Backend/app/pages/resource-r
 import { ProductsManagementComponent } from '../../Backend/app/pages/products-management/products-management.component';
 import { OrdersManagementComponent } from '../../Backend/app/pages/orders-management/orders-management.component';
 import { DeliveryManagementComponent } from '../../Backend/app/pages/delivery-management/delivery-management.component';
+import { AdminLivreurComponent } from '../../Backend/app/pages/admin-livreur/admin-livreur.component';
 import { GamesComponent } from '../../Backend/app/pages/games/games.component';
 import { NotificationsComponent } from '../../Backend/app/pages/notifications/notifications.component';
+import { adminGuard } from './core/auth/admin.guard';
 
 /**
  * Backend (Admin) application routes
@@ -76,6 +78,11 @@ export const BACK_ROUTES: Routes = [
 	{
 		path: 'delivery-management',
 		component: DeliveryManagementComponent
+	},
+	{
+		path: 'admin/livreurs',
+		component: AdminLivreurComponent,
+		canActivate: [adminGuard]
 	},
 	{
 		path: 'resource-reviews/:resourceId',

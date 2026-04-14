@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { signal, computed } from '@angular/core';
 
@@ -15,7 +15,7 @@ interface ProductDetail extends Product {
 @Component({
   selector: 'app-product-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './product-detail.page.html',
   styleUrl: './product-detail.page.scss'
 })
@@ -106,6 +106,10 @@ export class ProductDetailPage implements OnInit {
   }
 
   trackSimilarId = (_: number, p: RecommendationProduct): number => p.id;
+
+  getImageUrl(imageUrl: string | null | undefined): string {
+    return this.productService.resolveImageUrl(imageUrl);
+  }
 
   goBack(): void {
     this.router.navigate(['/front/products']);

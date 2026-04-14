@@ -46,7 +46,7 @@
               <tr>
                 <td>
                   @if (product.imageUrl) {
-                    <img [src]="product.imageUrl" alt="Product" class="product-thumb" />
+                    <img [src]="getImageUrl(product.imageUrl)" alt="Product" class="product-thumb" />
                   } @else {
                     <span class="muted">No image</span>
                   }
@@ -54,7 +54,7 @@
                 <td>{{ product.name }}</td>
                 <td><span class="badge">{{ product.category }}</span></td>
                 <td>{{ product.description }}</td>
-                <td>${{ product.price?.toFixed(2) || '0.00' }}</td>
+                <td>{{ product.price?.toFixed(2) || '0.00' }} TND</td>
                 <td><span [class.low-stock]="(product.stock || 0) < 10">{{ product.stock || 0 }}</span></td>
                 <td>
                   <div class="actions">
@@ -95,11 +95,16 @@
               id="name"
               type="text"
               class="form-control"
+              [class.is-invalid]="nameError()"
               [value]="currentProduct().name"
               (input)="updateField('name', $any($event.target).value)"
+              (blur)="validateField('name')"
               required
-              placeholder="Enter product name"
+              placeholder="Enter product name (2-100 characters)"
             />
+            @if (nameError()) {
+              <span class="field-error">{{ nameError() }}</span>
+            }
           </div>
 
           <div class="form-group">
@@ -107,14 +112,20 @@
             <select
               id="category"
               class="form-control"
+              [class.is-invalid]="categoryError()"
               [value]="currentProduct().category"
               (change)="updateField('category', $any($event.target).value)"
+              (blur)="validateField('category')"
               required
             >
+              <option value="">-- Select a category --</option>
               <option value="Book">Book</option>
               <option value="Course">Course</option>
               <option value="Study Material">Study Material</option>
             </select>
+            @if (categoryError()) {
+              <span class="field-error">{{ categoryError() }}</span>
+            }
           </div>
 
           <div class="form-group">
@@ -122,12 +133,17 @@
             <textarea
               id="description"
               class="form-control"
+              [class.is-invalid]="descriptionError()"
               rows="4"
               [value]="currentProduct().description"
               (input)="updateField('description', $any($event.target).value)"
+              (blur)="validateField('description')"
               required
-              placeholder="Enter product description"
+              placeholder="Enter product description (10-1000 characters)"
             ></textarea>
+            @if (descriptionError()) {
+              <span class="field-error">{{ descriptionError() }}</span>
+            }
           </div>
 
           <div class="form-row">
@@ -137,24 +153,37 @@
                 id="price"
                 type="number"
                 step="0.01"
+                min="0"
                 class="form-control"
+                [class.is-invalid]="priceError()"
                 [value]="currentProduct().price"
                 (input)="updateField('price', +$any($event.target).value)"
+                (blur)="validateField('price')"
                 placeholder="0.00"
               />
+              @if (priceError()) {
+                <span class="field-error">{{ priceError() }}</span>
+              }
             </div>
 
             <div class="form-group">
-              <label for="stock">Stock *</label>
+              <label for="stock">Stock * (units)</label>
               <input
                 id="stock"
                 type="number"
+                min="0"
+                step="1"
                 class="form-control"
+                [class.is-invalid]="stockError()"
                 [value]="currentProduct().stock"
                 (input)="updateField('stock', +$any($event.target).value)"
+                (blur)="validateField('stock')"
                 placeholder="0"
                 required
               />
+              @if (stockError()) {
+                <span class="field-error">{{ stockError() }}</span>
+              }
             </div>
           </div>
 
@@ -193,7 +222,7 @@
             <button type="button" class="btn btn-secondary" (click)="closeForm()">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" [disabled]="loading()">
+            <button type="submit" class="btn btn-primary" [disabled]="loading() || !isFormValid()">
               {{ isEditMode() ? 'Update Product' : 'Add Product' }}
             </button>
           </div>

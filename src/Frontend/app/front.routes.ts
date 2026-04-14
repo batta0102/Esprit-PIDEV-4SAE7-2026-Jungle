@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 
 /**
  * Frontend application routes
@@ -59,6 +60,44 @@ export const FRONT_ROUTES: Routes = [
 		loadComponent: () => import('./pages/products/products.page').then((m) => m.ProductsPage)
 	},
 	{
+		path: 'cart',
+		title: 'Cart | Jungle in English',
+		loadComponent: () => import('./pages/cart/cart.component').then((m) => m.CartComponent)
+	},
+	{
+		path: 'orders',
+		title: 'Orders | Jungle in English',
+		loadComponent: () => import('./pages/orders/orders.page').then((m) => m.OrdersPage)
+	},
+	{
+		path: 'tracking/:deliveryId',
+		title: 'Delivery Tracking | Jungle in English',
+		loadComponent: () => import('./pages/tracking/tracking.page').then((m) => m.TrackingPage)
+	},
+	{
+		path: 'my-deliveries',
+		title: 'My Deliveries | Jungle in English',
+		canActivate: [authGuard],
+		loadComponent: () => import('./pages/tracking/my-deliveries.page').then((m) => m.MyDeliveriesPage)
+	},
+	{
+		path: 'livreur/location-test',
+		redirectTo: 'livreur',
+		pathMatch: 'full'
+	},
+	{
+		path: 'livreur',
+		title: 'Livreur Space | Jungle in English',
+		canActivate: [authGuard],
+		loadComponent: () => import('./pages/livreur-space/livreur-space.page').then((m) => m.LivreurSpacePage)
+	},
+	{
+		path: 'delivery/assign-test',
+		title: 'Delivery Assign Test | Jungle in English',
+		loadComponent: () =>
+			import('./pages/tracking/delivery-assign-test.page').then((m) => m.DeliveryAssignTestPage)
+	},
+	{
 		path: 'products/:productId',
 		title: 'Product Details | Jungle in English',
 		loadComponent: () => import('./pages/products/product-detail.page').then((m) => m.ProductDetailPage)
@@ -97,5 +136,10 @@ export const FRONT_ROUTES: Routes = [
 		path: 'profile/admin',
 		title: 'Admin Space | Jungle in English',
 		loadComponent: () => import('./pages/profile/profile-admin.page').then((m) => m.ProfileAdminPage)
+	},
+	{
+		path: 'tracking',
+		redirectTo: 'delivery/assign-test',
+		pathMatch: 'full'
 	}
 ];

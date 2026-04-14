@@ -68,7 +68,7 @@
       @if (recommendations().length > 0 || isLoadingRecommendations()) {
         <div class="recommendations-section">
           <div class="section-header">
-            <h2 class="section-title">Recommended for you</h2>
+            <h2 class="section-title">Top 3 most ordered products</h2>
           </div>
 
           @if (isLoadingRecommendations()) {
@@ -90,24 +90,9 @@
                   <div class="card-body rec-body">
                     <div class="rec-title">{{ rec.title }}</div>
                     <div class="rec-category badge">{{ rec.category }}</div>
-                    
-                    <div class="rec-meta">
-                      <div class="rec-rating">
-                        <span class="stars" [attr.aria-label]="recommendationStarsLabel(rec.avgRating)">
-                          ★ {{ rec.avgRating.toFixed(1) }}
-                        </span>
-                        <span class="muted">({{ rec.ratingCount }} reviews)</span>
-                      </div>
-                      <div class="muted rec-orders">Orders: {{ rec.ordersCount }}</div>
-                    </div>
-
-                    <div class="rec-score">
-                      <span class="score-label">Score:</span>
-                      <span class="score-value">{{ rec.score.toFixed(2) }}</span>
-                    </div>
 
                     <div class="rec-actions">
-                      <button class="btn btn-primary" type="button">View Product</button>
+                      <a [routerLink]="['/front/products', rec.id]" class="btn btn-primary">View Product</a>
                     </div>
                   </div>
                 </article>
@@ -119,7 +104,7 @@
 
       <div class="topbar">
 
-          
+        <button class="btn btn-secondary" type="button" (click)="goToCart()">Open Cart</button>
 
         <div class="search" aria-label="Search products">
           <span class="search-icon" aria-hidden="true">⌕</span>
@@ -177,7 +162,7 @@
         </div>
       }
 
-      <div class="grid" style="gap: 1rem;">
+      <div class="grid grid-gap-md">
         <div class="cards">
           @for (prod of pagedProducts(); track trackProductId($index, prod)) {
             <article class="card prod-card">
@@ -185,7 +170,7 @@
                 <img class="prod-img" [ngSrc]="getImageUrl(prod.imageUrl)" width="320" height="170" alt="" />
 
                 @if (prod.price > 0) {
-                  <div class="price-badge">{{ prod.price | currency }} DT</div>
+                  <div class="price-badge">{{ prod.price | number:'1.2-2' }} TND</div>
                 }
               </div>
 
@@ -207,13 +192,10 @@
                   </div>
 
                   <div class="prod-actions">
-                    <button class="btn btn-primary" type="button" [disabled]="prod.stock === 0">
+                    <button class="btn btn-primary" type="button" [disabled]="prod.stock === 0" (click)="addToCart(prod)">
                       {{ primaryActionLabel(prod) }}
                     </button>
                     <button class="btn" type="button">{{ secondaryActionLabel() }}</button>
-                    <button class="btn btn-secondary" type="button" (click)="openTakeOrderDialog(prod)">
-                      Take Order
-                    </button>
                   </div>
                 </div>
               </div>
@@ -223,7 +205,7 @@
           @if (pagedProducts().length === 0) {
             <div class="card empty">
               <div class="card-body">
-                <div class="section-title" style="margin-top: 0;">No products found</div>
+                <div class="section-title section-title-reset">No products found</div>
                 <div class="muted">Try changing your search.</div>
               </div>
             </div>
@@ -231,25 +213,61 @@
         </div>
       </div>
 
-      <nav class="pagination" aria-label="Pagination">
-        <button class="page-btn" type="button" (click)="prevPage()" [disabled]="page() <= 1" aria-label="Previous page">‹</button>
-        @for (p of pages(); track p) {
-          <button class="page-btn" type="button" [attr.aria-current]="p === page() ? 'page' : null" (click)="setPage(p)">
-            {{ p }}
-          </button>
-        }
-        <button class="page-btn" type="button" (click)="nextPage()" [disabled]="page() >= pageCount()" aria-label="Next page">›</button>
-      </nav>
+      <!-- Pagination Section -->
+      @if (pageCount() > 1) {
+        <div class="pagination-section">
+          <div class="pagination-info">
+            <span class="info-text">
+              Showing {{ paginationInfo().start }}-{{ paginationInfo().end }} of {{ paginationInfo().total }} products
+            </span>
+            <span class="page-counter">
+              Page {{ paginationInfo().currentPage }} of {{ paginationInfo().totalPages }}
+            </span>
+          </div>
+
+          <nav class="pagination" aria-label="Pagination">
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="prevPage()" 
+              [disabled]="page() <= 1" 
+              aria-label="Previous page"
+              title="Previous page"
+            >
+              ‹ Previous
+            </button>
+            
+            <div class="page-numbers">
+              @for (p of pages(); track p) {
+                @if (shouldShowPage(p, pageCount())) {
+                  <button 
+                    class="page-btn" 
+                    type="button" 
+                    [attr.aria-current]="p === page() ? 'page' : null" 
+                    (click)="setPage(p)"
+                    [attr.aria-label]="'Go to page ' + p"
+                  >
+                    {{ p }}
+                  </button>
+                } @else if (shouldShowEllipsis(p, pageCount())) {
+                  <span class="page-ellipsis">…</span>
+                }
+              }
+            </div>
+
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="nextPage()" 
+              [disabled]="page() >= pageCount()" 
+              aria-label="Next page"
+              title="Next page"
+            >
+              Next ›
+            </button>
+          </nav>
+        </div>
+      }
     </section>
   </div>
 </div>
-
-<!-- Take Order Dialog -->
-@if (selectedProduct()) {
-  <app-take-order-dialog
-    [product]="selectedProduct()!"
-    [isOpen]="isOrderDialogOpen()"
-    (close)="closeTakeOrderDialog()"
-    (orderCreated)="onOrderCreated()"
-  />
-}

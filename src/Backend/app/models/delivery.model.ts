@@ -10,6 +10,17 @@ export interface DeliveryOrder {
   idOrder: number;
 }
 
+export interface AssignedUser {
+  id: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: string;
+  currentLat: number | null;
+  currentLng: number | null;
+  lastLocationUpdate: string | null;
+}
+
 /**
  * Delivery Interface
  * Maps to backend Spring Boot Delivery entity
@@ -20,6 +31,12 @@ export interface Delivery {
   deliveryStatus: string;
   deliveryDate?: string | Date;
   trackingNumber?: string;
+  userId?: string;
+  assignedUserId?: number | null;
+  livreurId?: number | null;
+  assignedUser?: AssignedUser | null;
+  assignedAt?: string | null;
+  deliveredAt?: string | null;
   order?: DeliveryOrder;
 }
 

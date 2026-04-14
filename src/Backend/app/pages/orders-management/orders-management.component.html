@@ -65,7 +65,7 @@
                     N/A
                   }
                 </td>
-                <td>${{ order.totalAmount.toFixed(2) }}</td>
+                <td>{{ order.totalAmount.toFixed(2) }} TND</td>
                 <td>{{ order.address || 'N/A' }}</td>
                 <td><span class="badge">{{ order.status }}</span></td>
                 <td>{{ order.paymentMethod }}</td>
@@ -109,28 +109,38 @@
               <select
                 id="productId"
                 class="form-control"
+                [class.is-invalid]="productError()"
                 [value]="currentOrder().product?.idProduct || 0"
-                (change)="updateProductId(+$any($event.target).value)"
+                (change)="updateProductId(+$any($event.target).value); validateField('product')"
+                (blur)="validateField('product')"
                 required
               >
                 <option value="0">-- Select a Product --</option>
                 @for (product of productList(); track product.idProduct) {
                   <option [value]="product.idProduct">
-                    {{ product.name }} ($ {{ product.price?.toFixed(2) }})
+                    {{ product.name }} ({{ product.price?.toFixed(2) }} TND)
                   </option>
                 }
               </select>
+              @if (productError()) {
+                <span class="field-error">{{ productError() }}</span>
+              }
             } @else {
               <input
                 id="productId"
                 type="number"
                 class="form-control"
+                [class.is-invalid]="productError()"
                 [value]="currentOrder().product?.idProduct || 0"
-                (input)="updateProductId(+$any($event.target).value)"
+                (input)="updateProductId(+$any($event.target).value); validateField('product')"
+                (blur)="validateField('product')"
                 placeholder="Enter product ID"
                 required
               />
               <small class="form-text text-muted">Products not loaded. Enter Product ID manually.</small>
+              @if (productError()) {
+                <span class="field-error">{{ productError() }}</span>
+              }
             }
           </div>
 
@@ -147,30 +157,41 @@
           </div>
 
           <div class="form-group">
-            <label for="totalAmount">Total Amount ($) *</label>
+            <label for="totalAmount">Total Amount (TND) * (≥ 0.01)</label>
             <input
               id="totalAmount"
               type="number"
               step="0.01"
+              min="0"
               class="form-control"
+              [class.is-invalid]="totalAmountError()"
               [value]="currentOrder().totalAmount"
-              (input)="updateField('totalAmount', +$any($event.target).value)"
+              (input)="updateField('totalAmount', +$any($event.target).value); validateField('totalAmount')"
+              (blur)="validateField('totalAmount')"
               placeholder="0.00"
               required
             />
+            @if (totalAmountError()) {
+              <span class="field-error">{{ totalAmountError() }}</span>
+            }
           </div>
 
           <div class="form-group">
-            <label for="address">Address *</label>
+            <label for="address">Address * (≥ 5 characters)</label>
             <input
               id="address"
               type="text"
               class="form-control"
+              [class.is-invalid]="addressError()"
               [value]="currentOrder().address"
-              (input)="updateField('address', $any($event.target).value)"
+              (input)="updateField('address', $any($event.target).value); validateField('address')"
+              (blur)="validateField('address')"
               placeholder="Enter delivery address"
               required
             />
+            @if (addressError()) {
+              <span class="field-error">{{ addressError() }}</span>
+            }
           </div>
 
           <div class="form-row">
@@ -179,8 +200,10 @@
               <select
                 id="status"
                 class="form-control"
+                [class.is-invalid]="statusError()"
                 [value]="currentOrder().status"
-                (change)="updateField('status', $any($event.target).value)"
+                (change)="updateField('status', $any($event.target).value); validateField('status')"
+                (blur)="validateField('status')"
                 required
               >
                 <option value="">Select Status</option>
@@ -190,6 +213,9 @@
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
+              @if (statusError()) {
+                <span class="field-error">{{ statusError() }}</span>
+              }
             </div>
 
             <div class="form-group">
@@ -197,8 +223,10 @@
               <select
                 id="paymentMethod"
                 class="form-control"
+                [class.is-invalid]="paymentMethodError()"
                 [value]="currentOrder().paymentMethod"
-                (change)="updateField('paymentMethod', $any($event.target).value)"
+                (change)="updateField('paymentMethod', $any($event.target).value); validateField('paymentMethod')"
+                (blur)="validateField('paymentMethod')"
                 required
               >
                 <option value="">Select Payment Method</option>
@@ -208,6 +236,9 @@
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cash">Cash</option>
               </select>
+              @if (paymentMethodError()) {
+                <span class="field-error">{{ paymentMethodError() }}</span>
+              }
             </div>
           </div>
 
@@ -215,7 +246,7 @@
             <button type="button" class="btn btn-secondary" (click)="closeForm()">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" [disabled]="loading()">
+            <button type="submit" class="btn btn-primary" [disabled]="loading() || !isFormValid()">
               {{ isEditMode() ? 'Update Order' : 'Add Order' }}
             </button>
           </div>

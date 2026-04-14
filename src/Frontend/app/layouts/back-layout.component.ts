@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
-import { signal, computed } from '@angular/core';
 import { AdminNavTabsComponent } from '../shared/admin-nav-tabs/admin-nav-tabs.component';
+import { AuthService } from '../core/auth/auth.service';
 
 interface NavItem {
   id: string;
@@ -60,6 +60,12 @@ interface NavItem {
             <button class="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary hover:bg-warning hover:text-primary transition-colors">
               👤
             </button>
+            <button
+              type="button"
+              (click)="logout()"
+              class="rounded-full border border-background/40 px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-background hover:text-primary">
+              Logout
+            </button>
           </div>
 
           <!-- Mobile Menu Button -->
@@ -81,6 +87,12 @@ interface NavItem {
             class="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors">
             {{ item.label }}
           </button>
+          <button
+            type="button"
+            (click)="logout()"
+            class="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-background bg-primary-hover/60 transition-colors hover:bg-background hover:text-primary">
+            Logout
+          </button>
         </div>
       </nav>
 
@@ -95,8 +107,8 @@ interface NavItem {
   `,
   styles: [`
     .admin-shell {
-      min-height: 100vh;
-      width: 100%;
+      min-block-size: 100vh;
+      inline-size: 100%;
       background-color: #F7EDE2;
       display: flex;
       flex-direction: column;
@@ -104,13 +116,14 @@ interface NavItem {
 
     .admin-main-content {
       flex: 1;
-      min-height: calc(100vh - 180px);
+      min-block-size: calc(100vh - 180px);
       background-color: #F7EDE2;
       padding: 2rem;
     }
   `]
 })
 export class BackLayoutComponent {
+  private readonly auth = inject(AuthService);
   isMobileMenuOpen = signal(false);
 
   navItems: NavItem[] = [
@@ -144,6 +157,10 @@ export class BackLayoutComponent {
     this.isMobileMenuOpen.set(false);
   }
 
+  async logout(): Promise<void> {
+    await this.auth.logout();
+  }
+
   toggleMobileMenu(): void {
     this.isMobileMenuOpen.update(state => !state);
   }
@@ -160,7 +177,7 @@ export class BackLayoutComponent {
    */
   showAdminNav(): boolean {
     const route = this.currentRoute();
-    const managementPages = ['resources', 'products-management', 'orders-management', 'delivery-management'];
+    const managementPages = ['resources', 'products-management', 'orders-management', 'delivery-management', 'admin'];
     return managementPages.includes(route);
   }
 

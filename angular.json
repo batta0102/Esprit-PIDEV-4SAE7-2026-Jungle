@@ -37,6 +37,7 @@
               }
             ],
             "styles": [
+              "node_modules/leaflet/dist/leaflet.css",
               "src/Frontend/styles.scss",
               "src/Backend/styles.css"
             ]

@@ -156,15 +156,61 @@
         </div>
       </div>
 
-      <nav class="pagination" aria-label="Pagination">
-        <button class="page-btn" type="button" (click)="prevPage()" [disabled]="page() <= 1" aria-label="Previous page">‹</button>
-        @for (p of pages(); track p) {
-          <button class="page-btn" type="button" [attr.aria-current]="p === page() ? 'page' : null" (click)="setPage(p)">
-            {{ p }}
-          </button>
-        }
-        <button class="page-btn" type="button" (click)="nextPage()" [disabled]="page() >= pageCount()" aria-label="Next page">›</button>
-      </nav>
+      <!-- Pagination Section -->
+      @if (pageCount() > 1) {
+        <div class="pagination-section">
+          <div class="pagination-info">
+            <span class="info-text">
+              Showing {{ paginationInfo().start }}-{{ paginationInfo().end }} of {{ paginationInfo().total }} resources
+            </span>
+            <span class="page-counter">
+              Page {{ paginationInfo().currentPage }} of {{ paginationInfo().totalPages }}
+            </span>
+          </div>
+
+          <nav class="pagination" aria-label="Pagination">
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="prevPage()" 
+              [disabled]="page() <= 1" 
+              aria-label="Previous page"
+              title="Previous page"
+            >
+              ‹ Previous
+            </button>
+            
+            <div class="page-numbers">
+              @for (p of pages(); track p) {
+                @if (shouldShowPage(p, pageCount())) {
+                  <button 
+                    class="page-btn" 
+                    type="button" 
+                    [attr.aria-current]="p === page() ? 'page' : null" 
+                    (click)="setPage(p)"
+                    [attr.aria-label]="'Go to page ' + p"
+                  >
+                    {{ p }}
+                  </button>
+                } @else if (shouldShowEllipsis(p, pageCount())) {
+                  <span class="page-ellipsis">…</span>
+                }
+              }
+            </div>
+
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="nextPage()" 
+              [disabled]="page() >= pageCount()" 
+              aria-label="Next page"
+              title="Next page"
+            >
+              Next ›
+            </button>
+          </nav>
+        </div>
+      }
     </section>
   </div>
   <!-- Review Modal -->

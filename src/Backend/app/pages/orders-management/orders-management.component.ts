@@ -59,6 +59,45 @@ export class OrdersManagementComponent implements OnInit {
     address: ''
   });
 
+  // Form validation signals
+  productError = signal<string | null>(null);
+  totalAmountError = signal<string | null>(null);
+  addressError = signal<string | null>(null);
+  statusError = signal<string | null>(null);
+  paymentMethodError = signal<string | null>(null);
+
+  // Check if form is valid
+  isFormValid = computed(() => {
+    const order = this.currentOrder();
+    
+    // Product required and > 0
+    if (!order.product?.idProduct || order.product.idProduct === 0) {
+      return false;
+    }
+    
+    // Total amount required and > 0
+    if (!order.totalAmount || order.totalAmount <= 0) {
+      return false;
+    }
+    
+    // Address required and not empty
+    if (!order.address || order.address.trim() === '') {
+      return false;
+    }
+    
+    // Status required
+    if (!order.status || order.status.trim() === '') {
+      return false;
+    }
+    
+    // Payment method required
+    if (!order.paymentMethod || order.paymentMethod.trim() === '') {
+      return false;
+    }
+    
+    return !this.productError() && !this.totalAmountError() && !this.addressError() && !this.statusError() && !this.paymentMethodError();
+  });
+
   readonly tabs = [
     { label: 'All', value: 'all' },
     { label: 'Pending', value: 'pending' },
@@ -279,33 +318,11 @@ export class OrdersManagementComponent implements OnInit {
    * Save the current order (add or update)
    */
   saveOrder(): void {
+    if (!this.validateForm()) {
+      return;
+    }
+
     const order = this.currentOrder();
-
-    if (!order.product?.idProduct || order.product.idProduct === 0) {
-      this.error.set('Please select a product.');
-      return;
-    }
-
-    if (!order.totalAmount || order.totalAmount === 0) {
-      this.error.set('Please provide a total amount.');
-      return;
-    }
-
-    if (!order.status || order.status.trim() === '') {
-      this.error.set('Please provide a status.');
-      return;
-    }
-
-    if (!order.paymentMethod || order.paymentMethod.trim() === '') {
-      this.error.set('Please provide a payment method.');
-      return;
-    }
-
-    if (!order.address || order.address.trim() === '') {
-      this.error.set('Please provide a delivery address.');
-      return;
-    }
-
     this.loading.set(true);
     this.error.set(null);
 
@@ -338,6 +355,79 @@ export class OrdersManagementComponent implements OnInit {
         console.error('[OrdersManagement] Error adding order:', err);
       }
     });
+  }
+
+  /**
+   * Validate individual field and set error message
+   */
+  validateField(field: string): void {
+    const order = this.currentOrder();
+
+    switch (field) {
+      case 'product':
+        if (!order.product?.idProduct || order.product.idProduct === 0) {
+          this.productError.set('Please select a product');
+        } else {
+          this.productError.set(null);
+        }
+        break;
+
+      case 'totalAmount':
+        if (!order.totalAmount || order.totalAmount === 0) {
+          this.totalAmountError.set('Total amount is required');
+        } else if (order.totalAmount < 0) {
+          this.totalAmountError.set('Total amount cannot be negative');
+        } else if (!Number.isFinite(order.totalAmount)) {
+          this.totalAmountError.set('Total amount must be a valid number');
+        } else {
+          this.totalAmountError.set(null);
+        }
+        break;
+
+      case 'address':
+        if (!order.address || order.address.trim() === '') {
+          this.addressError.set('Delivery address is required');
+        } else if (order.address.trim().length < 5) {
+          this.addressError.set('Address must be at least 5 characters');
+        } else {
+          this.addressError.set(null);
+        }
+        break;
+
+      case 'status':
+        if (!order.status || order.status.trim() === '') {
+          this.statusError.set('Status is required');
+        } else {
+          this.statusError.set(null);
+        }
+        break;
+
+      case 'paymentMethod':
+        if (!order.paymentMethod || order.paymentMethod.trim() === '') {
+          this.paymentMethodError.set('Payment method is required');
+        } else {
+          this.paymentMethodError.set(null);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Validate entire form before submission
+   */
+  validateForm(): boolean {
+    this.validateField('product');
+    this.validateField('totalAmount');
+    this.validateField('address');
+    this.validateField('status');
+    this.validateField('paymentMethod');
+
+    if (!this.isFormValid()) {
+      this.error.set('Please fix the errors in the form');
+      return false;
+    }
+
+    return true;
   }
 
   /**

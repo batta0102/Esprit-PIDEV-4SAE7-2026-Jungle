@@ -15,7 +15,7 @@ export class AdminGuardService {
   canActivate(): boolean {
     const user = this.auth.currentUser();
     
-    if (user?.role === 'admin') {
+    if (user?.role === 'ADMIN') {
       return true;
     }
     

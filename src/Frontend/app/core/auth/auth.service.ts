@@ -36,9 +36,11 @@ function readRoles(token: KeycloakToken | undefined, clientId: string): string[]
 }
 
 function toUserRole(roles: string[]): UserRole {
-  if (roles.includes('admin')) return 'admin';
-  if (roles.includes('tuteur') || roles.includes('tutor')) return 'tutor';
-  return 'student';
+  const normalized = roles.map((role) => role.toUpperCase());
+  if (normalized.includes('ADMIN')) return 'ADMIN';
+  if (normalized.includes('LIVREUR')) return 'LIVREUR';
+  if (normalized.includes('TUTEUR') || normalized.includes('TUTOR')) return 'TUTEUR';
+  return 'ETUDIANT';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -144,6 +146,6 @@ export class AuthService {
 
   private clearUser(): void {
     this._currentUser.set(null);
-    this.userContext.setRole('student');
+    this.userContext.setRole('ETUDIANT');
   }
 }

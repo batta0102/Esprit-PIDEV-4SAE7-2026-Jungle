@@ -1,16 +1,14 @@
-import { NgOptimizedImage, CommonModule, CurrencyPipe } from '@angular/common';
+import { NgOptimizedImage, CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 import { Product, ProductService } from '../../shared/product/product';
-import { TakeOrderDialogComponent, ProductForOrder } from '../../shared/take-order-dialog/take-order-dialog.component';
-import { Delivery } from '@backend/models/delivery.model';
-import { DeliveryService } from '@backend/services/delivery.service';
+import { DeliveryDto, DeliveryService } from '../../core/services/delivery.service';
 import { RecommendationService } from '../../core/recommendations/recommendation.service';
 import { RecommendationProduct } from '../../core/recommendations/recommendation.model';
-import { AuthService } from '../../core/auth/auth.service';
+import { CartService } from '../../shared/cart/cart.service';
 
 type SortMode = 'Most Popular' | 'Newest' | 'Price: Low to High' | 'Price: High to Low' | 'Top Rated';
 
@@ -27,9 +25,14 @@ interface ProductDisplay {
   reviews: number;
 }
 
+type DeliveryLookup = DeliveryDto & {
+  deliveryStatus?: string;
+  deliveryDate?: string;
+};
+
 @Component({
   selector: 'app-products-page',
-  imports: [FormsModule, NgOptimizedImage, RouterModule, CommonModule, CurrencyPipe, TakeOrderDialogComponent],
+  imports: [FormsModule, NgOptimizedImage, RouterModule, CommonModule],
   templateUrl: './products.page.html',
   styleUrl: './products.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -38,7 +41,8 @@ export class ProductsPage {
   private readonly productService = inject(ProductService);
   private readonly deliveryService = inject(DeliveryService);
   private readonly recommendationService = inject(RecommendationService);
-  private readonly auth = inject(AuthService);
+  private readonly cartService = inject(CartService);
+  private readonly router = inject(Router);
   
   readonly products = signal<ProductDisplay[]>([]);
   readonly recommendations = signal<RecommendationProduct[]>([]);
@@ -48,14 +52,11 @@ export class ProductsPage {
   
 
   
-  // Take Order Dialog State
-  readonly selectedProduct = signal<ProductForOrder | null>(null);
-  readonly isOrderDialogOpen = signal(false);
   readonly orderSuccessMessage = signal('');
 
   readonly query = signal('');
   readonly trackingQuery = signal('');
-  readonly deliveryResult = signal<Delivery | null>(null);
+  readonly deliveryResult = signal<DeliveryLookup | null>(null);
   readonly sortMode = signal<SortMode>('Most Popular');
   readonly page = signal(1);
   readonly pageSize = 6;
@@ -90,6 +91,22 @@ export class ProductsPage {
 
   readonly pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
 
+  readonly paginationInfo = computed(() => {
+    const total = this.filteredProducts().length;
+    const page = this.page();
+    const pageSize = this.pageSize;
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+    
+    return {
+      start,
+      end,
+      total,
+      currentPage: page,
+      totalPages: this.pageCount()
+    };
+  });
+
   readonly sorts: SortMode[] = ['Most Popular', 'Newest', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
   constructor() {
@@ -104,26 +121,15 @@ export class ProductsPage {
         }
       });
 
-    // Load recommendations ONLY if user is logged in
-    if (this.auth.isLoggedIn()) {
-      this.loadRecommendations();
-    } else {
-      console.log('[ProductsPage] User not logged in, skipping recommendations');
-    }
+    this.loadRecommendations();
   }
 
   private loadRecommendations(): void {
-    // Double-check user is logged in before making API call
-    if (!this.auth.isLoggedIn()) {
-      console.log('[ProductsPage] Cannot load recommendations - user not authenticated');
-      return;
-    }
-
     this.isLoadingRecommendations.set(true);
     this.recommendationsError.set(null);
     
     this.recommendationService
-      .getRecommendationsForMe(6)
+      .getTop3MostOrderedProducts()
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: (recommendations) => {
@@ -132,12 +138,7 @@ export class ProductsPage {
         },
         error: (error) => {
           console.error('[ProductsPage] Error loading recommendations:', error);
-          // Handle specific error cases
-          if (error.status === 401 || error.status === 403) {
-            this.recommendationsError.set('Session expired. Please log in again.');
-          } else {
-            this.recommendationsError.set('Failed to load recommendations. Please try again later.');
-          }
+          this.recommendationsError.set('Failed to load top products. Please try again later.');
           this.isLoadingRecommendations.set(false);
           this.recommendations.set([]);
         }
@@ -190,22 +191,7 @@ export class ProductsPage {
    * - Placeholders
    */
   getImageUrl(imageUrl: string | null | undefined): string {
-    if (!imageUrl) {
-      return '/englishimg2.png'; // Default placeholder
-    }
-
-    // If it's already an absolute URL, use it directly
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    // If it's a relative URL or filename, serve it through the API
-    if (imageUrl.startsWith('/')) {
-      return imageUrl; // Already a path
-    }
-
-    // Otherwise, assume it's served through the API gateway
-    return `/api/products/images/${imageUrl}`;
+    return this.productService.resolveImageUrl(imageUrl);
   }
 
   starsLabel(rating: number): string {
@@ -222,30 +208,47 @@ export class ProductsPage {
     return 'View Details';
   }
 
-  openTakeOrderDialog(prod: ProductDisplay): void {
-    this.selectedProduct.set({
-      productId: prod.productId,
+  shouldShowPage(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Always show first and last page
+    if (pageNum === 1 || pageNum === totalPages) return true;
+    // Show current page and 2 pages around it
+    if (Math.abs(pageNum - current) <= 1) return true;
+    return false;
+  }
+
+  shouldShowEllipsis(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Show ellipsis after page 1 if page 3 is hidden
+    if (pageNum === 2 && !this.shouldShowPage(3, totalPages) && this.shouldShowPage(1, totalPages)) {
+      return true;
+    }
+    // Show ellipsis before last page if page before is hidden
+    if (pageNum === totalPages - 1 && !this.shouldShowPage(totalPages - 2, totalPages) && this.shouldShowPage(totalPages, totalPages)) {
+      return true;
+    }
+    return false;
+  }
+
+  addToCart(prod: ProductDisplay): void {
+    const product: Product = {
+      idProduct: prod.productId,
       name: prod.name,
-      price: prod.price
-    });
-    this.isOrderDialogOpen.set(true);
-  }
-
-  closeTakeOrderDialog(): void {
-    this.isOrderDialogOpen.set(false);
-    this.selectedProduct.set(null);
-    this.orderSuccessMessage.set('');
-  }
-
-  onOrderCreated(): void {
-    console.log('[ProductsPage] Order created successfully');
-    this.orderSuccessMessage.set('Order created successfully!');
-    this.closeTakeOrderDialog();
-
-    // Clear success message after 3 seconds
+      category: prod.category,
+      description: prod.description,
+      imageUrl: prod.imageUrl,
+      price: prod.price,
+      stock: prod.stock
+    };
+    this.cartService.addToCart(product);
+    this.orderSuccessMessage.set(`${prod.name} added to cart.`);
     setTimeout(() => {
       this.orderSuccessMessage.set('');
     }, 3000);
+  }
+
+  goToCart(): void {
+    this.router.navigate(['/front/cart']);
   }
 
   recommendationStarsLabel(rating: number): string {

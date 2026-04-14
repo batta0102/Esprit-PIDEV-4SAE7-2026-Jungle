@@ -63,6 +63,12 @@ export class AdminNavTabsComponent {
       label: 'Deliveries',
       icon: '🚚',
       ariaLabel: 'Delivery Management'
+    },
+    {
+      route: '/back/admin/livreurs',
+      label: 'Livreurs',
+      icon: '🧑‍✈️',
+      ariaLabel: 'Livreurs Management'
     }
   ];
 }

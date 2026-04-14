@@ -1,7 +1,7 @@
 import { Component, inject, input, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Order, OrderService } from '../order/order';
+import { CreateOrderRequest, OrderService } from '../order/order';
 
 export interface ProductForOrder {
   productId: number;
@@ -93,24 +93,23 @@ export class TakeOrderDialogComponent {
     this.successMessage.set('');
 
     // Build order payload
-    const order: Order = {
-      product: {
-        idProduct: this.product().productId,
-        name: this.product().name,
-        price: this.product().price
-      },
-      totalAmount: this.product().price,
+    const order: CreateOrderRequest = {
+      userId: 'anonymous',
+      address: this.address().trim(),
       paymentMethod: this.paymentMethod(),
-      status: 'PENDING',
-      orderDate: new Date().toISOString(),
-      address: this.address().trim()
+      items: [
+        {
+          productId: this.product().productId,
+          quantity: 1
+        }
+      ]
     };
 
     console.log('[TakeOrderDialog] Creating order:', order);
 
-    this.orderService.addOrder(order).subscribe({
-      next: (response) => {
-        console.log('[TakeOrderDialog] ✅ Order created:', response);
+    this.orderService.createOrder(order).subscribe({
+      next: () => {
+        console.log('[TakeOrderDialog] ✅ Order created');
         this.isLoading.set(false);
         this.successMessage.set('Order created successfully!');
         
@@ -120,7 +119,7 @@ export class TakeOrderDialogComponent {
           this.onCancel();
         }, 1000);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('[TakeOrderDialog] ❌ Error creating order:', err);
         this.isLoading.set(false);
         

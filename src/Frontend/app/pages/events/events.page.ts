@@ -41,7 +41,7 @@ export class EventsPage {
     const q = this.query().trim().toLowerCase();
     const activeFilter = this.filter();
 
-    const visible = this.events().filter((e) => (role === 'student' ? e.visibility === 'public' : true));
+    const visible = this.events().filter((e) => (role === 'ETUDIANT' ? e.visibility === 'public' : true));
 
     const rows = visible.map((e) => {
       const mode = this.isOnline(e) ? ('online' as const) : ('onsite' as const);

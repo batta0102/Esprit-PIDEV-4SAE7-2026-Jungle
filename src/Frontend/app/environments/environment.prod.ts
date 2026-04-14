@@ -10,5 +10,6 @@
 export const environment = {
   production: true,
   apiBaseUrl: '/api',  // Assumes production has reverse proxy or API Gateway at same domain
-  gatewayUrl: 'https://your-production-gateway.com'  // Replace with actual production URL
+  gatewayUrl: 'https://your-production-gateway.com',  // Replace with actual production URL
+  resourcesBaseUrl: 'https://your-production-resource-service.com'  // Replace with actual static files URL
 };

@@ -14,6 +14,10 @@
         <a class="nav-link" [routerLink]="['/front/clubs']" routerLinkActive="active">Clubs</a>
         <a class="nav-link" [routerLink]="['/front/events']" routerLinkActive="active">Events</a>
         <a class="nav-link" [routerLink]="['/front/library']" routerLinkActive="active">Library</a>
+        @if (isLoggedIn()) {
+          <a class="nav-link" [routerLink]="['/front/my-deliveries']" routerLinkActive="active">My deliveries</a>
+        }
+        <a class="nav-link" [routerLink]="['/front/cart']" routerLinkActive="active">Cart</a>
         <a class="nav-link" [routerLink]="['/front/qcm']" routerLinkActive="active">QCM</a>
         <a class="nav-link" [routerLink]="['/front/evaluations']" routerLinkActive="active">Evaluations</a>
         <a class="nav-link" [routerLink]="['/front/gamification']" routerLinkActive="active">Gamification</a>

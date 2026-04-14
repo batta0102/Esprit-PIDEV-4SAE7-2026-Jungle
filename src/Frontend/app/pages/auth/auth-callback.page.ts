@@ -35,15 +35,22 @@ export class AuthCallbackPage implements OnInit {
     console.log('[AuthCallback] Current user:', user);
     console.log('[AuthCallback] User role:', user?.role);
     
-    if (user?.role === 'admin') {
+    if (user?.role === 'ADMIN') {
       // Redirect admin users to the backend dashboard
       console.log('[AuthCallback] Redirecting admin to /back/dashboard');
       this.router.navigate(['/back/dashboard']);
-    } else {
-      // Redirect non-admin users (tutor, student) to the frontend
-      console.log('[AuthCallback] Redirecting user to /front');
-      this.router.navigate(['/front']);
+      return;
     }
+
+    if (user?.role === 'LIVREUR') {
+      console.log('[AuthCallback] Redirecting livreur to /front/livreur');
+      this.router.navigate(['/front/livreur']);
+      return;
+    }
+
+    // Redirect students and tutors to the frontend
+    console.log('[AuthCallback] Redirecting user to /front');
+    this.router.navigate(['/front']);
   }
 
   private async waitForAuth(): Promise<void> {

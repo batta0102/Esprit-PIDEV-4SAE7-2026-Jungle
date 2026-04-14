@@ -7,5 +7,6 @@
 export const environment = {
   production: false,
   apiBaseUrl: '/api',
-  gatewayUrl: 'http://localhost:8085'
+  gatewayUrl: 'http://localhost:8085',
+  resourcesBaseUrl: 'http://localhost:8089'
 };

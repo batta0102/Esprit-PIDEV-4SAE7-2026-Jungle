@@ -134,6 +134,29 @@ export class RecommendationService {
   }
 
   /**
+   * Get the top 3 products with the highest order count
+   * GET /api/recommendations/top3
+   *
+   * This is the public recommendation feed used on the product listing page.
+   */
+  getTop3MostOrderedProducts(): Observable<RecommendationProduct[]> {
+    const url = buildApiUrl(environment.apiBaseUrl, 'recommendations', 'top3');
+    console.log(`[RecommendationService] Fetching top 3 most ordered products: ${url}`);
+
+    return this.http.get<RecommendationProduct[]>(url, this.httpOptions).pipe(
+      tap(recommendations => {
+        console.log(`[RecommendationService] Loaded ${recommendations.length} top ordered products`);
+      }),
+      map(recommendations => recommendations ?? []),
+      catchError(error => {
+        console.error('[RecommendationService] Error loading top ordered products:', error);
+        console.error('[RecommendationService] Request URL:', url);
+        return of(MOCK_RECOMMENDATIONS.slice(0, 3));
+      })
+    );
+  }
+
+  /**
    * Get similar product recommendations
    * GET /api/recommendations/product/{id}?limit={limit}
    * 
