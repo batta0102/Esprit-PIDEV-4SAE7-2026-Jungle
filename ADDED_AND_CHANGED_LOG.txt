@@ -1,0 +1,74 @@
+Project Additions and Changes Log
+Date: 2026-04-14
+
+1) Architecture and Routing
+- API calls in frontend switched to gateway-relative paths:
+  - /api/chat
+  - /api/avatars
+  - /api/skins
+  - /api/crosswords
+  - /api/games
+  - /api/badges
+  - /resources
+- Frontend route added:
+  - /games/spelling-battle
+- Games page route mapping logic added:
+  - Crossword -> /games/crossword
+  - Spelling categories -> /games/spelling-battle
+- Gamification page play logic extended to navigate to spelling-battle.
+
+2) Proxy Configuration
+- proxy.conf.json updated:
+  - /api -> http://localhost:8083
+  - /resources -> http://localhost:8083
+  - /admin -> http://localhost:4300 (path rewrite ^/admin -> "")
+- Result: frontend remains on http://localhost:4200 and backend UI is reachable from http://localhost:4200/admin
+
+3) New Frontend Spelling Battle Feature
+- New service:
+  - src/Frontend/app/core/games/spelling-battle.service.ts
+- New page:
+  - src/Frontend/app/pages/spelling-battle/spelling-battle.page.ts
+  - src/Frontend/app/pages/spelling-battle/spelling-battle.page.html
+  - src/Frontend/app/pages/spelling-battle/spelling-battle.page.scss
+- Includes:
+  - room/player creation
+  - turn-based spelling logic
+  - timer + elimination flow
+  - narrator voice controls
+  - localStorage word bank usage
+
+4) Backend UI (Angular backend project) additions
+- New page:
+  - src/Backend/app/pages/spelling-battle/spelling-battle.component.ts
+  - src/Backend/app/pages/spelling-battle/spelling-battle.component.html
+  - src/Backend/app/pages/spelling-battle/spelling-battle.component.scss
+- Backend navigation/routes updated to include spelling battle admin page.
+
+5) Tests Added
+Frontend tests:
+- src/Frontend/app/core/games/spelling-battle.service.spec.ts
+- src/Frontend/app/pages/games/games.page.spec.ts
+
+Backend tests (Spring, JUnit/Mockito):
+- GameServiceImplTest.java
+- BadgeServiceImplTest.java
+- CrosswordGameServiceImplTest.java
+
+6) Validation Performed
+- Backend targeted tests executed successfully:
+  - mvnw with -Dtest=GameServiceImplTest,BadgeServiceImplTest,CrosswordGameServiceImplTest
+  - Result: BUILD SUCCESS
+- Frontend targeted Vitest specs executed successfully:
+  - spelling-battle.service.spec.ts
+  - games.page.spec.ts
+  - Result: all tests passed
+
+7) Current Ports and Access
+- Frontend dev server: http://localhost:4200
+- Backend Angular dev server process: http://localhost:4300
+- Backend UI through frontend path proxy: http://localhost:4200/admin
+
+Note
+- Keeping both apps on the exact same port as independent dev servers is not possible.
+- The /admin proxy provides the behavior requested: one public entry on 4200, with backend UI under /admin.

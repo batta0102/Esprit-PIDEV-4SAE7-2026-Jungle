@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CalendarComponent } from '../../components/calendar/calendar.component';
 import { EventCardComponent } from '../../components/event-card/event-card.component';
 import { CreateEventModalComponent } from '../../components/create-event-modal/create-event-modal.component';
@@ -21,12 +22,42 @@ interface EventData {
 })
 export class EventsComponent {
   isModalOpen = signal(false);
+  searchQuery = signal('');
+  page = signal(1);
+  readonly pageSize = 4;
   
   events: { type: 'Workshop' | 'Cultural' | 'Field Trip'; title: string; date: string; time: string; location: string; status: 'Open' | 'Full'; buttonText: string }[] = [
     { type: 'Workshop', title: 'Calligraphy Workshop', date: 'October 15', time: '2:00 PM - 4:00 PM', location: 'Room 101', status: 'Open', buttonText: 'Registered (Cancel)' },
     { type: 'Cultural', title: 'Conference: Origins of Language', date: 'October 18', time: '6:00 PM - 8:00 PM', location: 'Auditorium A', status: 'Full', buttonText: 'Waitlist' },
     { type: 'Field Trip', title: 'Museum Visit', date: 'October 22', time: '9:00 AM - 12:00 PM', location: 'National Museum', status: 'Open', buttonText: 'Register' }
   ];
+
+  filteredEvents = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.events;
+    return this.events.filter(e =>
+      e.title.toLowerCase().includes(q) || e.type.toLowerCase().includes(q) || e.location.toLowerCase().includes(q) || e.date.toLowerCase().includes(q)
+    );
+  });
+
+  pageCount = computed(() => Math.max(1, Math.ceil(this.filteredEvents().length / this.pageSize)));
+
+  pagedEvents = computed(() => {
+    const p = Math.min(this.page(), this.pageCount());
+    const start = (p - 1) * this.pageSize;
+    return this.filteredEvents().slice(start, start + this.pageSize);
+  });
+
+  pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.page.set(1);
+  }
+
+  setPage(p: number): void { this.page.set(Math.min(Math.max(1, p), this.pageCount())); }
+  prevPage(): void { this.setPage(this.page() - 1); }
+  nextPage(): void { this.setPage(this.page() + 1); }
 
   openModal(): void {
     this.isModalOpen.set(true);

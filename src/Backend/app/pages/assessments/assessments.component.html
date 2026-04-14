@@ -17,6 +17,14 @@
     class="mb-8">
   </app-tabs>
 
+  <!-- Search -->
+  <div class="mb-6">
+    <div class="relative max-w-md">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary">🔍</span>
+      <input placeholder="Search assessments or students..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" class="w-full pl-12 pr-4 py-3 rounded-lg border border-border placeholder-secondary" />
+    </div>
+  </div>
+
   <!-- Stats Cards -->
   <div class="mb-8 grid gap-6 md:grid-cols-3">
     <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
@@ -55,7 +63,7 @@
     <div class="lg:col-span-2 space-y-6">
       <h3 class="font-serif text-2xl font-semibold text-text">Recent Quizzes</h3>
 
-      <div *ngFor="let test of assessments" class="rounded-xl border border-border bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div *ngFor="let test of pagedAssessments()" class="rounded-xl border border-border bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
           <div class="flex-1">
             <div class="mb-2 flex items-center gap-3">
@@ -82,6 +90,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <nav *ngIf="pageCount() > 1" class="mt-6 flex items-center justify-center gap-2">
+        <button (click)="prevPage()" [disabled]="page() <= 1" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">‹</button>
+        <button *ngFor="let p of pages()" (click)="setPage(p)" [class.bg-primary]="p === page()" [class.text-white]="p === page()" class="px-3 py-2 rounded-lg border border-border hover:bg-light">{{ p }}</button>
+        <button (click)="nextPage()" [disabled]="page() >= pageCount()" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">›</button>
+      </nav>
     </div>
 
     <div class="lg:col-span-1">
@@ -95,7 +110,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
-            <tr *ngFor="let result of results">
+            <tr *ngFor="let result of filteredResults()">
               <td class="px-4 py-3 text-text font-medium">{{ result.student }}</td>
               <td class="px-4 py-3 font-medium text-primary">{{ result.score }}%</td>
             </tr>

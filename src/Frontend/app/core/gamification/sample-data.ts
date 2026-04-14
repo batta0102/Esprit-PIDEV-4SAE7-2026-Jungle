@@ -1,5 +1,8 @@
 import { BadgeModel, ChallengeModel } from './models';
 
+/**
+ * Sample badges that can be earned through various gamification events
+ */
 export const SAMPLE_BADGES: BadgeModel[] = [
   {
     id: 'b-first-steps',
@@ -23,6 +26,9 @@ export const SAMPLE_BADGES: BadgeModel[] = [
   }
 ];
 
+/**
+ * Sample challenges with tasks and XP rewards
+ */
 export const SAMPLE_CHALLENGES: ChallengeModel[] = [
   {
     id: 'c-speak-sprint',
