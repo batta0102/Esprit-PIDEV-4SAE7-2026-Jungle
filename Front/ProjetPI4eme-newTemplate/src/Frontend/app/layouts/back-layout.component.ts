@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
-import { signal, computed } from '@angular/core';
+import { NotificationBellComponent } from '../shared/notification-bell/notification-bell.component';
 
 interface NavItem {
   id: string;
   label: string;
+  icon?: 'calendar-check' | 'user-check';
 }
 
 /**
@@ -16,7 +17,7 @@ interface NavItem {
 @Component({
   selector: 'app-back-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, NotificationBellComponent],
   template: `
     <div class="min-h-screen w-full bg-background">
       <!-- Navigation Bar -->
@@ -38,36 +39,41 @@ interface NavItem {
               *ngFor="let item of navItems"
               (click)="navigateTo(item.id)"
               [class]="getNavItemClass(item.id)"
-              class="text-sm font-medium transition-colors">
+              class="inline-flex items-center gap-2 text-sm font-medium transition-colors">
+              <span *ngIf="item.icon === 'calendar-check'" class="inline-flex shrink-0" aria-hidden="true" style="width: 1.125rem; height: 1.125rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+              </span>
+              <span *ngIf="item.icon === 'user-check'" class="inline-flex shrink-0" aria-hidden="true" style="width: 1.125rem; height: 1.125rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M19 16l2 2 4-4"/></svg>
+              </span>
               {{ item.label }}
             </button>
           </div>
 
-          <!-- Right Section -->
-          <div class="hidden md:flex items-center space-x-4">
-            <button class="p-2 text-background/80 hover:text-background hover:bg-primary-hover/60 rounded-lg transition-colors">
-              🔍
-            </button>
-            <div class="relative">
+          <div class="flex items-center gap-2 md:gap-4">
+            <app-notification-bell class="shrink-0" />
+            <div class="hidden md:flex items-center space-x-4">
               <button
-                (click)="navigateTo('notifications')"
-                class="p-2 text-background/80 hover:text-background hover:bg-primary-hover/60 rounded-lg transition-colors">
-                🔔
+                type="button"
+                class="p-2 text-background/80 hover:text-background hover:bg-primary-hover/60 rounded-lg transition-colors"
+              >
+                🔍
               </button>
-              <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-white"></span>
+              <button
+                type="button"
+                class="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary hover:bg-warning hover:text-primary transition-colors"
+              >
+                👤
+              </button>
             </div>
-            <button class="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary hover:bg-warning hover:text-primary transition-colors">
-              👤
-            </button>
-          </div>
 
-          <!-- Mobile Menu Button -->
-          <div class="lg:hidden">
-            <button
-              (click)="toggleMobileMenu()"
-              class="p-2 text-background/80 hover:text-background hover:bg-primary-hover/60 rounded-lg transition-colors">
-              {{ isMobileMenuOpen() ? '✕' : '≡' }}
-            </button>
+            <div class="lg:hidden">
+              <button
+                (click)="toggleMobileMenu()"
+                class="p-2 text-background/80 hover:text-background hover:bg-primary-hover/60 rounded-lg transition-colors">
+                {{ isMobileMenuOpen() ? '✕' : '≡' }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -77,7 +83,13 @@ interface NavItem {
             *ngFor="let item of navItems"
             (click)="navigateTo(item.id)"
             [class]="getMobileNavItemClass(item.id)"
-            class="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            class="flex items-center gap-2 w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <span *ngIf="item.icon === 'calendar-check'" class="inline-flex shrink-0" aria-hidden="true" style="width: 1.125rem; height: 1.125rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+            </span>
+            <span *ngIf="item.icon === 'user-check'" class="inline-flex shrink-0" aria-hidden="true" style="width: 1.125rem; height: 1.125rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M19 16l2 2 4-4"/></svg>
+            </span>
             {{ item.label }}
           </button>
         </div>
@@ -97,6 +109,7 @@ export class BackLayoutComponent {
   navItems: NavItem[] = [
     { id: 'dashboard', label: 'Home' },
     { id: 'courses', label: 'Courses' },
+    { id: 'attendance', label: 'Attendance', icon: 'calendar-check' },
     { id: 'clubs', label: 'Clubs' },
     { id: 'events', label: 'Events' },
     { id: 'assessments', label: 'Assessments' },
