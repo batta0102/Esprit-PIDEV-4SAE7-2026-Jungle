@@ -54,8 +54,8 @@ export class FrontendGamesPage implements OnInit {
 
   routeFor(game: Game): string | null {
     const category = (game.category || '').toLowerCase();
-    if (category === 'crossword') return '/games/crossword';
-    if (category.includes('spelling')) return '/games/spelling-battle';
+    if (category === 'crossword') return '/front/games/crossword';
+    if (category.includes('spelling')) return '/front/games/spelling-battle';
     return null;
   }
 

@@ -81,7 +81,7 @@
     @for (a of pagedAvatars(); track a.id) {
       <li class="p-3 border rounded flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img [src]="a.imageUrl || '/assets/default-avatar.png'" [alt]="a.type"
+          <img [src]="a.imageUrl || '/assets/default-avatar.svg'" [alt]="a.type"
                class="w-16 h-16 rounded object-cover border-2 border-gray-200" />
           <div>
             <div class="font-medium text-lg">{{ a.type }}</div>

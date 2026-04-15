@@ -98,7 +98,10 @@
       <section class="g-section">
         <div class="g-section-head">
           <h2 class="g-h2">Games</h2>
-          <span class="g-muted">Earn XP by playing our educational games.</span>
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+            <span class="g-muted">Earn XP by playing our educational games.</span>
+            <a class="btn btn-primary" [routerLink]="['/front/games/spelling-battle']">Spelling Battle</a>
+          </div>
         </div>
         <div class="grid grid-3">
           @if (errorMessage()) {
@@ -266,7 +269,7 @@
               <div style="font-size:2.5rem;">🤖</div>
               <div class="g-card-title" style="font-size:1.15rem;">Start Practising Now</div>
               <p class="g-muted" style="text-align:center;">Chat, read scripts aloud, and get real-time feedback from our AI tutor.</p>
-              <a class="btn btn-primary" [routerLink]="['/ai-practice']" style="font-size:1rem;padding:0.6rem 1.5rem;">
+              <a class="btn btn-primary" [routerLink]="['/front/ai-practice']" style="font-size:1rem;padding:0.6rem 1.5rem;">
                 Open AI Practice
               </a>
             </div>

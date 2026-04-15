@@ -1,131 +1,69 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
-
-// Lazy loaded routes for projects
-const frontendRoutes = () => import('./projects/Frontend/frontend.routes').then(m => m.frontendRoutes);
-const backendRoutes = () => import('./projects/Backend/backend.routes').then(m => m.backendRoutes);
+import { FRONT_ROUTES } from './front.routes';
+import { BACK_ROUTES } from './back.routes';
+import { FrontLayoutComponent } from './layouts/front-layout.component';
+import { BackLayoutComponent } from './layouts/back-layout.component';
+import { AuthCallbackPage } from './pages/auth/auth-callback.page';
+import { adminGuard } from './core/auth/admin.guard';
 
 export const routes: Routes = [
-	// Projects routes with lazy loading - PUBLIC (NO auth required)
-	{
-		path: 'frontend',
-		loadChildren: frontendRoutes
-	},
-	{
-		path: 'Frontend',
-		loadChildren: frontendRoutes
-	},
-	{
-		path: 'backend',
-		loadChildren: backendRoutes
-	},
-	{
-		path: 'Backend',
-		loadChildren: backendRoutes
-	},
-
-	// Public routes - NO authentication required
 	{
 		path: '',
-		title: 'Jungle in English',
-		loadComponent: () => import('./pages/landing/landing.page').then((m) => m.LandingPage)
-	},
-	{
-		path: 'login',
-		title: 'Login | Jungle in English',
-		canActivate: [authGuard],
-		loadComponent: () => import('./pages/auth/login.page').then((m) => m.LoginPage)
-	},
-	{
-		path: 'signup',
-		title: 'Sign up | Jungle in English',
-		canActivate: [authGuard],
-		loadComponent: () => import('./pages/auth/signup.page').then((m) => m.SignupPage)
-	},
-
-	// Public routes - NO authentication required
-	{
-		path: 'events',
-		title: 'Events | Jungle in English',
-		loadComponent: () => import('./pages/events/events.page').then((m) => m.EventsPage)
-	},
-	{
-		path: 'clubs',
-		title: 'Clubs | Jungle in English',
-		loadComponent: () => import('./pages/clubs/clubs.page').then((m) => m.ClubsPage)
-	},
-	{
-		path: 'clubs/:clubId',
-		title: 'Club Details | Jungle in English',
-		loadComponent: () => import('./pages/clubs/club-detail.page').then((m) => m.ClubDetailPage)
-	},
-	{
-		path: 'trainings',
-		title: 'Courses | Jungle in English',
-		loadComponent: () => import('./pages/trainings/trainings.page').then((m) => m.TrainingsPage)
-	},
-	{
-		path: 'trainings/:trainingId',
-		title: 'Course Details | Jungle in English',
-		loadComponent: () => import('./pages/trainings/training-detail.page').then((m) => m.TrainingDetailPage)
-	},
-	{
-		path: 'library',
-		title: 'Bibliothèque | Jungle in English',
-		loadComponent: () => import('./pages/library/library.page').then((m) => m.LibraryPage)
-	},
-	{
-		path: 'qcm',
-		title: 'QCM | Jungle in English',
-		loadComponent: () => import('./pages/qcm/qcm.page').then((m) => m.QcmPage)
-	},
-	{
-		path: 'evaluations',
-		title: 'Evaluations | Jungle in English',
-		loadComponent: () => import('./pages/evaluations/evaluations.page').then((m) => m.EvaluationsPage)
-	},
-	{
-		path: 'gamification',
-		title: 'Gamification | Jungle in English',
-		loadComponent: () => import('./pages/gamification/gamification.page').then((m) => m.GamificationPage)
-	},
-	{
-		path: 'ai-practice',
-		title: 'AI Practice | Jungle in English',
-		loadComponent: () => import('./pages/ai-practice/ai-practice.page').then((m) => m.AiPracticePage)
-	},
-	{
-		path: 'games/crossword',
-		title: 'Crossword | Jungle in English',
-		loadComponent: () => import('./pages/crossword/crossword.page').then((m) => m.CrosswordPage)
-	},
-	{
-		path: 'games/spelling-battle',
-		title: 'Spelling Battle | Jungle in English',
-		loadComponent: () => import('./pages/spelling-battle/spelling-battle.page').then((m) => m.SpellingBattlePage)
-	},
-	{
-		path: 'profile',
-		redirectTo: 'profile/student',
+		redirectTo: 'front',
 		pathMatch: 'full'
 	},
 	{
-		path: 'profile/student',
-		title: 'Student Space | Jungle in English',
-		loadComponent: () => import('./pages/profile/profile-student.page').then((m) => m.ProfileStudentPage)
+		path: 'auth/callback',
+		component: AuthCallbackPage
 	},
 	{
-		path: 'profile/tutor',
-		title: 'Tutor Space | Jungle in English',
-		loadComponent: () => import('./pages/profile/profile-tutor.page').then((m) => m.ProfileTutorPage)
+		path: 'tracking/:deliveryId',
+		redirectTo: 'front/tracking/:deliveryId'
 	},
 	{
-		path: 'profile/admin',
-		title: 'Admin Space | Jungle in English',
-		loadComponent: () => import('./pages/profile/profile-admin.page').then((m) => m.ProfileAdminPage)
+		path: 'ai-practice',
+		redirectTo: 'front/ai-practice'
+	},
+	{
+		path: 'gamification',
+		redirectTo: 'front/gamification'
+	},
+	{
+		path: 'games/crossword',
+		redirectTo: 'front/games/crossword'
+	},
+	{
+		path: 'games/spelling-battle',
+		redirectTo: 'front/games/spelling-battle'
+	},
+	{
+		path: 'livreur/location-test',
+		redirectTo: 'front/livreur/location-test'
+	},
+	{
+		path: 'delivery/assign-test',
+		redirectTo: 'front/delivery/assign-test'
+	},
+	{
+		path: 'my-deliveries',
+		redirectTo: 'front/my-deliveries'
+	},
+	{
+		path: 'front',
+		component: FrontLayoutComponent,
+		children: FRONT_ROUTES
+	},
+	{
+		path: 'back',
+		component: BackLayoutComponent,
+		children: BACK_ROUTES.map(route => 
+			route.path === 'dashboard' 
+				? { ...route, canActivate: [adminGuard] }
+				: route
+		)
 	},
 	{
 		path: '**',
-		redirectTo: ''
+		redirectTo: 'front'
 	}
 ];

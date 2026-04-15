@@ -351,7 +351,7 @@ export class CrosswordPage implements OnDestroy {
   /** Navigate back to gamification page */
   goBackToGamification(): void {
     this.showXpPopup.set(false);
-    void this.router.navigate(['/gamification']);
+    void this.router.navigate(['/front/gamification']);
   }
 
   // ── Timer ──

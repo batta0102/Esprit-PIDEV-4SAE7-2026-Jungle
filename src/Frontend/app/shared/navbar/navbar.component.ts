@@ -24,19 +24,27 @@ export class NavbarComponent {
 
   readonly profileLink = computed(() => {
     const role = this.role();
-    return role === 'admin' ? '/profile/admin' : role === 'tutor' ? '/profile/tutor' : '/profile/student';
+    if (role === 'ADMIN') return '/front/profile/admin';
+    if (role === 'TUTEUR') return '/front/profile/tutor';
+    if (role === 'LIVREUR') return '/front/livreur';
+    return '/front/profile/student';
   });
 
   readonly spaceLabel = computed(() => {
     const role = this.role();
-    return role === 'tutor' ? 'Tutor space' : 'Student space';
+    if (role === 'ADMIN') return 'Admin space';
+    if (role === 'TUTEUR') return 'Tutor space';
+    if (role === 'LIVREUR') return 'Livreur space';
+    return 'Etudiant space';
   });
 
-  async login(): Promise<void> {
+  async onLogin(event: Event): Promise<void> {
+    event.preventDefault();
     await this.auth.login();
   }
 
-  async register(): Promise<void> {
+  async onSignup(event: Event): Promise<void> {
+    event.preventDefault();
     await this.auth.register();
   }
 

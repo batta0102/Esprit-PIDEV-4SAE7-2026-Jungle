@@ -12,7 +12,7 @@ export interface Avatar {
 
 @Injectable({ providedIn: 'root' })
 export class AvatarsService {
-  private apiUrl = 'http://localhost:8083/api/avatars';
+  private apiUrl = 'http://localhost:8085/api/avatars';
 
   constructor(private http: HttpClient) {}
 

@@ -35,7 +35,7 @@
               class="avatar-card"
               [class.selected]="selectedAvatarId() === a.id"
               (click)="selectAvatar(a.id!)">
-        <img [src]="a.imageUrl || '/assets/default-avatar.png'" 
+        <img [src]="a.imageUrl || '/assets/default-avatar.svg'" 
              alt="{{ a.type }}" 
              class="avatar-img" />
         <div class="avatar-type">{{ a.type }}</div>

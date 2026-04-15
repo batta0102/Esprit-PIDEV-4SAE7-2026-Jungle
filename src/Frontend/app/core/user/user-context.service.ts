@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type UserRole = 'student' | 'tutor' | 'admin';
+export type UserRole = 'ETUDIANT' | 'TUTEUR' | 'ADMIN' | 'LIVREUR';
 export type EnrollmentMode = 'online' | 'onsite';
 
 interface ParticipationState {
@@ -126,10 +126,10 @@ export class UserContextService {
   private readRole(): UserRole {
     try {
       const raw = localStorage.getItem(this.roleKey);
-      if (raw === 'student' || raw === 'tutor' || raw === 'admin') return raw;
-      return 'student';
+      if (raw === 'ETUDIANT' || raw === 'TUTEUR' || raw === 'ADMIN' || raw === 'LIVREUR') return raw;
+      return 'ETUDIANT';
     } catch {
-      return 'student';
+      return 'ETUDIANT';
     }
   }
 }

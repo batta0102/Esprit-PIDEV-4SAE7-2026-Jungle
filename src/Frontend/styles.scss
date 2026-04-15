@@ -1,3 +1,6 @@
+@use '../Backend/app/styles/admin-theme' as *;
+@use './app/app.scss' as *;
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

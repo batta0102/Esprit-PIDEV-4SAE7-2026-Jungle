@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppCardComponent } from '../../components/ui/card.component';
-import { AppBadgeComponent } from '../../components/ui/badge.component';
 import { ModuleCardComponent } from '../../components/module-card/module-card.component';
 import { CalendarComponent } from '../../components/calendar/calendar.component';
 import { ActivityTimelineComponent } from '../../components/activity-timeline/activity-timeline.component';
@@ -23,7 +22,7 @@ interface StatData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, AppCardComponent, AppBadgeComponent, ModuleCardComponent, CalendarComponent, ActivityTimelineComponent],
+  imports: [CommonModule, AppCardComponent, ModuleCardComponent, CalendarComponent, ActivityTimelineComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })

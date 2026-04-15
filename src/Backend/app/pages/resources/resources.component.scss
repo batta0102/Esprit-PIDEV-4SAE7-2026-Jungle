@@ -1,0 +1,48 @@
+@use '../../styles/admin-shared' as *;
+
+/* ============================================
+   RESOURCES - SPECIFIC STYLES
+   Extends shared admin styles
+   ============================================ */
+
+.resources-container {
+  @extend .management-container;
+}
+
+.content-wrapper {
+  @extend .content-wrapper;
+}
+
+/* Resource-specific additions */
+.resource-type {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  
+  &.book {
+    color: #2d6460;
+  }
+  
+  &.pdf {
+    color: #d97706;
+  }
+  
+  &.ebook {
+    color: #10b981;
+  }
+  
+  &.mp3 {
+    color: #3b82f6;
+  }
+}
+
+.resource-file-link {
+  color: #2d6460;
+  text-decoration: none;
+  font-weight: 500;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}

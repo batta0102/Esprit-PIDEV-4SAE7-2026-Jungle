@@ -27,7 +27,7 @@ export interface Game {
   providedIn: 'root'
 })
 export class GameService {
-  private readonly apiUrl = 'http://localhost:8083/api/games';
+  private readonly apiUrl = 'http://localhost:8085/api/games';
 
   constructor(private http: HttpClient) {}
 

@@ -69,7 +69,7 @@ export class GamificationPage {
     const id = this.selectedAvatarId();
     const list = this.avatars();
     const found = list.find((a) => a.id === id);
-    return (found && found.imageUrl) || '/assets/default-avatar.png';
+    return (found && found.imageUrl) || '/assets/default-avatar.svg';
   });
 
   // Error handling
@@ -153,7 +153,7 @@ export class GamificationPage {
     const category = (game.category || '').toLowerCase();
 
     if (category === 'crossword') {
-      void this.router.navigate(['/games/crossword'], {
+      void this.router.navigate(['/front/games/crossword'], {
         queryParams: {
           timerDuration: game.timerDuration || 0,
           xpReward: game.xpReward || 0,
@@ -164,7 +164,7 @@ export class GamificationPage {
     }
 
     if (category.includes('spelling')) {
-      void this.router.navigate(['/games/spelling-battle'], {
+      void this.router.navigate(['/front/games/spelling-battle'], {
         queryParams: {
           timerDuration: 10,
           xpReward: game.xpReward || 0,

@@ -1,9 +1,11 @@
-import { NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage, CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { ResourceDto, ResourceService } from '../../core/library/resource.service';
+import { ReviewModalComponent } from '../../shared/review-modal/review-modal.component';
 
 type ResourceType = 'Book' | 'PDF' | 'EBook' | 'MP3';
 type PriceFilter = 'Free' | 'Paid';
@@ -15,6 +17,7 @@ type SortMode = 'Most Popular' | 'Newest' | 'Price: Low to High' | 'Price: High 
 
 interface LibraryResource {
   id: string;
+  resourceId: number;
   title: string;
   category: string;
   description: string;
@@ -36,16 +39,22 @@ interface LibraryResource {
 
 @Component({
   selector: 'app-library-page',
-  imports: [FormsModule, NgOptimizedImage],
+  imports: [FormsModule, NgOptimizedImage, ReviewModalComponent, RouterModule],
   templateUrl: './library.page.html',
   styleUrl: './library.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LibraryPage {
   private readonly resourceService = inject(ResourceService);
+  
   readonly resources = signal<LibraryResource[]>([]);
 
   readonly query = signal('');
+
+  // Review Modal State
+  readonly showReviewModal = signal(false);
+  readonly selectedResourceId = signal<number | null>(null);
+  readonly selectedResourceTitle = signal('');
 
   readonly draftTypes = signal<ResourceType[]>(['Book', 'PDF', 'EBook', 'MP3']);
   readonly draftPrices = signal<PriceFilter[]>(['Free', 'Paid']);
@@ -58,7 +67,7 @@ export class LibraryPage {
   readonly sortMode = signal<SortMode>('Most Popular');
 
   readonly page = signal(1);
-  readonly pageSize = 6;
+  readonly pageSize = 3; // Changed from 6 to 3 for better pagination visibility
 
   readonly filteredResources = computed(() => {
     const q = this.query().trim().toLowerCase();
@@ -96,6 +105,22 @@ export class LibraryPage {
   });
 
   readonly pages = computed(() => Array.from({ length: this.pageCount() }, (_, i) => i + 1));
+
+  readonly paginationInfo = computed(() => {
+    const total = this.filteredResources().length;
+    const page = this.page();
+    const pageSize = this.pageSize;
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+    
+    return {
+      start,
+      end,
+      total,
+      currentPage: page,
+      totalPages: this.pageCount()
+    };
+  });
 
   readonly types: ResourceType[] = ['Book', 'PDF', 'EBook', 'MP3'];
   readonly prices: PriceFilter[] = ['Free', 'Paid'];
@@ -152,6 +177,18 @@ export class LibraryPage {
 
   trackResourceId = (_: number, r: LibraryResource): string => r.id;
 
+  openReviewModal(resource: LibraryResource): void {
+    this.selectedResourceId.set(resource.resourceId);
+    this.selectedResourceTitle.set(resource.title);
+    this.showReviewModal.set(true);
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal.set(false);
+    this.selectedResourceId.set(null);
+    this.selectedResourceTitle.set('');
+  }
+
   starsLabel(rating: number): string {
     const rounded = Math.round(rating * 10) / 10;
     return `${rounded} out of 5`;
@@ -168,10 +205,33 @@ export class LibraryPage {
     return r.priceUsd === 0 ? 'Download' : 'Buy Now';
   }
 
+  shouldShowPage(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Always show first and last page
+    if (pageNum === 1 || pageNum === totalPages) return true;
+    // Show current page and 2 pages around it
+    if (Math.abs(pageNum - current) <= 1) return true;
+    return false;
+  }
+
+  shouldShowEllipsis(pageNum: number, totalPages: number): boolean {
+    const current = this.page();
+    // Show ellipsis after page 1 if page 3 is hidden
+    if (pageNum === 2 && !this.shouldShowPage(3, totalPages) && this.shouldShowPage(1, totalPages)) {
+      return true;
+    }
+    // Show ellipsis before last page if page before is hidden
+    if (pageNum === totalPages - 1 && !this.shouldShowPage(totalPages - 2, totalPages) && this.shouldShowPage(totalPages, totalPages)) {
+      return true;
+    }
+    return false;
+  }
+
   private mapResource(item: ResourceDto): LibraryResource {
     const uploadedAtMs = item.uploadDate ? Date.parse(item.uploadDate) : 0;
     return {
       id: `res-${item.resourceId}`,
+      resourceId: item.resourceId,
       title: item.title,
       category: item.type,
       description: item.description,

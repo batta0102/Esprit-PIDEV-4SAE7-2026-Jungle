@@ -1,7 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 
 import { AvatarsComponent } from '../avatars/avatars.component';
 import { SkinsComponent } from '../skins/skins.component';
@@ -50,7 +49,7 @@ export class GamesComponent implements OnInit {
   readonly hardMidBadgeCount = computed(() => this.badgesList().filter(b => b.unlockLevel > 6 && b.unlockLevel <= 10).length);
   readonly hardHighBadgeCount = computed(() => this.badgesList().filter(b => b.unlockLevel > 10).length);
 
-  constructor(private gameService: GameService, private router: Router, private badgesService: BadgesService) {}
+  constructor(private gameService: GameService, private badgesService: BadgesService) {}
 
   ngOnInit(): void {
     this.loadGames();
@@ -221,13 +220,9 @@ export class GamesComponent implements OnInit {
     if (!game.title || !game.category) return;
     this.gameService.create(game).subscribe({
       next: () => {
-        const isCrossword = game.category === 'Crossword';
         this.newGame.set({ title: '', description: '', category: '', xpReward: 0, timerDuration: 0 });
         this.loadGames();
         this.closePopup();
-        if (isCrossword) {
-          this.router.navigate(['/crosswords']);
-        }
       },
       error: (err) => console.error('Failed to create game:', err)
     });

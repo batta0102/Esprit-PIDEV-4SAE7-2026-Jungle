@@ -14,7 +14,7 @@ export interface Skin {
 
 @Injectable({ providedIn: 'root' })
 export class SkinsService {
-  private apiUrl = 'http://localhost:8083/api/skins';
+  private apiUrl = 'http://localhost:8085/api/skins';
 
   constructor(private http: HttpClient) {}
 

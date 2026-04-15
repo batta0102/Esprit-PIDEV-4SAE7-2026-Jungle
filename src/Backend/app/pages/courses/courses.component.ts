@@ -1,14 +1,13 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AppCardComponent } from '../../components/ui/card.component';
 import { AppEmptyStateComponent } from '../../components/ui/empty-state.component';
 import { CourseCardComponent } from '../../components/course-card/course-card.component';
 
 @Component({
   selector: 'app-courses',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppCardComponent, AppEmptyStateComponent, CourseCardComponent],
+  imports: [CommonModule, FormsModule, AppEmptyStateComponent, CourseCardComponent],
   templateUrl: './courses.component.html',
   styleUrls: ['./courses.component.scss']
 })

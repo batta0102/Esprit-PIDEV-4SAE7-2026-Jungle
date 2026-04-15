@@ -25,7 +25,7 @@ export interface CrosswordGame {
 
 @Injectable({ providedIn: 'root' })
 export class CrosswordsService {
-  private apiUrl = 'http://localhost:8083/api/crosswords';
+  private apiUrl = 'http://localhost:8085/api/crosswords';
 
   constructor(private http: HttpClient) {}
 

@@ -17,8 +17,20 @@ export class ProfileTutorPage {
   readonly role = this.user.role;
 
   setRole(role: string): void {
-    if (role !== 'student' && role !== 'tutor' && role !== 'admin') return;
+    if (role !== 'ETUDIANT' && role !== 'TUTEUR' && role !== 'ADMIN' && role !== 'LIVREUR') return;
     this.user.setRole(role as UserRole);
-    void this.router.navigate([role === 'admin' ? '/profile/admin' : role === 'tutor' ? '/profile/tutor' : '/profile/student']);
+    if (role === 'ADMIN') {
+      void this.router.navigate(['/front/profile/admin']);
+      return;
+    }
+    if (role === 'TUTEUR') {
+      void this.router.navigate(['/front/profile/tutor']);
+      return;
+    }
+    if (role === 'LIVREUR') {
+      void this.router.navigate(['/front/livreur']);
+      return;
+    }
+    void this.router.navigate(['/front/profile/student']);
   }
 }

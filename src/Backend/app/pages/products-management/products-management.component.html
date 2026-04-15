@@ -1,0 +1,235 @@
+<div class="products-management-container">
+  <app-admin-page-shell
+    [title]="'Products'"
+    [addLabel]="'+ Add Product'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search by name, category, description...'"
+    [filters]="filters()"
+    (add)="openAddForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadProducts()">Retry</button>
+      </div>
+    }
+
+    @if (loading() && !showForm()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading products...</p>
+      </div>
+    }
+
+    @if (!loading() && displayedProducts().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of displayedProducts(); track product.idProduct || $index) {
+              <tr>
+                <td>
+                  @if (product.imageUrl) {
+                    <img [src]="getImageUrl(product.imageUrl)" alt="Product" class="product-thumb" />
+                  } @else {
+                    <span class="muted">No image</span>
+                  }
+                </td>
+                <td>{{ product.name }}</td>
+                <td><span class="badge">{{ product.category }}</span></td>
+                <td>{{ product.description }}</td>
+                <td>{{ product.price?.toFixed(2) || '0.00' }} TND</td>
+                <td><span [class.low-stock]="(product.stock || 0) < 10">{{ product.stock || 0 }}</span></td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-outline" type="button" (click)="checkProductOrders(product)">Orders</button>
+                    <button class="btn-outline btn-update" type="button" (click)="openEditForm(product)">Update</button>
+                    <button class="btn-outline btn-delete" type="button" (click)="deleteProduct(product)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!loading() && displayedProducts().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No Products Found</h3>
+        <p>Start by adding your first product</p>
+      </div>
+    }
+  </app-admin-page-shell>
+
+  <!-- Product Form Modal -->
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditMode() ? 'Edit Product' : 'Add New Product' }}</h2>
+          <button class="btn-close" (click)="closeForm()">✕</button>
+        </div>
+
+        <form class="product-form" (ngSubmit)="saveProduct()">
+          <div class="form-group">
+            <label for="name">Product Name *</label>
+            <input
+              id="name"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="nameError()"
+              [value]="currentProduct().name"
+              (input)="updateField('name', $any($event.target).value)"
+              (blur)="validateField('name')"
+              required
+              placeholder="Enter product name (2-100 characters)"
+            />
+            @if (nameError()) {
+              <span class="field-error">{{ nameError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <select
+              id="category"
+              class="form-control"
+              [class.is-invalid]="categoryError()"
+              [value]="currentProduct().category"
+              (change)="updateField('category', $any($event.target).value)"
+              (blur)="validateField('category')"
+              required
+            >
+              <option value="">-- Select a category --</option>
+              <option value="Book">Book</option>
+              <option value="Course">Course</option>
+              <option value="Study Material">Study Material</option>
+            </select>
+            @if (categoryError()) {
+              <span class="field-error">{{ categoryError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea
+              id="description"
+              class="form-control"
+              [class.is-invalid]="descriptionError()"
+              rows="4"
+              [value]="currentProduct().description"
+              (input)="updateField('description', $any($event.target).value)"
+              (blur)="validateField('description')"
+              required
+              placeholder="Enter product description (10-1000 characters)"
+            ></textarea>
+            @if (descriptionError()) {
+              <span class="field-error">{{ descriptionError() }}</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="price">Price ($)</label>
+              <input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                class="form-control"
+                [class.is-invalid]="priceError()"
+                [value]="currentProduct().price"
+                (input)="updateField('price', +$any($event.target).value)"
+                (blur)="validateField('price')"
+                placeholder="0.00"
+              />
+              @if (priceError()) {
+                <span class="field-error">{{ priceError() }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="stock">Stock * (units)</label>
+              <input
+                id="stock"
+                type="number"
+                min="0"
+                step="1"
+                class="form-control"
+                [class.is-invalid]="stockError()"
+                [value]="currentProduct().stock"
+                (input)="updateField('stock', +$any($event.target).value)"
+                (blur)="validateField('stock')"
+                placeholder="0"
+                required
+              />
+              @if (stockError()) {
+                <span class="field-error">{{ stockError() }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Product Image</label>
+            <div class="file-input-wrapper" (click)="fileInput.click()">
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                class="form-control file-input"
+                title="Upload product image"
+                aria-label="Upload product image"
+                (change)="onFileSelected($event)"
+              />
+              <span class="file-input-label">
+                @if (selectedFile()) {
+                  ✓ {{ selectedFile()!.name }}
+                } @else {
+                  <span class="file-input-placeholder">Select an image file...</span>
+                }
+              </span>
+            </div>
+          </div>
+
+          @if (imagePreviewUrl()) {
+            <div class="form-group">
+              <label>Image Preview</label>
+              <div class="image-preview">
+                <img [src]="imagePreviewUrl()" alt="Preview" />
+              </div>
+            </div>
+          }
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="loading() || !isFormValid()">
+              {{ isEditMode() ? 'Update Product' : 'Add Product' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>
+

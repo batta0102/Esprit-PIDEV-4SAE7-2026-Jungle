@@ -2,7 +2,6 @@ import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarComponent } from '../../components/calendar/calendar.component';
-import { AppCardComponent } from '../../components/ui/card.component';
 import { EventCardComponent } from '../../components/event-card/event-card.component';
 import { CreateEventModalComponent } from '../../components/create-event-modal/create-event-modal.component';
 
@@ -17,7 +16,7 @@ interface EventData {
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, CalendarComponent, AppCardComponent, EventCardComponent, CreateEventModalComponent],
+  imports: [CommonModule, FormsModule, CalendarComponent, EventCardComponent, CreateEventModalComponent],
   templateUrl: './events.component.html',
   styleUrls: ['./events.component.scss']
 })
