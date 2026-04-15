@@ -1,0 +1,273 @@
+<div class="container">
+   <header class="lib-header" aria-label="Breadcrumb">
+    <div class="crumb">
+      <span class="muted">Home</span>
+      <span class="muted">›</span>
+      <a routerLink="/front/library" class="breadcrumb-link">Library</a>
+      <span class="muted">›</span>
+      <a routerLink="/front/products" class="breadcrumb-link">Product</a>
+
+    </div>
+  </header>
+
+  <div class="lib-layout">
+    <aside class="filters" aria-label="Filter products">
+      <div class="card filters-card">
+        <div class="card-body">
+          <div class="filters-title">Filter Products</div>
+
+          <details class="filter-group" open>
+            <summary class="filter-summary">
+              <span>Price Range</span>
+              <span class="chev" aria-hidden="true">⌃</span>
+            </summary>
+            <div class="filter-body">
+              <label class="check">
+                <input type="checkbox" checked disabled />
+                <span>All Prices</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>Under 25DT</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>25DT - 50DT</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>Over 50DT</span>
+              </label>
+            </div>
+          </details>
+
+          <details class="filter-group" open>
+            <summary class="filter-summary">
+              <span>Availability</span>
+              <span class="chev" aria-hidden="true">⌃</span>
+            </summary>
+            <div class="filter-body">
+              <label class="check">
+                <input type="checkbox" checked disabled />
+                <span>In Stock</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>Out of Stock</span>
+              </label>
+            </div>
+          </details>
+
+          <button class="btn btn-primary apply" type="button" disabled>Apply Filters</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="results" aria-label="Products">
+      <!-- Recommended for You Section -->
+      @if (recommendations().length > 0 || isLoadingRecommendations()) {
+        <div class="recommendations-section">
+          <div class="section-header">
+            <h2 class="section-title">Top 3 most ordered products</h2>
+          </div>
+
+          @if (isLoadingRecommendations()) {
+            <div class="loading-spinner">
+              <div class="spinner"></div>
+              <span class="muted">Loading recommendations...</span>
+            </div>
+          } @else if (recommendationsError()) {
+            <div class="error-message">
+              <span>⚠️ {{ recommendationsError() }}</span>
+            </div>
+          } @else if (recommendations().length > 0) {
+            <div class="recommendations-grid">
+              @for (rec of recommendations(); track trackRecommendationId($index, rec)) {
+                <article class="recommendation-card card">
+                  <div class="rec-media">
+                    <div class="rec-placeholder">📦</div>
+                  </div>
+                  <div class="card-body rec-body">
+                    <div class="rec-title">{{ rec.title }}</div>
+                    <div class="rec-category badge">{{ rec.category }}</div>
+
+                    <div class="rec-actions">
+                      <a [routerLink]="['/front/products', rec.id]" class="btn btn-primary">View Product</a>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <div class="topbar">
+
+        <button class="btn btn-secondary" type="button" (click)="goToCart()">Open Cart</button>
+
+        <div class="search" aria-label="Search products">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input
+            class="search-input"
+            type="search"
+            placeholder="Search products..."
+            [ngModel]="query()"
+            (ngModelChange)="query.set($event); page.set(1)"
+            aria-label="Search products"
+          />
+        </div>
+
+        <label class="sort" aria-label="Sort">
+          <span class="sort-label">Sort:</span>
+          <select class="sort-select" [ngModel]="sortMode()" (ngModelChange)="sortMode.set($event); page.set(1)">
+            @for (s of sorts; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="search" aria-label="Search delivery">
+  <span class="search-icon" aria-hidden="true">⌕</span>
+  <input
+    class="search-input"
+    type="search"
+    placeholder="Enter tracking number..."
+    [ngModel]="trackingQuery()"
+    (ngModelChange)="trackingQuery.set($event)"
+    aria-label="Search delivery"
+  />
+  <button class="btn btn-primary" type="button" (click)="searchDelivery()">Search</button>
+</div>
+
+<div *ngIf="deliveryResult() as delivery" class="card delivery-card">
+  <div class="card-body">
+    <h3>Delivery Status</h3>
+    <p><strong>Tracking Number:</strong> {{ delivery.trackingNumber }}</p>
+    <p><strong>Status:</strong> {{ delivery.deliveryStatus }}</p>
+    <p><strong>Date:</strong> {{ delivery.deliveryDate }}</p>
+  </div>
+</div>
+
+<div *ngIf="!deliveryResult() && trackingQuery()">
+  <p class="muted">No delivery found for tracking number {{ trackingQuery() }}</p>
+</div>
+
+
+      @if (orderSuccessMessage()) {
+        <div class="alert-success-banner">
+          <span class="alert-icon">✓</span>
+          <span>{{ orderSuccessMessage() }}</span>
+        </div>
+      }
+
+      <div class="grid grid-gap-md">
+        <div class="cards">
+          @for (prod of pagedProducts(); track trackProductId($index, prod)) {
+            <article class="card prod-card">
+              <div class="prod-media">
+                <img class="prod-img" [ngSrc]="getImageUrl(prod.imageUrl)" width="320" height="170" alt="" />
+
+                @if (prod.price > 0) {
+                  <div class="price-badge">{{ prod.price | number:'1.2-2' }} TND</div>
+                }
+              </div>
+
+              <div class="card-body prod-body">
+                <div class="prod-title">{{ prod.name }}</div>
+                <div class="muted prod-sub">{{ prod.category }}</div>
+                <p class="muted prod-desc">{{ prod.description }}</p>
+
+                <div class="prod-meta">
+                  <span class="meta-pill">Category: {{ prod.category }}</span>
+                  <span class="meta-pill" [class.restricted]="prod.stock === 0">
+                    {{ prod.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+                  </span>
+                </div>
+
+                <div class="prod-foot">
+                  <div class="author">
+                    <span class="stars" [attr.aria-label]="starsLabel(prod.rating)">★ {{ prod.rating }}</span>
+                  </div>
+
+                  <div class="prod-actions">
+                    <button class="btn btn-primary" type="button" [disabled]="prod.stock === 0" (click)="addToCart(prod)">
+                      {{ primaryActionLabel(prod) }}
+                    </button>
+                    <button class="btn" type="button">{{ secondaryActionLabel() }}</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+
+          @if (pagedProducts().length === 0) {
+            <div class="card empty">
+              <div class="card-body">
+                <div class="section-title section-title-reset">No products found</div>
+                <div class="muted">Try changing your search.</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pagination Section -->
+      @if (pageCount() > 1) {
+        <div class="pagination-section">
+          <div class="pagination-info">
+            <span class="info-text">
+              Showing {{ paginationInfo().start }}-{{ paginationInfo().end }} of {{ paginationInfo().total }} products
+            </span>
+            <span class="page-counter">
+              Page {{ paginationInfo().currentPage }} of {{ paginationInfo().totalPages }}
+            </span>
+          </div>
+
+          <nav class="pagination" aria-label="Pagination">
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="prevPage()" 
+              [disabled]="page() <= 1" 
+              aria-label="Previous page"
+              title="Previous page"
+            >
+              ‹ Previous
+            </button>
+            
+            <div class="page-numbers">
+              @for (p of pages(); track p) {
+                @if (shouldShowPage(p, pageCount())) {
+                  <button 
+                    class="page-btn" 
+                    type="button" 
+                    [attr.aria-current]="p === page() ? 'page' : null" 
+                    (click)="setPage(p)"
+                    [attr.aria-label]="'Go to page ' + p"
+                  >
+                    {{ p }}
+                  </button>
+                } @else if (shouldShowEllipsis(p, pageCount())) {
+                  <span class="page-ellipsis">…</span>
+                }
+              }
+            </div>
+
+            <button 
+              class="page-btn page-nav" 
+              type="button" 
+              (click)="nextPage()" 
+              [disabled]="page() >= pageCount()" 
+              aria-label="Next page"
+              title="Next page"
+            >
+              Next ›
+            </button>
+          </nav>
+        </div>
+      }
+    </section>
+  </div>
+</div>

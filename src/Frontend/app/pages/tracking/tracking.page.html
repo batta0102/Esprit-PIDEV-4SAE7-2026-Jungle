@@ -1,0 +1,76 @@
+<section class="tracking-page container section">
+  <header class="card panel-header">
+    <div class="card-body">
+      <div class="heading-row">
+        <div>
+          <h1 class="page-title">Delivery Tracking</h1>
+          <p class="page-subtitle">Live map and driver information</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-ghost" [routerLink]="['/front/delivery/assign-test']">Assign Test</a>
+          <a class="btn btn-ghost" [routerLink]="['/front/livreur/location-test']">Driver GPS Test</a>
+          <button class="btn btn-primary" type="button" (click)="refreshNow()">Refresh Now</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="state state-loading">Loading delivery tracking...</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="state state-error">{{ errorMessage() }}</p>
+  }
+
+  @if (tracking(); as data) {
+    <section class="card info-panel">
+      <div class="card-body info-grid">
+        <article>
+          <h2>Status</h2>
+          <p>{{ data.deliveryStatus || 'Unknown' }}</p>
+        </article>
+        <article>
+          <h2>User ID</h2>
+          <p>{{ data.userId || 'Not available' }}</p>
+        </article>
+        <article>
+          <h2>Assigned At</h2>
+          <p>{{ data.assignedAt ? (data.assignedAt | date : 'medium') : 'Not assigned yet' }}</p>
+        </article>
+        <article>
+          <h2>Driver Name</h2>
+          <p>{{ data.livreurName || 'Not assigned' }}</p>
+        </article>
+        <article>
+          <h2>Driver Phone</h2>
+          <p>{{ data.livreurPhone || 'Not available' }}</p>
+        </article>
+        <article>
+          <h2>Last Location Update</h2>
+          <p>
+            @if (data.lastLocationUpdate) {
+              {{ data.lastLocationUpdate | date : 'medium' }}
+            } @else {
+              Not available
+            }
+          </p>
+        </article>
+        <article>
+          <h2>Message</h2>
+          <p>{{ data.message }}</p>
+        </article>
+      </div>
+    </section>
+
+    @if (noLocationMessage()) {
+      <p class="state state-warning">{{ noLocationMessage() }}</p>
+    }
+  }
+
+  <section class="card map-panel">
+    <div class="card-body">
+      <div class="map-container" #mapContainer role="application" aria-label="Delivery tracking map"></div>
+    </div>
+  </section>
+</section>

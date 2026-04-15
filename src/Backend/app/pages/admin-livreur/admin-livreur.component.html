@@ -1,0 +1,133 @@
+<app-admin-page-shell
+  [title]="'Livreurs Management'"
+  [addLabel]="'+ Add Livreur'"
+  [stats]="stats()"
+  [showSearch]="true"
+  [searchPlaceholder]="'Search by name, email, phone or status'"
+  (add)="openAddForm()"
+  (searchChange)="searchTerm.set($event)"
+>
+  @if (toast(); as t) {
+    <div class="toast" [class.success]="t.type === 'success'" [class.error]="t.type === 'error'" role="status" aria-live="polite">
+      <span>{{ t.message }}</span>
+      <button type="button" class="toast-close" (click)="clearToast()" aria-label="Close message">x</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-wrap" aria-live="polite">
+      <div class="spinner"></div>
+      <p>Loading livreurs...</p>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="livreur-table">
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Last Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (livreur of filteredLivreurs(); track livreur.id) {
+            <tr>
+              <td>{{ livreur.fullName }}</td>
+              <td>{{ livreur.email }}</td>
+              <td>{{ livreur.phone }}</td>
+              <td>
+                <span class="badge" [class.available]="livreur.status === 'AVAILABLE'" [class.busy]="livreur.status === 'BUSY'">
+                  {{ livreur.status }}
+                </span>
+              </td>
+              <td>
+                {{ livreur.lastLocationUpdate ? (livreur.lastLocationUpdate | date : 'short') : 'No update' }}
+              </td>
+              <td>
+                <div class="actions">
+                  <button type="button" class="btn-edit" (click)="openEditForm(livreur)">Edit</button>
+                  <button type="button" class="btn-delete" [disabled]="submitting()" (click)="deleteLivreur(livreur)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @if (filteredLivreurs().length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No livreurs found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <h2>{{ editingId() ? 'Edit Livreur' : 'Add Livreur' }}</h2>
+          <button type="button" class="close-btn" (click)="closeForm()" aria-label="Close form">x</button>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="saveLivreur()" class="livreur-form">
+          <label>
+            Full Name
+            <input type="text" formControlName="fullName" />
+          </label>
+          @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+            <p class="field-error">Full name is required (min 2 chars).</p>
+          }
+
+          <label>
+            Email
+            <input type="email" formControlName="email" />
+          </label>
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="field-error">Valid email is required.</p>
+          }
+
+          <label>
+            Password
+            <input type="password" formControlName="password" [placeholder]="editingId() ? 'Not editable here' : 'Enter password'" />
+          </label>
+          @if (!editingId() && form.controls.password.touched && form.controls.password.invalid) {
+            <p class="field-error">Password is required (min 6 chars).</p>
+          }
+
+          <label>
+            Phone
+            <input type="text" formControlName="phone" />
+          </label>
+          @if (form.controls.phone.touched && form.controls.phone.invalid) {
+            <p class="field-error">Phone is required.</p>
+          }
+
+          <label>
+            Address
+            <input type="text" formControlName="address" />
+          </label>
+
+          <label>
+            Status
+            <select formControlName="status">
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ status }}</option>
+              }
+            </select>
+          </label>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="btn-save" [disabled]="submitting() || form.invalid">
+              {{ submitting() ? 'Saving...' : (editingId() ? 'Update' : 'Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</app-admin-page-shell>

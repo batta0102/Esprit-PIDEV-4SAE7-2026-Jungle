@@ -1,0 +1,54 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <header class="mb-10">
+    <h1 class="font-serif text-4xl font-semibold text-text">Notifications</h1>
+    <p class="mt-2 text-secondary">Your recent alerts and messages</p>
+  </header>
+
+  <!-- Search -->
+  <div class="mb-6">
+    <div class="relative max-w-md">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary">🔍</span>
+      <input placeholder="Search notifications..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" class="w-full pl-12 pr-4 py-3 rounded-lg border border-border placeholder-secondary" />
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <div *ngFor="let n of pagedNotifications()" 
+         class="bg-white rounded-xl border border-border p-5 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+      <div class="flex items-start justify-between gap-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-light flex items-center justify-center text-primary">
+          <span class="text-xl">{{ getNotificationIcon(n.title) }}</span>
+        </div>
+        
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-text mb-1">{{ n.title }}</p>
+          <p class="text-sm text-secondary">{{ n.body }}</p>
+        </div>
+
+        <!-- Time -->
+        <div class="flex-shrink-0 text-xs text-secondary font-medium">
+          {{ n.time }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredNotifications().length === 0" 
+         class="text-center py-16">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-light mb-4">
+        <span class="text-3xl">🔔</span>
+      </div>
+      <h3 class="font-serif text-xl font-semibold text-text mb-2">No notifications found</h3>
+      <p class="text-secondary">Try a different search query</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="pageCount() > 1" class="mt-8 flex items-center justify-center gap-2">
+    <button (click)="prevPage()" [disabled]="page() <= 1" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">‹</button>
+    <button *ngFor="let p of pages()" (click)="setPage(p)" [class.bg-primary]="p === page()" [class.text-white]="p === page()" class="px-3 py-2 rounded-lg border border-border hover:bg-light">{{ p }}</button>
+    <button (click)="nextPage()" [disabled]="page() >= pageCount()" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">›</button>
+  </nav>
+</main>

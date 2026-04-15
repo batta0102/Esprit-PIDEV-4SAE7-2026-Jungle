@@ -1,0 +1,159 @@
+.cart-page {
+  max-width: 980px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  color: #005f73;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.alert {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.alert.error {
+  background: #ffe3e3;
+  color: #8b0000;
+}
+
+.alert.success {
+  background: #e6ffed;
+  color: #0b6b2e;
+}
+
+.empty-cart {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.cart-table {
+  border: 1px solid #e1e4e8;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #eceff1;
+}
+
+.row.header {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.product-col {
+  font-weight: 600;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.qty-controls button,
+.remove,
+.btn {
+  border: 1px solid #d0d7de;
+  background: white;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.remove {
+  color: #9f1239;
+}
+
+.checkout-form {
+  margin-top: 1rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #f9fbfc;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.checkout-form h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.checkout-form label {
+  font-weight: 600;
+  color: #284b63;
+}
+
+.checkout-form input,
+.checkout-form select {
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+}
+
+.cart-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-block {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn.primary {
+  background: #0a9396;
+  color: white;
+  border-color: #0a9396;
+}
+
+.btn.secondary {
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .cart-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+}

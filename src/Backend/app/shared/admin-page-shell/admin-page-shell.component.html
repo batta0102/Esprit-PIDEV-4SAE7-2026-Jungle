@@ -1,0 +1,61 @@
+<section class="admin-page">
+  <header class="admin-header">
+    <h1 class="admin-title">{{ title() }}</h1>
+    <button class="btn-primary" type="button" (click)="add.emit()">{{ addLabel() }}</button>
+  </header>
+
+  @if (stats().length > 0) {
+    <div class="stats-grid">
+      @for (stat of stats(); track stat.label) {
+        <article class="stat-card">
+          <div class="stat-label">{{ stat.label }}</div>
+          <div class="stat-value" [class]="'stat-value ' + (stat.accent ?? '')">{{ stat.value }}</div>
+        </article>
+      }
+    </div>
+  }
+
+  <div class="filters-row">
+    @if (tabs().length > 0) {
+      <div class="tabs" aria-label="Filters tabs">
+        @for (tab of tabs(); track tab.value) {
+          <button
+            type="button"
+            class="tab"
+            [class.active]="selectedTab() === tab.value"
+            (click)="tabChange.emit(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (showSearch()) {
+      <input
+        class="input"
+        type="search"
+        [placeholder]="searchPlaceholder()"
+        [title]="searchPlaceholder()"
+        aria-label="Search"
+        (input)="onSearch($any($event.target).value)"
+      />
+    }
+
+    @for (filter of filters(); track filter.label) {
+      <select
+        class="select"
+        [value]="filter.value"
+        title="Filter"
+        (change)="onFilter(filter.label, $any($event.target).value)"
+        [attr.aria-label]="filter.label"
+      >
+        @for (option of filter.options; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+    }
+  </div>
+
+  <ng-content></ng-content>
+</section>

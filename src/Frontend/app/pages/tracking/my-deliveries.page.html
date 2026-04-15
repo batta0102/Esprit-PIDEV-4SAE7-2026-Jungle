@@ -1,0 +1,80 @@
+<section class="my-deliveries-page container section">
+  <header class="hero card">
+    <div class="card-body hero-inner">
+      <div>
+        <p class="eyebrow">Delivery center</p>
+        <h1>My deliveries</h1>
+        <p class="subtitle">Track every delivery linked to your account and open the live map for any assigned driver.</p>
+      </div>
+      <button class="btn btn-primary" type="button" (click)="loadMyDeliveries()">Refresh</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="card state-card">
+      <div class="card-body">Loading your deliveries...</div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card state-card state-error">
+      <div class="card-body">{{ error() }}</div>
+    </div>
+  }
+
+  @if (!loading() && deliveries().length === 0 && !error()) {
+    <div class="card state-card">
+      <div class="card-body">
+        <h2>No deliveries yet</h2>
+        <p class="subtitle">Once an admin assigns a delivery to your order, it will appear here.</p>
+        <a class="btn btn-primary" [routerLink]="['/front/orders']">View orders</a>
+      </div>
+    </div>
+  }
+
+  <div class="delivery-grid">
+    @for (delivery of deliveries(); track delivery.deliveryId) {
+      <article class="card delivery-card">
+        <div class="card-body">
+          <div class="card-top">
+            <div>
+              <div class="tracking-number">{{ delivery.trackingNumber || 'No tracking number' }}</div>
+              <h2>Delivery #{{ delivery.deliveryId }}</h2>
+            </div>
+            <span class="status-pill" [ngClass]="getStatusClass(delivery.deliveryStatus)">
+              {{ delivery.deliveryStatus || 'Unknown' }}
+            </span>
+          </div>
+
+          <p class="delivery-address">{{ delivery.deliveryAddress || 'No address available' }}</p>
+
+          <dl class="info-list">
+            <div>
+              <dt>Driver</dt>
+              <dd>{{ delivery.livreurName || 'Not assigned yet' }}</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd>{{ delivery.livreurPhone || 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Last update</dt>
+              <dd>
+                @if (delivery.lastLocationUpdate) {
+                  {{ delivery.lastLocationUpdate | date : 'medium' }}
+                } @else {
+                  Not available
+                }
+              </dd>
+            </div>
+          </dl>
+
+          <div class="actions">
+            <a class="btn btn-primary" [routerLink]="['/front/tracking', delivery.deliveryId]">Open map</a>
+            <button class="btn btn-secondary" type="button" (click)="loadMyDeliveries()">Reload</button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</section>

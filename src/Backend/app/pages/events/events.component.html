@@ -1,0 +1,67 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <header class="mb-10 flex items-start justify-between">
+    <div>
+      <h1 class="font-serif text-5xl font-semibold text-text">Events</h1>
+      <p class="mt-2 text-secondary">Workshops, conferences, and cultural outings.</p>
+    </div>
+    <button (click)="openModal()" class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:bg-opacity-90">
+      <span class="text-xl">+</span>
+      New Event
+    </button>
+  </header>
+
+  <!-- Search -->
+  <div class="mb-6">
+    <div class="relative max-w-md">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary">🔍</span>
+      <input placeholder="Search events..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" class="w-full pl-12 pr-4 py-3 rounded-lg border border-border placeholder-secondary" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-12">
+    <div class="lg:col-span-2">
+      <h2 class="font-serif text-2xl font-semibold text-text mb-4">Calendar</h2>
+      <app-calendar></app-calendar>
+    </div>
+
+    <div>
+      <div class="rounded-xl bg-primary text-white p-6 shadow-md">
+        <h3 class="font-serif text-2xl font-semibold mb-3">Did You Know?</h3>
+        <p class="leading-relaxed">The word "event" comes from the Latin "evenire", meaning "to come out, happen, occur". Every gathering is a new opportunity for learning.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-8">
+    <h2 class="font-serif text-2xl font-semibold text-text mb-6">Upcoming</h2>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <app-event-card 
+        *ngFor="let e of pagedEvents()" 
+        [type]="e.type" 
+        [title]="e.title" 
+        [date]="e.date" 
+        [time]="e.time" 
+        [location]="e.location" 
+        [status]="e.status" 
+        [buttonText]="e.buttonText">
+      </app-event-card>
+    </div>
+
+    <div *ngIf="filteredEvents().length === 0" class="py-12 text-center text-secondary">
+      No events match your search.
+    </div>
+
+    <!-- Pagination -->
+    <nav *ngIf="pageCount() > 1" class="mt-8 flex items-center justify-center gap-2">
+      <button (click)="prevPage()" [disabled]="page() <= 1" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">‹</button>
+      <button *ngFor="let p of pages()" (click)="setPage(p)" [class.bg-primary]="p === page()" [class.text-white]="p === page()" class="px-3 py-2 rounded-lg border border-border hover:bg-light">{{ p }}</button>
+      <button (click)="nextPage()" [disabled]="page() >= pageCount()" class="px-3 py-2 rounded-lg border border-border text-secondary hover:bg-light disabled:opacity-40">›</button>
+    </nav>
+  </div>
+</main>
+
+<app-create-event-modal 
+  [isOpen]="isModalOpen()" 
+  (onClose)="closeModal()"
+  (onSubmit)="handleEventCreation($event)">
+</app-create-event-modal>

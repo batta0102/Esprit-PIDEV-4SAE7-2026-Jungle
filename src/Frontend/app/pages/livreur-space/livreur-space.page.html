@@ -1,0 +1,98 @@
+<section class="livreur-space container section">
+  <header class="hero card">
+    <div class="card-body hero-inner">
+      <div>
+        <p class="eyebrow">Livreur space</p>
+        <h1>My assigned deliveries</h1>
+        <p class="subtitle">Your GPS location updates automatically and your assigned deliveries refresh live.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" type="button" (click)="refresh()">Refresh deliveries</button>
+        <a class="btn btn-ghost" [routerLink]="['/front/tracking', deliveries()[0]?.deliveryId || 1]">Open map</a>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="card state-card">
+      <div class="card-body">Loading your driver profile and deliveries...</div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card state-card state-error">
+      <div class="card-body">{{ error() }}</div>
+    </div>
+  }
+
+  <section class="card status-card">
+    <div class="card-body status-grid">
+      <article>
+        <h2>GPS Status</h2>
+        <p>{{ gpsStatus() }}</p>
+      </article>
+      <article>
+        <h2>Current Latitude</h2>
+        <p>{{ currentLat() ?? 'N/A' }}</p>
+      </article>
+      <article>
+        <h2>Current Longitude</h2>
+        <p>{{ currentLng() ?? 'N/A' }}</p>
+      </article>
+      <article>
+        <h2>Assigned deliveries</h2>
+        <p>{{ deliveries().length }}</p>
+      </article>
+    </div>
+  </section>
+
+  @if (!loading() && deliveries().length === 0 && !error()) {
+    <div class="card state-card">
+      <div class="card-body">
+        <h2>No deliveries assigned yet</h2>
+        <p class="subtitle">When an admin assigns a delivery to your account, it will appear here automatically.</p>
+      </div>
+    </div>
+  }
+
+  <div class="delivery-grid">
+    @for (delivery of deliveries(); track delivery.deliveryId) {
+      <article class="card delivery-card">
+        <div class="card-body">
+          <div class="card-top">
+            <div>
+              <div class="tracking-number">{{ delivery.deliveryId }}</div>
+              <h2>Delivery #{{ delivery.deliveryId }}</h2>
+            </div>
+            <span class="status-pill" [ngClass]="getStatusClass(delivery.deliveryStatus)">
+              {{ delivery.deliveryStatus || 'Unknown' }}
+            </span>
+          </div>
+
+          <dl class="info-list">
+            <div>
+              <dt>Customer</dt>
+              <dd>{{ delivery.userId || 'N/A' }}</dd>
+            </div>
+            <div>
+              <dt>Assigned At</dt>
+              <dd>{{ delivery.assignedAt ? (delivery.assignedAt | date : 'medium') : 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Last Location Update</dt>
+              <dd>{{ delivery.lastLocationUpdate ? (delivery.lastLocationUpdate | date : 'medium') : 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Status message</dt>
+              <dd>{{ delivery.message }}</dd>
+            </div>
+          </dl>
+
+          <div class="actions">
+            <a class="btn btn-primary" [routerLink]="['/front/tracking', delivery.deliveryId]">Open live map</a>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</section>
