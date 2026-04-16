@@ -1,0 +1,94 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <header class="mb-10 flex items-start justify-between">
+    <div>
+      <h1 class="font-serif text-5xl font-semibold text-text">Events</h1>
+      <p class="mt-2 text-secondary">Admin: manage online and onsite events, plus venues.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="openCreateVenue()" class="inline-flex items-center gap-3 border border-border bg-white text-text px-5 py-3 rounded-lg shadow-sm hover:bg-light">
+        <span class="text-xl">+</span>
+        New Venue
+      </button>
+      <button (click)="openCreateEvent()" class="inline-flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-lg shadow-md hover:bg-opacity-90">
+        <span class="text-xl">+</span>
+        New Event
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="error()" class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    {{ error() }}
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-12">
+    <div class="lg:col-span-2">
+      <h2 class="font-serif text-2xl font-semibold text-text mb-4">Calendar</h2>
+      <app-calendar
+        [markers]="markers()"
+        [selectedDate]="selectedDate()"
+        (dateSelected)="onDateSelected($event)"
+      ></app-calendar>
+      <div class="mt-3 text-sm text-secondary">
+        <span *ngIf="selectedDate()">Filtered by: <span class="font-medium text-text">{{ selectedDate() }}</span></span>
+        <span *ngIf="!selectedDate()">Click a date to filter events.</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-serif text-2xl font-semibold text-text">Venues</h3>
+          <button (click)="openCreateVenue()" class="text-sm text-primary hover:underline">Add</button>
+        </div>
+
+        <div *ngIf="venues().length === 0" class="text-sm text-secondary">No venues yet.</div>
+        <div *ngFor="let v of venues()" class="flex items-start justify-between gap-3 py-3 border-t border-border first:border-t-0">
+          <div class="min-w-0">
+            <div class="font-medium text-text truncate">{{ v.name }}</div>
+            <div class="text-sm text-secondary truncate">{{ v.address }}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button (click)="openEditVenue(v)" class="text-sm text-primary hover:underline">Edit</button>
+            <button (click)="deleteVenue(v)" class="text-sm text-red-600 hover:underline">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="font-serif text-2xl font-semibold text-text">Events</h2>
+      <button (click)="refreshAll()" class="text-sm text-primary hover:underline">Refresh</button>
+    </div>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <app-event-card
+        *ngFor="let e of filteredEvents()"
+        [event]="e"
+        (edit)="openEditEvent($event)"
+        (remove)="deleteEvent($event)"
+      ></app-event-card>
+    </div>
+
+    <div *ngIf="!loading() && filteredEvents().length === 0" class="mt-6 text-sm text-secondary">
+      No events to show.
+    </div>
+  </div>
+</main>
+
+<app-create-event-modal 
+  [isOpen]="isEventModalOpen()"
+  [event]="editingEvent()"
+  [venues]="venues()"
+  (onClose)="closeEventModal()"
+  (onSubmit)="handleEventSubmit($event)">
+</app-create-event-modal>
+
+<app-create-venue-modal
+  [isOpen]="isVenueModalOpen()"
+  [title]="editingVenue() ? 'Edit Venue' : 'New Venue'"
+  [submitLabel]="editingVenue() ? 'Update' : 'Create'"
+  [initialData]="editingVenueFormData()"
+  (onClose)="closeVenueModal()"
+  (onSubmit)="handleVenueSubmit($event)"
+></app-create-venue-modal>

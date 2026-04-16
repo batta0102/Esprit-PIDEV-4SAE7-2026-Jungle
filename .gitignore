@@ -1,0 +1,20 @@
+# IDE
+.idea/
+.vscode/
+
+# Angular
+node_modules/
+dist/
+.angular/
+
+# Java / Maven
+target/
+*.class
+*.jar
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
