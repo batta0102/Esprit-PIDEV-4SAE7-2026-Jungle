@@ -1,0 +1,92 @@
+.jie-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.jie-stepper--top {
+  margin-bottom: 0.5rem;
+}
+
+.jie-stepper--bottom {
+  margin-top: 0.75rem;
+}
+
+.jie-stepper__track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+}
+
+.jie-stepper__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--jie-teal) 4%, transparent);
+  font-size: 0.72rem;
+  color: var(--jie-muted);
+  white-space: nowrap;
+}
+
+.jie-stepper__step--active {
+  background: var(--jie-teal);
+  color: white;
+}
+
+.jie-stepper__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.jie-stepper__label {
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.jie-stepper__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.jie-stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+
+.jie-stepper__btn--ghost {
+  border-color: var(--jie-border);
+  background: white;
+  color: var(--jie-teal);
+}
+
+.jie-stepper__btn--primary {
+  border-color: var(--jie-teal);
+  background: var(--jie-teal);
+  color: white;
+}
+
+.jie-stepper__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.jie-stepper__status {
+  font-size: 0.72rem;
+  color: var(--jie-muted);
+}
+

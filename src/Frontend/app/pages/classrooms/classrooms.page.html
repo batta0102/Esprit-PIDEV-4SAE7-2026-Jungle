@@ -1,0 +1,94 @@
+<div class="classrooms-page">
+  <div class="container">
+    <header class="page-header" aria-label="Breadcrumb">
+      <nav class="crumb">
+        <a class="crumb-link" routerLink="/front">Home</a>
+        <span class="crumb-sep muted">›</span>
+        <span class="crumb-current">Classrooms</span>
+      </nav>
+      <h1 class="page-title">Classrooms</h1>
+      <p class="page-subtitle">Browse available learning spaces and book a session.</p>
+    </header>
+
+  @if (loading()) {
+    <p class="muted loading-msg">Loading classrooms...</p>
+  }
+
+  @if (error()) {
+    <div class="card alert-card">
+      <div class="card-body">
+        <span class="muted">{{ error() }}</span>
+        <button class="btn btn-primary" type="button" (click)="loadClassrooms()">Retry</button>
+      </div>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="toolbar">
+      <div class="search-wrap">
+      <span class="search-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+      </span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search classrooms..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        aria-label="Search classrooms"
+      />
+      </div>
+      @if (filteredClassrooms().length > 0) {
+        <p class="results-count">{{ filteredClassrooms().length }} classroom{{ filteredClassrooms().length !== 1 ? 's' : '' }} available</p>
+      }
+    </div>
+
+    @if (filteredClassrooms().length > 0) {
+      <div class="classrooms-grid">
+        @for (r of filteredClassrooms(); track r.id) {
+          <article class="classroom-card">
+            <div class="card-header">
+              <span class="card-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+              </span>
+              <h3 class="classroom-name">{{ r.name }}</h3>
+            </div>
+            <div class="card-details">
+              <p class="detail-line">
+                <span class="detail-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 01-12 0v1zm0 0h-6m6 0V7" /></svg>
+                </span>
+                Capacity: {{ r.capacity ?? '—' }} students
+              </p>
+              <p class="detail-line">
+                @if (isOnlineLocation(r)) {
+                  <span class="detail-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </span>
+                } @else {
+                  <span class="detail-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  </span>
+                }
+                Location: {{ locationLabel(r) }}
+              </p>
+            </div>
+            <span class="badge-available">Available</span>
+            <a [routerLink]="['/front/bookings']" class="btn-view-sessions">View Sessions</a>
+          </article>
+        }
+      </div>
+    }
+
+    @if (filteredClassrooms().length === 0 && !error()) {
+      <div class="card empty">
+        <div class="card-body">
+          <div class="section-title" style="margin-top: 0;">No classrooms found</div>
+          <div class="muted">{{ classrooms().length === 0 ? 'Classrooms are used for on-site course sessions.' : 'No classroom matches your search.' }}</div>
+          <button class="btn btn-primary" type="button" (click)="classrooms().length === 0 ? loadClassrooms() : searchQuery.set('')">{{ classrooms().length === 0 ? 'Refresh' : 'Clear search' }}</button>
+        </div>
+      </div>
+    }
+  }
+  </div>
+</div>

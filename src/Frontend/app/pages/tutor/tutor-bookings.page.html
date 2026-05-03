@@ -1,0 +1,57 @@
+<div class="tutor-bookings-page container">
+  <header class="page-header">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a class="crumb-link" routerLink="/front">Home</a>
+      <span class="crumb-sep muted">›</span>
+      <a class="crumb-link" routerLink="/front/tutor/dashboard">Tutor</a>
+      <span class="crumb-sep muted">›</span>
+      <span class="crumb-current">Bookings</span>
+    </nav>
+    <h1 class="page-title">Tutor Bookings</h1>
+    <p class="page-subtitle">Confirm or reject bookings for your sessions.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted loading-msg">Loading bookings...</p>
+  }
+
+  @if (error()) {
+    <div class="card alert-card">
+      <div class="card-body">
+        <span class="muted">{{ error() }}</span>
+        <button class="btn btn-primary" type="button" (click)="load()">Retry</button>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !error() && cards().length > 0) {
+    <div class="bookings-grid">
+      @for (card of cards(); track card.booking.id ?? card.booking.sessionId) {
+        <article class="booking-card">
+          <h3 class="card-title">{{ card.courseTitle }}</h3>
+          <p class="card-meta">{{ card.sessionDate }}</p>
+          <p class="card-meta">{{ card.location }}</p>
+          <span class="status-pill" [class]="'status-' + card.statusClass">{{ card.statusLabel }}</span>
+          @if (card.statusClass === 'pending') {
+            <div class="card-actions">
+              <button class="btn btn-primary" type="button" (click)="confirmBooking(card)" [disabled]="isUpdating(card)">
+                {{ isUpdating(card) ? 'Updating…' : 'Confirm' }}
+              </button>
+              <button class="btn btn-outline-danger" type="button" (click)="rejectBooking(card)" [disabled]="isUpdating(card)">Reject</button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+
+  @if (!loading() && !error() && cards().length === 0) {
+    <div class="card empty">
+      <div class="card-body">
+        <h2 class="section-title">No bookings</h2>
+        <p class="muted">Bookings for your sessions will appear here.</p>
+        <a class="btn btn-primary" routerLink="/back/courses/bookings">Manage bookings in back office</a>
+      </div>
+    </div>
+  }
+</div>

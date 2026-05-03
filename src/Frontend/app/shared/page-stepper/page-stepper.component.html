@@ -1,0 +1,37 @@
+<nav
+  class="jie-stepper"
+  [class.jie-stepper--top]="position === 'top'"
+  [class.jie-stepper--bottom]="position === 'bottom'"
+  aria-label="Step navigation"
+>
+  <div class="jie-stepper__track" aria-hidden="true">
+    @for (step of steps; track step.key) {
+      <div class="jie-stepper__step" [class.jie-stepper__step--active]="step.key === currentStep">
+        <span class="jie-stepper__dot"></span>
+        <span class="jie-stepper__label">{{ step.label }}</span>
+      </div>
+    }
+  </div>
+  <div class="jie-stepper__controls">
+    <button
+      type="button"
+      class="jie-stepper__btn jie-stepper__btn--ghost"
+      (click)="goPrev()"
+      [disabled]="!canGoPrev()"
+    >
+      Previous
+    </button>
+    <span class="jie-stepper__status">
+      Step {{ currentIndex() + 1 }} / {{ steps.length }}
+    </span>
+    <button
+      type="button"
+      class="jie-stepper__btn jie-stepper__btn--primary"
+      (click)="goNext()"
+      [disabled]="!canGoNext()"
+    >
+      Next
+    </button>
+  </div>
+</nav>
+

@@ -1,0 +1,34 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgPrem" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4EEFF"/>
+      <stop offset="1" stop-color="#FAF7FF"/>
+    </linearGradient>
+    <linearGradient id="floorPrem" x1="310" y1="420" x2="920" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7CCFF"/>
+      <stop offset="1" stop-color="#B8A9FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" rx="42" fill="url(#bgPrem)"/>
+  <polygon points="230,220 780,110 990,320 440,430" fill="#F8F5FF"/>
+  <polygon points="440,430 990,320 990,560 440,670" fill="#E6DDFF"/>
+  <polygon points="230,220 440,430 440,670 230,460" fill="#D8CBFF"/>
+  <polygon points="330,305 770,220 900,315 460,400" fill="url(#floorPrem)"/>
+
+  <polygon points="560,335 700,306 810,360 670,389" fill="#7C3AED"/>
+  <polygon points="670,389 810,360 810,420 670,449" fill="#6D28D9"/>
+  <polygon points="560,335 670,389 670,449 560,395" fill="#5B21B6"/>
+
+  <rect x="565" y="215" width="180" height="76" rx="12" fill="#312E81"/>
+  <rect x="586" y="238" width="140" height="10" rx="5" fill="#E9D5FF"/>
+  <rect x="586" y="255" width="110" height="10" rx="5" fill="#C4B5FD"/>
+
+  <circle cx="470" cy="330" r="26" fill="#10B981"/>
+  <rect x="463" y="350" width="14" height="46" rx="7" fill="#15803D"/>
+
+  <circle cx="860" cy="280" r="26" fill="#10B981"/>
+  <rect x="853" y="300" width="14" height="46" rx="7" fill="#15803D"/>
+
+  <rect x="100" y="600" width="280" height="22" rx="11" fill="#0F172A" fill-opacity="0.08"/>
+  <text x="120" y="616" fill="#4C1D95" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">PREMIUM CLASSROOM</text>
+</svg>

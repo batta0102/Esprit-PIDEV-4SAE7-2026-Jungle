@@ -1,0 +1,95 @@
+<main class="mx-auto max-w-3xl px-6 py-8">
+  <h1 class="font-serif text-3xl font-semibold text-text mb-6">
+    {{ isEditMode() ? 'Edit Booking' : 'New Booking' }}
+  </h1>
+
+  @if (loading() && isEditMode()) {
+    <p class="mb-4 text-secondary">Loading booking...</p>
+  }
+  @if (error()) {
+    <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="mb-4 p-4 rounded-lg bg-green-50 text-green-800">{{ success() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-text mb-1">Type *</label>
+      <div class="flex gap-4">
+        <label class="inline-flex items-center gap-2">
+          <input type="radio" formControlName="type" value="Online" class="h-4 w-4" />
+          <span>Online</span>
+        </label>
+        <label class="inline-flex items-center gap-2">
+          <input type="radio" formControlName="type" value="On-site" class="h-4 w-4" />
+          <span>On-site</span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <label for="sessionId" class="block text-sm font-medium text-text mb-1">Session *</label>
+      <select
+        id="sessionId"
+        formControlName="sessionId"
+        class="w-full rounded-lg border border-border px-4 py-3"
+        [class.border-red-500]="isFieldInvalid('sessionId')"
+      >
+        <option [ngValue]="null">Select session</option>
+        @for (s of sessionOptions(); track s.id) {
+          <option [ngValue]="s.id">{{ sessionLabel(s) }}</option>
+        }
+      </select>
+      @if (sessionsLoading()) {
+        <p class="mt-1 text-sm text-secondary">Loading sessions...</p>
+      }
+      @if (!sessionsLoading() && sessionOptions().length === 0) {
+        <p class="mt-1 text-sm text-amber-600">No sessions for this type. Create sessions in the <a routerLink="/back/courses/sessions" class="underline">Sessions</a> tab first.</p>
+      }
+      @if (isFieldInvalid('sessionId')) {
+        <p class="mt-1 text-sm text-red-600">{{ getFieldError('sessionId') }}</p>
+      }
+    </div>
+
+    <div>
+      <label for="status" class="block text-sm font-medium text-text mb-1">Status *</label>
+      <select
+        id="status"
+        formControlName="status"
+        class="w-full rounded-lg border border-border px-4 py-3"
+      >
+        @for (st of statusOptions; track st) {
+          <option [value]="st">{{ st }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="bookingDate" class="block text-sm font-medium text-text mb-1">Booking date & time *</label>
+      <input
+        id="bookingDate"
+        type="datetime-local"
+        formControlName="bookingDate"
+        class="w-full rounded-lg border border-border px-4 py-3"
+        [class.border-red-500]="isFieldInvalid('bookingDate')"
+      />
+      @if (isFieldInvalid('bookingDate')) {
+        <p class="mt-1 text-sm text-red-600">{{ getFieldError('bookingDate') }}</p>
+      }
+    </div>
+
+    <div class="flex gap-4 pt-4">
+      <button
+        type="submit"
+        class="px-5 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-50"
+        [disabled]="form.invalid || loading() || (!isEditMode() && sessionOptions().length === 0)"
+      >
+        {{ isEditMode() ? 'Update Booking' : 'Create Booking' }}
+      </button>
+      <button type="button" (click)="cancel()" class="px-5 py-3 rounded-lg border border-border bg-white hover:bg-gray-50">
+        Cancel
+      </button>
+    </div>
+  </form>
+</main>

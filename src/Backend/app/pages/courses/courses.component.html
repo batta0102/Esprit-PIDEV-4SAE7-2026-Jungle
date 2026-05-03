@@ -1,0 +1,38 @@
+<div class="courses-container">
+  <nav
+    class="mb-6 inline-flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white/90 px-2 py-1 text-sm shadow-sm"
+  >
+    <a
+      routerLink="/back/courses"
+      routerLinkActive="bg-primary text-white shadow-sm font-semibold"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="rounded-lg px-4 py-2 text-secondary transition-colors duration-150 hover:bg-primary/5 hover:text-primary"
+    >
+      Courses
+    </a>
+    <a
+      routerLink="/back/courses/classrooms"
+      routerLinkActive="bg-primary text-white shadow-sm font-semibold"
+      class="rounded-lg px-4 py-2 text-secondary transition-colors duration-150 hover:bg-primary/5 hover:text-primary"
+    >
+      Classrooms
+    </a>
+    <a
+      routerLink="/back/courses/sessions"
+      routerLinkActive="bg-primary text-white shadow-sm font-semibold"
+      class="rounded-lg px-4 py-2 text-secondary transition-colors duration-150 hover:bg-primary/5 hover:text-primary"
+    >
+      Sessions
+    </a>
+    <a
+      routerLink="/back/courses/bookings"
+      routerLinkActive="bg-primary text-white shadow-sm font-semibold"
+      class="rounded-lg px-4 py-2 text-secondary transition-colors duration-150 hover:bg-primary/5 hover:text-primary"
+    >
+      Bookings
+    </a>
+  </nav>
+  <div class="tab-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

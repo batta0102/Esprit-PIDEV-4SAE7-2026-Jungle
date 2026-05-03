@@ -1,0 +1,104 @@
+.tutor-dashboard-page {
+  padding-bottom: 2rem;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: var(--jie-surface);
+  border: 1px solid var(--jie-border);
+  border-radius: var(--jie-radius);
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: var(--jie-shadow);
+}
+
+/* Highlight new attendance KPIs with distinct accent colors */
+.kpis .kpi-card:nth-child(4) {
+  background: color-mix(in srgb, var(--jie-teal) 6%, white);
+  border-color: color-mix(in srgb, var(--jie-teal) 40%, white);
+}
+.kpis .kpi-card:nth-child(4) .kpi-value {
+  color: color-mix(in srgb, var(--jie-teal) 70%, black);
+}
+
+.kpis .kpi-card:nth-child(5) {
+  background: color-mix(in srgb, #16a34a 10%, white);
+  border-color: color-mix(in srgb, #16a34a 40%, white);
+}
+.kpis .kpi-card:nth-child(5) .kpi-value {
+  color: #15803d;
+}
+
+.kpis .kpi-card:nth-child(6) {
+  background: color-mix(in srgb, #f97316 12%, white);
+  border-color: color-mix(in srgb, #f97316 40%, white);
+}
+.kpis .kpi-card:nth-child(6) .kpi-value {
+  color: #ea580c;
+}
+
+.kpi-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--jie-teal);
+}
+
+.kpi-label {
+  font-size: 0.875rem;
+  color: var(--jie-muted);
+}
+
+.next-sessions {
+  margin-top: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  margin-bottom: 0.75rem;
+}
+
+.session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.session-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--jie-surface);
+  border-radius: var(--jie-radius);
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--jie-border);
+}
+
+.session-course {
+  font-weight: 600;
+  color: var(--jie-text);
+}
+
+.session-date,
+.session-type {
+  font-size: 0.875rem;
+  color: var(--jie-muted);
+}
+
+.loading-msg {
+  margin-top: 1rem;
+}
+
+.alert-card .card-body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

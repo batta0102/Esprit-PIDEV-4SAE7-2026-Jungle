@@ -1,0 +1,124 @@
+<main class="mx-auto max-w-3xl px-6 py-8">
+  <h1 class="font-serif text-3xl font-semibold text-text mb-6">
+    {{ isEditMode() ? 'Edit Session' : 'New Session' }}
+  </h1>
+
+  @if (loading() && isEditMode()) {
+    <p class="mb-4 text-secondary">Loading session...</p>
+  }
+  @if (error()) {
+    <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="mb-4 p-4 rounded-lg bg-green-50 text-green-800">{{ success() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-text mb-1">Type *</label>
+      <div class="flex gap-4">
+        <label class="inline-flex items-center gap-2">
+          <input type="radio" formControlName="type" value="Online" class="h-4 w-4" />
+          <span>Online</span>
+        </label>
+        <label class="inline-flex items-center gap-2">
+          <input type="radio" formControlName="type" value="On-site" class="h-4 w-4" />
+          <span>On-site</span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <label for="courseId" class="block text-sm font-medium text-text mb-1">Course *</label>
+      <select
+        id="courseId"
+        formControlName="courseId"
+        class="w-full rounded-lg border border-border px-4 py-3"
+        [class.border-red-500]="isFieldInvalid('courseId')"
+      >
+        <option [ngValue]="null">Select course</option>
+        @for (c of courseOptions(); track c.id) {
+          <option [ngValue]="c.id">{{ c.title }} ({{ c.type ?? '?' }})</option>
+        }
+      </select>
+      @if (isFieldInvalid('courseId')) {
+        <p class="mt-1 text-sm text-red-600">{{ getFieldError('courseId') }}</p>
+      }
+    </div>
+
+    <div>
+      <label for="date" class="block text-sm font-medium text-text mb-1">Date & time *</label>
+      <input
+        id="date"
+        type="datetime-local"
+        formControlName="date"
+        class="w-full rounded-lg border border-border px-4 py-3"
+        [class.border-red-500]="isFieldInvalid('date')"
+      />
+      @if (isFieldInvalid('date')) {
+        <p class="mt-1 text-sm text-red-600">{{ getFieldError('date') }}</p>
+      }
+    </div>
+
+    <div>
+      <label for="capacity" class="block text-sm font-medium text-text mb-1">Capacity *</label>
+      <input
+        id="capacity"
+        type="number"
+        formControlName="capacity"
+        min="1"
+        class="w-full rounded-lg border border-border px-4 py-3"
+        [class.border-red-500]="isFieldInvalid('capacity')"
+      />
+      @if (isFieldInvalid('capacity')) {
+        <p class="mt-1 text-sm text-red-600">{{ getFieldError('capacity') }}</p>
+      }
+    </div>
+
+    @if (form.get('type')?.value === 'Online') {
+      <div>
+        <label for="meetingLink" class="block text-sm font-medium text-text mb-1">Meeting link</label>
+        <input
+          id="meetingLink"
+          type="url"
+          formControlName="meetingLink"
+          placeholder="https://meet.example.com/..."
+          class="w-full rounded-lg border border-border px-4 py-3"
+          [class.border-red-500]="isFieldInvalid('meetingLink')"
+        />
+        @if (isFieldInvalid('meetingLink')) {
+          <p class="mt-1 text-sm text-red-600">{{ getFieldError('meetingLink') }}</p>
+        }
+      </div>
+    }
+
+    @if (form.get('type')?.value === 'On-site') {
+      <div>
+        <label for="classroomId" class="block text-sm font-medium text-text mb-1">Classroom *</label>
+        <select
+          id="classroomId"
+          formControlName="classroomId"
+          class="w-full rounded-lg border border-border px-4 py-3"
+        >
+          <option [ngValue]="null">Select classroom</option>
+          @for (r of classrooms(); track r.id) {
+            <option [ngValue]="r.id">{{ r.name }} (capacity {{ r.capacity }})</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="flex gap-4 pt-4">
+      <button
+        type="submit"
+        class="px-5 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-50"
+        [disabled]="form.invalid || loading()"
+      >
+        {{ isEditMode() ? 'Update Session' : 'Create Session' }}
+      </button>
+      <button type="button" (click)="cancel()" class="px-5 py-3 rounded-lg border border-border bg-white hover:bg-gray-50">
+        Cancel
+      </button>
+    </div>
+  </form>
+</main>

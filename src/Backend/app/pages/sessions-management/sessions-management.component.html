@@ -1,0 +1,236 @@
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+  <app-page-stepper
+    class="mb-4"
+    [currentStep]="'sessions'"
+    [context]="{ courseId: filterCourseId() }"
+    [position]="'top'"
+  ></app-page-stepper>
+
+  <header class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl sm:text-4xl font-semibold text-gray-800">Sessions Management</h1>
+      <p class="mt-1 text-sm text-gray-500">Manage all language learning sessions.</p>
+    </div>
+    <button
+      type="button"
+      (click)="goToCreate()"
+      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-white bg-primary shadow border-0 hover:opacity-90"
+    >
+      <span class="text-lg">+</span> Add Session
+    </button>
+  </header>
+
+  @if (alert(); as notice) {
+    <div
+      class="mb-4 rounded-xl border px-4 py-3 shadow-sm flex items-start justify-between gap-4"
+      [class.border-red-200]="notice.type === 'error'"
+      [class.bg-red-50]="notice.type === 'error'"
+      [class.text-red-800]="notice.type === 'error'"
+      [class.border-emerald-200]="notice.type === 'success'"
+      [class.bg-emerald-50]="notice.type === 'success'"
+      [class.text-emerald-800]="notice.type === 'success'"
+      role="alert"
+      aria-live="polite"
+    >
+      <div class="flex items-start gap-3">
+        <span class="mt-0.5 text-lg leading-none">{{ notice.type === 'error' ? '!' : '✓' }}</span>
+        <div>
+          <p class="font-semibold leading-5">{{ notice.type === 'error' ? 'Action failed' : 'Success' }}</p>
+          <p class="text-sm opacity-90">{{ notice.message }}</p>
+          @if (error()) {
+            <button type="button" (click)="load()" class="mt-2 rounded-md px-3 py-1.5 text-xs font-medium border border-red-300 bg-red-100 text-red-800 hover:bg-red-200">Retry</button>
+          }
+        </div>
+      </div>
+      <button type="button" class="rounded-md px-2 py-1 text-sm font-semibold hover:bg-black/5" (click)="dismissAlert()" aria-label="Close alert">×</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="text-gray-500 py-4">Loading sessions...</p>
+  }
+
+  @if (!loading()) {
+    <!-- Stats -->
+    <section class="mb-6">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total sessions</div>
+          <div class="text-xl font-bold text-gray-800 mt-0.5">{{ stats().total }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Scheduled</div>
+          <div class="text-xl font-bold text-blue-600 mt-0.5">{{ stats().scheduled }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">In progress</div>
+          <div class="text-xl font-bold text-green-600 mt-0.5">{{ stats().inProgress }}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Completed</div>
+          <div class="text-xl font-bold text-purple-600 mt-0.5">{{ stats().completed }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Filters -->
+    <section class="mb-6 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+      <div class="flex flex-col gap-4">
+        <div>
+          <label for="session-search" class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+          <input
+            id="session-search"
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Date, course, type, capacity, room…"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 placeholder-gray-400 focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label for="filter-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              id="filter-type"
+              [ngModel]="filterType()"
+              (ngModelChange)="filterType.set($event)"
+              class="rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary"
+            >
+              <option value="all">All</option>
+              <option value="Online">Online</option>
+              <option value="On-site">On-Site</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-course" class="block text-sm font-medium text-gray-700 mb-1">Course</label>
+            <select
+              id="filter-course"
+              [ngModel]="filterCourseId()"
+              (ngModelChange)="filterCourseId.set($event)"
+              class="rounded-lg border border-gray-300 px-3 py-2 text-gray-800 min-w-[180px] focus:border-primary"
+            >
+              <option [ngValue]="null">All courses</option>
+              @for (c of courses(); track c.id) {
+                <option [ngValue]="str(c.id)">{{ c.title || c.id }}</option>
+              }
+            </select>
+          </div>
+          <p class="text-sm text-gray-500 ml-auto self-center">Display: <strong>{{ filteredSessions().length }}</strong> / {{ sessions().length }} sessions</p>
+        </div>
+      </div>
+    </section>
+
+    @if (sessions().length > 0) {
+      <section class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-100 border-b border-gray-200">
+              <tr>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">
+                  <button type="button" (click)="setSort('date')" class="inline-flex items-center gap-1 hover:text-primary">Date <span class="text-gray-400">{{ sortIcon('date') }}</span></button>
+                </th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">
+                  <button type="button" (click)="setSort('type')" class="inline-flex items-center gap-1 hover:text-primary">Type <span class="text-gray-400">{{ sortIcon('type') }}</span></button>
+                </th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">
+                  <button type="button" (click)="setSort('course')" class="inline-flex items-center gap-1 hover:text-primary">Course <span class="text-gray-400">{{ sortIcon('course') }}</span></button>
+                </th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">
+                  <button type="button" (click)="setSort('capacity')" class="inline-flex items-center gap-1 hover:text-primary">Capacity <span class="text-gray-400">{{ sortIcon('capacity') }}</span></button>
+                </th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">Access / Room</th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of pagedSessions(); track id(s)) {
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ formatDate(s) }}</td>
+                  <td class="px-4 py-3">
+                    @if (s.type === 'On-site') {
+                      <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">On-Site</span>
+                    } @else {
+                      <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Online</span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ courseLabel(s) }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-800">{{ s.capacity ?? s.maxParticipants ?? '-' }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-800">
+                    @if (s.type === 'Online' && s.meetingLink) {
+                      <a [href]="s.meetingLink" target="_blank" rel="noopener" class="text-primary hover:underline">Join</a>
+                    } @else {
+                      {{ classroomLabel(s.classroomId) }}
+                    }
+                  </td>
+                  <td class="px-4 py-3">
+                    <div class="flex flex-wrap gap-2">
+                      <a [routerLink]="['/back/courses/sessions', id(s), 'edit']" [queryParams]="{ type: s.type ?? 'Online' }" class="px-3 py-1 rounded border border-primary text-primary text-sm hover:bg-primary/10">Edit</a>
+                      <button
+                        type="button"
+                        (click)="deleteSession(s)"
+                        [disabled]="isDeleting(s)"
+                        [attr.aria-busy]="isDeleting(s)"
+                        class="px-3 py-1 rounded border border-red-500 text-red-600 text-sm hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {{ isDeleting(s) ? 'Deleting...' : 'Delete' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="px-4 py-12 text-center text-gray-500">Aucune session ne correspond à votre recherche ou filtre.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="border-t border-primary/20 bg-primary/5 px-4 py-3 space-y-3">
+          <app-page-stepper
+            [currentStep]="'sessions'"
+            [context]="{ courseId: filterCourseId() }"
+            [position]="'bottom'"
+          ></app-page-stepper>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-between">
+            <!-- Left container -->
+            <div class="flex-1 max-w-xs rounded-lg border border-primary/20 bg-white/90 px-3 py-2 text-xs text-primary shadow-sm">
+              Displaying
+              <strong>{{ paginationInfo().start || 0 }}</strong>
+              -
+              <strong>{{ paginationInfo().end || 0 }}</strong>
+              of
+              <strong>{{ paginationInfo().total }}</strong>
+              sessions
+            </div>
+            <!-- Right container -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 rounded-lg bg-primary text-white px-3 py-2 text-[11px] font-medium shadow-sm">
+              <button
+                type="button"
+                class="px-3 py-1 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 disabled:opacity-40"
+                (click)="goToPage(currentPage() - 1)"
+                [disabled]="currentPage() <= 1"
+              >
+                Previous
+              </button>
+              <span>Page {{ currentPage() }} / {{ totalPages() }}</span>
+              <button
+                type="button"
+                class="px-3 py-1 rounded-full border border-white bg-white text-primary hover:bg-gray-100 disabled:opacity-40"
+                (click)="goToPage(currentPage() + 1)"
+                [disabled]="currentPage() >= totalPages()"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <div class="bg-white border border-gray-200 rounded-lg p-12 text-center">
+        <p class="text-gray-600 mb-1">No sessions.</p>
+        <p class="text-sm text-gray-500 mb-4">Add a session to get started.</p>
+        <button type="button" (click)="goToCreate()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-primary">+ Add Session</button>
+      </div>
+    }
+  }
+</div>

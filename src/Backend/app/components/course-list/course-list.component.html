@@ -1,0 +1,270 @@
+<main class="mx-auto max-w-7xl px-6 py-8">
+  <app-page-stepper
+    class="mb-4"
+    [currentStep]="'courses'"
+    [context]="{}"
+    [position]="'top'"
+  ></app-page-stepper>
+  <header class="mb-6 flex items-start justify-between">
+    <div>
+      <h1 class="font-serif text-3xl font-semibold text-text">Courses</h1>
+    </div>
+    <div>
+      <a
+        routerLink="/back/courses/create"
+        class="inline-flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-lg shadow hover:bg-primary-hover"
+      >
+        <span class="text-lg">+</span>
+        Add Course
+      </a>
+    </div>
+  </header>
+
+  <!-- Statistics Cards -->
+  <section class="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4" aria-label="Course statistics">
+    <div class="bg-white rounded-lg border border-border p-4">
+      <div class="text-xs text-secondary uppercase tracking-wide mb-1">TOTAL COURSES</div>
+      <div class="text-3xl font-semibold text-text">{{ stats().total }}</div>
+    </div>
+    <div class="bg-white rounded-lg border border-border p-4">
+      <div class="text-xs text-secondary uppercase tracking-wide mb-1">ONLINE</div>
+      <div class="text-3xl font-semibold text-primary">{{ stats().online }}</div>
+    </div>
+    <div class="bg-white rounded-lg border border-border p-4">
+      <div class="text-xs text-secondary uppercase tracking-wide mb-1">ON-SITE</div>
+      <div class="text-3xl font-semibold text-amber-600">{{ stats().onsite }}</div>
+    </div>
+    <div class="bg-white rounded-lg border border-border p-4">
+      <div class="text-xs text-secondary uppercase tracking-wide mb-1">ACTIVE CLASSROOMS</div>
+      <div class="text-3xl font-semibold text-text">{{ stats().activeClassrooms }}</div>
+    </div>
+    <div class="bg-white rounded-lg border border-border p-4">
+      <div class="text-xs text-secondary uppercase tracking-wide mb-1">TUTORS</div>
+      <div class="text-3xl font-semibold text-text">{{ stats().tutors }}</div>
+    </div>
+  </section>
+
+  @if (alert(); as notice) {
+    <div
+      class="mb-4 rounded-xl border px-4 py-3 shadow-sm flex items-start justify-between gap-4"
+      [class.border-red-200]="notice.type === 'error'"
+      [class.bg-red-50]="notice.type === 'error'"
+      [class.text-red-800]="notice.type === 'error'"
+      [class.border-emerald-200]="notice.type === 'success'"
+      [class.bg-emerald-50]="notice.type === 'success'"
+      [class.text-emerald-800]="notice.type === 'success'"
+      [class.border-sky-200]="notice.type === 'info'"
+      [class.bg-sky-50]="notice.type === 'info'"
+      [class.text-sky-800]="notice.type === 'info'"
+      role="alert"
+      aria-live="polite"
+    >
+      <div class="flex items-start gap-3">
+        <span class="mt-0.5 text-lg leading-none">
+          {{ notice.type === 'error' ? '!' : notice.type === 'success' ? '✓' : 'i' }}
+        </span>
+        <div>
+          <p class="font-semibold leading-5">
+            {{ notice.type === 'error' ? 'Action failed' : notice.type === 'success' ? 'Success' : 'Information' }}
+          </p>
+          <p class="text-sm opacity-90">{{ notice.message }}</p>
+          @if (error()) {
+            <button
+              type="button"
+              (click)="loadCourses()"
+              class="mt-2 rounded-md px-3 py-1.5 text-xs font-medium border border-red-300 bg-red-100 text-red-800 hover:bg-red-200"
+            >
+              Retry
+            </button>
+          }
+        </div>
+      </div>
+      <button
+        type="button"
+        class="rounded-md px-2 py-1 text-sm font-semibold hover:bg-black/5"
+        (click)="dismissAlert()"
+        aria-label="Close alert"
+      >
+        ×
+      </button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="text-secondary">Loading courses...</p>
+  }
+
+  @if (!loading() && courses().length > 0) {
+    <!-- Filters Row -->
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <!-- Type Filter Tabs -->
+      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button
+          type="button"
+          (click)="setFilterType(null)"
+          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+          [class.bg-primary]="filterType() === null"
+          [class.text-white]="filterType() === null"
+          [class.bg-transparent]="filterType() !== null"
+          [class.text-secondary]="filterType() !== null"
+        >
+          All
+        </button>
+        <span class="text-gray-300">|</span>
+        <button
+          type="button"
+          (click)="setFilterType('Online')"
+          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+          [class.bg-primary]="filterType() === 'Online'"
+          [class.text-white]="filterType() === 'Online'"
+          [class.bg-transparent]="filterType() !== 'Online'"
+          [class.text-secondary]="filterType() !== 'Online'"
+        >
+          Online
+        </button>
+        <span class="text-gray-300">|</span>
+        <button
+          type="button"
+          (click)="setFilterType('On-site')"
+          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+          [class.bg-primary]="filterType() === 'On-site'"
+          [class.text-white]="filterType() === 'On-site'"
+          [class.bg-transparent]="filterType() !== 'On-site'"
+          [class.text-secondary]="filterType() !== 'On-site'"
+        >
+          On-Site
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="flex-1 max-w-xs">
+        <input
+          type="text"
+          placeholder="Search by title, description..."
+          class="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
+      </div>
+
+      <!-- Level Filter -->
+      <select
+        class="px-3 py-2 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        [ngModel]="filterLevel()"
+        (ngModelChange)="filterLevel.set($event)"
+      >
+        <option value="">All Levels</option>
+        @for (lvl of levels; track lvl) {
+          <option [value]="lvl">{{ lvl }}</option>
+        }
+      </select>
+
+      <!-- Sort -->
+      <select
+        class="px-3 py-2 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        [ngModel]="sortBy()"
+        (ngModelChange)="sortBy.set($event)"
+      >
+        <option value="title-asc">Sort: Title A → Z</option>
+        <option value="title-desc">Sort: Title Z → A</option>
+      </select>
+    </div>
+
+    <div class="rounded-lg border border-border bg-white overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-gray-50 border-b border-border">
+          <tr>
+            <th class="px-4 py-3 font-semibold text-text">TITLE</th>
+            <th class="px-4 py-3 font-semibold text-text">LEVEL</th>
+            <th class="px-4 py-3 font-semibold text-text">TYPE</th>
+            <th class="px-4 py-3 font-semibold text-text">DESCRIPTION</th>
+            <th class="px-4 py-3 font-semibold text-text">CLASSROOM</th>
+            <th class="px-4 py-3 font-semibold text-text">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of pagedCourses(); track courseId(c)) {
+            <tr class="border-b border-border hover:bg-gray-50/50">
+              <td class="px-4 py-3 font-medium text-text">{{ c.title }}</td>
+              <td class="px-4 py-3 text-secondary">{{ c.level ?? '-' }}</td>
+              <td class="px-4 py-3">
+                @if (c.type === 'On-site') {
+                  <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">On-Site</span>
+                } @else {
+                  <span class="inline-block px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Online</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-secondary">{{ c.description ?? '-' }}</td>
+              <td class="px-4 py-3 text-secondary">{{ courseClassroom(c) }}</td>
+              <td class="px-4 py-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <a
+                    [routerLink]="['/back/courses', (c.type === 'On-site' ? 'On-site' : 'Online'), courseId(c), 'edit']"
+                    class="px-3 py-1.5 rounded border border-primary text-primary text-sm hover:bg-primary/10 inline-block"
+                  >
+                    Update
+                  </a>
+                  <button
+                    type="button"
+                    (click)="deleteCourse(c)"
+                    [disabled]="isDeleting(c)"
+                    [attr.aria-busy]="isDeleting(c)"
+                    class="px-3 py-1.5 rounded border border-red-500 text-red-600 text-sm hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {{ isDeleting(c) ? 'Deleting...' : 'Delete' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="border-t border-primary/20 bg-primary/5 px-4 py-3 space-y-3">
+        <app-page-stepper
+          [currentStep]="'courses'"
+          [context]="{}"
+          [position]="'bottom'"
+        ></app-page-stepper>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-between">
+          <!-- Left container: range info -->
+          <div class="flex-1 max-w-xs rounded-lg border border-primary/20 bg-white/90 px-3 py-2 text-xs text-primary shadow-sm">
+            Displaying
+            <strong>{{ paginationInfo().start || 0 }}</strong>
+            -
+            <strong>{{ paginationInfo().end || 0 }}</strong>
+            of
+            <strong>{{ paginationInfo().total }}</strong>
+            courses
+          </div>
+          <!-- Right container: controls -->
+          <div class="flex items-center justify-between sm:justify-end gap-2 rounded-lg bg-primary text-white px-3 py-2 text-[11px] font-medium shadow-sm">
+            <button
+              type="button"
+              class="px-3 py-1 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 disabled:opacity-40"
+              (click)="goToPage(currentPage() - 1)"
+              [disabled]="currentPage() <= 1"
+            >
+              Previous
+            </button>
+            <span>Page {{ currentPage() }} / {{ totalPages() }}</span>
+            <button
+              type="button"
+              class="px-3 py-1 rounded-full border border-white bg-white text-primary hover:bg-gray-100 disabled:opacity-40"
+              (click)="goToPage(currentPage() + 1)"
+              [disabled]="currentPage() >= totalPages()"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && courses().length === 0 && !error()) {
+    <app-empty-state title="No courses available" description="Create your first course or check that the API is running (e.g. GET /api/courses)." emoji="📚"></app-empty-state>
+    <div class="mt-4">
+      <a routerLink="/back/courses/create" class="inline-flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-lg">+ New Course</a>
+    </div>
+  }
+</main>

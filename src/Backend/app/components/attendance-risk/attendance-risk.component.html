@@ -1,0 +1,79 @@
+<section class="space-y-5">
+  <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Top At-Risk Students</h3>
+    <p class="text-xs text-gray-500 mb-3">Sorted by attendance (lowest first)</p>
+    <ul class="space-y-2">
+      <li
+        *ngFor="let s of topAtRisk; trackBy: trackTop"
+        class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm"
+      >
+        <span class="font-medium text-gray-800 truncate pr-2">{{ s.name }}</span>
+        <span
+          class="shrink-0 font-semibold"
+          [ngClass]="{
+            'text-red-600': s.level === 'high',
+            'text-orange-600': s.level === 'medium',
+            'text-green-600': s.level === 'low'
+          }"
+        >
+          {{ s.rate }}%
+        </span>
+      </li>
+      <li *ngIf="topAtRisk.length === 0" class="text-sm text-gray-500 py-2">No student data.</li>
+    </ul>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Students At Risk</h3>
+    <div class="space-y-4">
+      <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="text-xs font-semibold text-red-800">High Risk — attendance below 60%</span>
+        </div>
+        <ul class="space-y-2 mt-2">
+          <li *ngFor="let s of high; trackBy: trackRisk" class="rounded bg-white border border-red-100 px-2.5 py-2 text-sm">
+            <p class="font-medium text-gray-800">{{ s.name }}</p>
+            <p class="text-xs text-red-700">{{ s.rate }}% attendance · {{ s.missed }} missed of {{ s.total }}</p>
+          </li>
+          <li *ngIf="high.length === 0" class="text-xs text-red-700">No students in high risk.</li>
+        </ul>
+      </div>
+
+      <div class="rounded-lg border border-orange-200 bg-orange-50 p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="text-xs font-semibold text-orange-800">Medium Risk — attendance between 60% and 80%</span>
+        </div>
+        <ul class="space-y-2 mt-2">
+          <li *ngFor="let s of medium; trackBy: trackRisk" class="rounded bg-white border border-orange-100 px-2.5 py-2 text-sm">
+            <p class="font-medium text-gray-800">{{ s.name }}</p>
+            <p class="text-xs text-orange-700">{{ s.rate }}% attendance · {{ s.missed }} missed of {{ s.total }}</p>
+          </li>
+          <li *ngIf="medium.length === 0" class="text-xs text-orange-700">No students in medium risk.</li>
+        </ul>
+      </div>
+
+      <div class="rounded-lg border border-green-200 bg-green-50 p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-xs font-semibold text-green-800">Low Risk — attendance above 80%</span>
+        </div>
+        <ul class="space-y-2 mt-2">
+          <li *ngFor="let s of low; trackBy: trackRisk" class="rounded bg-white border border-green-100 px-2.5 py-2 text-sm">
+            <p class="font-medium text-gray-800">{{ s.name }}</p>
+            <p class="text-xs text-green-700">{{ s.rate }}% attendance · {{ s.missed }} missed of {{ s.total }}</p>
+          </li>
+          <li *ngIf="low.length === 0" class="text-xs text-green-700">No students in low risk.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+

@@ -1,0 +1,89 @@
+.tutor-bookings-page {
+  padding-bottom: 2rem;
+}
+
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.booking-card {
+  background: var(--jie-surface);
+  border: 1px solid var(--jie-border);
+  border-radius: var(--jie-radius);
+  padding: 1.25rem;
+  box-shadow: var(--jie-shadow);
+}
+
+.booking-card .card-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--jie-teal);
+}
+
+.card-meta {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: var(--jie-muted);
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.status-confirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pending {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.status-cancelled {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.card-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  border: 1px solid #b91c1c;
+  color: #b91c1c;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--jie-radius);
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.loading-msg {
+  margin-top: 1rem;
+}
+
+.alert-card .card-body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.empty .card-body {
+  text-align: center;
+}

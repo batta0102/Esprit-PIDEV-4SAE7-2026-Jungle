@@ -1,0 +1,69 @@
+<div class="tutor-sessions-page container">
+  <header class="page-header">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a class="crumb-link" routerLink="/front">Home</a>
+      <span class="crumb-sep muted">›</span>
+      <a class="crumb-link" routerLink="/front/tutor/dashboard">Tutor</a>
+      <span class="crumb-sep muted">›</span>
+      <span class="crumb-current">Sessions</span>
+    </nav>
+    <h1 class="page-title">Manage Sessions</h1>
+    <p class="page-subtitle">View and manage your course sessions.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted loading-msg">Loading sessions...</p>
+  }
+
+  @if (error()) {
+    <div class="card alert-card">
+      <div class="card-body">
+        <span class="muted">{{ error() }}</span>
+        <button class="btn btn-primary" type="button" (click)="load()">Retry</button>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    @if (sortedRows().length > 0) {
+      <div class="table-wrap">
+        <table class="sessions-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Date &amp; time</th>
+              <th>Type</th>
+              <th>Bookings</th>
+              <th>Capacity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of sortedRows(); track row.session.id) {
+              <tr>
+                <td>{{ row.courseTitle }}</td>
+                <td>{{ formatDate(row.session) }}</td>
+                <td><span class="badge-type">{{ row.session.type ?? '—' }}</span></td>
+                <td>{{ row.bookingCount }}</td>
+                <td>{{ row.capacity }}</td>
+                <td>
+                  <a [routerLink]="['/back/courses/sessions', row.session.id, 'edit']" [queryParams]="{ type: row.session.type ?? 'Online' }" class="btn-link">Edit</a>
+                  <button type="button" class="btn-link btn-danger" (click)="cancelSession(row)">Cancel</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="muted table-note">To create or edit sessions in detail, use the <a routerLink="/back/sessions">Back office</a>.</p>
+    } @else {
+      <div class="card empty">
+        <div class="card-body">
+          <h2 class="section-title">No sessions yet</h2>
+          <p class="muted">Sessions are created in the back office. They will appear here once available.</p>
+          <a class="btn btn-primary" routerLink="/back/courses/sessions">Go to back office</a>
+        </div>
+      </div>
+    }
+  }
+</div>

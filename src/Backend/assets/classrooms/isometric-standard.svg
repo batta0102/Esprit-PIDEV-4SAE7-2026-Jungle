@@ -1,0 +1,39 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgStd" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E7F4FF"/>
+      <stop offset="1" stop-color="#F8FBFF"/>
+    </linearGradient>
+    <linearGradient id="floorStd" x1="280" y1="430" x2="920" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7E6F8"/>
+      <stop offset="1" stop-color="#BFD4ED"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" rx="42" fill="url(#bgStd)"/>
+  <polygon points="220,230 760,120 980,330 440,440" fill="#F2F8FF"/>
+  <polygon points="440,440 980,330 980,560 440,670" fill="#DDEAF8"/>
+  <polygon points="220,230 440,440 440,670 220,460" fill="#CFE1F6"/>
+  <polygon points="320,320 760,230 890,330 450,420" fill="url(#floorStd)"/>
+  <rect x="530" y="145" width="150" height="52" rx="8" fill="#0F766E"/>
+  <rect x="548" y="158" width="114" height="6" rx="3" fill="#CCFBF1"/>
+  <rect x="548" y="170" width="94" height="6" rx="3" fill="#99F6E4"/>
+
+  <polygon points="360,375 420,362 470,390 410,403" fill="#2563EB"/>
+  <polygon points="410,403 470,390 470,430 410,443" fill="#1D4ED8"/>
+  <polygon points="360,375 410,403 410,443 360,415" fill="#1E40AF"/>
+
+  <polygon points="490,350 550,337 600,365 540,378" fill="#2563EB"/>
+  <polygon points="540,378 600,365 600,405 540,418" fill="#1D4ED8"/>
+  <polygon points="490,350 540,378 540,418 490,390" fill="#1E40AF"/>
+
+  <polygon points="620,325 680,312 730,340 670,353" fill="#2563EB"/>
+  <polygon points="670,353 730,340 730,380 670,393" fill="#1D4ED8"/>
+  <polygon points="620,325 670,353 670,393 620,365" fill="#1E40AF"/>
+
+  <polygon points="750,300 810,287 860,315 800,328" fill="#2563EB"/>
+  <polygon points="800,328 860,315 860,355 800,368" fill="#1D4ED8"/>
+  <polygon points="750,300 800,328 800,368 750,340" fill="#1E40AF"/>
+
+  <rect x="100" y="600" width="300" height="22" rx="11" fill="#0F172A" fill-opacity="0.08"/>
+  <text x="120" y="616" fill="#1E3A8A" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">STANDARD CLASSROOM</text>
+</svg>

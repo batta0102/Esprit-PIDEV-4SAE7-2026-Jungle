@@ -1,0 +1,312 @@
+/* Front-office Classrooms – professional layout */
+.classrooms-page {
+  min-height: 60vh;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--jie-teal) 6%, var(--jie-bg)) 0%, var(--jie-bg) 12rem);
+  padding-bottom: 3rem;
+}
+
+.classrooms-page .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ----- Page header ----- */
+.page-header {
+  padding: 1.5rem 0 1.75rem;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.crumb-link {
+  color: var(--jie-muted, #6b7280);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.crumb-link:hover {
+  color: var(--jie-teal);
+  text-decoration: underline;
+}
+
+.crumb-sep {
+  margin: 0 0.15rem;
+}
+
+.crumb-current {
+  color: var(--jie-text);
+  font-weight: 600;
+}
+
+.page-title {
+  margin: 0 0 0.35rem;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--jie-text, #1a1a1a);
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--jie-muted, #6b7280);
+  font-weight: 400;
+}
+
+/* ----- Toolbar (search + count) ----- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--jie-border, #e5e7eb);
+  border-radius: var(--jie-radius, 14px);
+  overflow: hidden;
+  max-width: 360px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-wrap:focus-within {
+  border-color: var(--jie-teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--jie-teal) 20%, transparent);
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.85rem;
+  color: var(--jie-muted, #6b7280);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 0.85rem 0.7rem 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--jie-text);
+}
+
+.search-input::placeholder {
+  color: var(--jie-muted);
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.results-count {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--jie-muted);
+  font-weight: 500;
+}
+
+/* ----- Cards grid ----- */
+.classrooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.classroom-card {
+  border-radius: var(--jie-radius, 14px);
+  border: 1px solid var(--jie-border, #e5e7eb);
+  background: #fff;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.classroom-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in srgb, var(--jie-teal) 25%, transparent);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--jie-teal) 12%, white);
+  color: var(--jie-teal);
+}
+
+.classroom-name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--jie-text, #1a1a1a);
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-line {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--jie-text);
+}
+
+.detail-icon {
+  flex-shrink: 0;
+  color: var(--jie-muted, #6b7280);
+}
+
+/* Badge: green pill with white text (pro look) */
+.badge-available {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--jie-teal);
+  color: #fff;
+}
+
+/* CTA button */
+.btn-view-sessions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--jie-radius, 14px);
+  background: var(--jie-teal, #2d5757);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.btn-view-sessions:hover {
+  background: color-mix(in srgb, var(--jie-teal) 88%, black);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-view-sessions:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--jie-teal) 40%, transparent);
+  outline-offset: 2px;
+}
+
+/* ----- States ----- */
+.muted {
+  color: var(--jie-muted, #6b7280);
+}
+
+.loading-msg {
+  padding: 1.25rem 0;
+  font-size: 0.95rem;
+}
+
+.card.alert-card {
+  margin-bottom: 1rem;
+  border-radius: var(--jie-radius);
+  background: #fff8e6;
+  border: 1px solid #f59e0b;
+}
+
+.card.alert-card .card-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.card.empty {
+  border-radius: var(--jie-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card.empty .card-body {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--jie-text);
+}
+
+.btn {
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--jie-radius);
+  border: 1px solid var(--jie-border);
+  background: var(--jie-surface);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--jie-teal);
+  color: #fff;
+  border-color: var(--jie-teal);
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--jie-teal) 86%, black);
+  border-color: color-mix(in srgb, var(--jie-teal) 86%, black);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .classrooms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-wrap {
+    max-width: none;
+  }
+}

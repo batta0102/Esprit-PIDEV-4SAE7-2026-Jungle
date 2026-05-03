@@ -1,0 +1,74 @@
+<div class="p-6 max-w-4xl mx-auto font-sans text-sm">
+  <h1 class="text-xl font-semibold mb-1">Notifications API test (temporary)</h1>
+  <p class="text-gray-600 mb-4">
+    Verifies GET /api/notifications/my and PATCH read / read-all. Remove this route when no longer needed.
+  </p>
+
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button
+      type="button"
+      class="px-3 py-1.5 rounded bg-slate-800 text-white disabled:opacity-50"
+      (click)="refresh()"
+      [disabled]="loading()"
+    >
+      Refresh list
+    </button>
+    <button
+      type="button"
+      class="px-3 py-1.5 rounded bg-indigo-700 text-white disabled:opacity-50"
+      (click)="sendTestNotification()"
+      [disabled]="loading()"
+    >
+      Create test notification (POST)
+    </button>
+    <button
+      type="button"
+      class="px-3 py-1.5 rounded bg-emerald-700 text-white disabled:opacity-50"
+      (click)="markAll()"
+      [disabled]="loading()"
+    >
+      markAllAsRead()
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="text-gray-500 mb-2">Loading…</p>
+  }
+
+  @if (error(); as err) {
+    <div class="mb-4 p-3 rounded border border-red-300 bg-red-50 text-red-800">
+      <strong>Error</strong> — {{ err }}
+    </div>
+  }
+
+  @if (lastAction(); as msg) {
+    <p class="mb-2 text-emerald-800">{{ msg }}</p>
+  }
+
+  <h2 class="font-medium mb-2">Raw response (JSON)</h2>
+  <pre class="p-3 bg-gray-100 rounded overflow-auto text-xs border border-gray-200 mb-6">{{ items() | json }}</pre>
+
+  <h2 class="font-medium mb-2">Per notification</h2>
+  @if (items().length === 0 && !loading()) {
+    <p class="text-gray-500">No notifications (empty list).</p>
+  } @else {
+    <ul class="space-y-3">
+      @for (n of items(); track n.id) {
+        <li class="p-3 border border-gray-200 rounded flex flex-wrap items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <span class="font-mono text-xs text-gray-500">id={{ n.id }}</span>
+            <pre class="mt-1 text-xs overflow-auto max-h-40">{{ n | json }}</pre>
+          </div>
+          <button
+            type="button"
+            class="shrink-0 px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 text-xs"
+            (click)="markOne(n.id)"
+            [disabled]="loading()"
+          >
+            markAsRead({{ n.id }})
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

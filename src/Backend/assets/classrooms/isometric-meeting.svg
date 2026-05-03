@@ -1,0 +1,35 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgMeet" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF5F4"/>
+      <stop offset="1" stop-color="#F8FCFB"/>
+    </linearGradient>
+    <linearGradient id="floorMeet" x1="300" y1="420" x2="900" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CFE4E1"/>
+      <stop offset="1" stop-color="#B4D3CF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" rx="42" fill="url(#bgMeet)"/>
+  <polygon points="230,220 770,110 980,320 440,430" fill="#F5FAF9"/>
+  <polygon points="440,430 980,320 980,560 440,670" fill="#DCEAE8"/>
+  <polygon points="230,220 440,430 440,670 230,460" fill="#CDE0DD"/>
+  <polygon points="320,315 760,225 890,320 450,410" fill="url(#floorMeet)"/>
+
+  <polygon points="500,330 700,290 840,355 640,395" fill="#334155"/>
+  <polygon points="640,395 840,355 840,430 640,470" fill="#1E293B"/>
+  <polygon points="500,330 640,395 640,470 500,405" fill="#0F172A"/>
+
+  <polygon points="420,360 470,350 520,375 470,385" fill="#10B981"/>
+  <polygon points="470,385 520,375 520,415 470,425" fill="#059669"/>
+  <polygon points="420,360 470,385 470,425 420,400" fill="#047857"/>
+
+  <polygon points="790,280 840,270 890,295 840,305" fill="#10B981"/>
+  <polygon points="840,305 890,295 890,335 840,345" fill="#059669"/>
+  <polygon points="790,280 840,305 840,345 790,320" fill="#047857"/>
+
+  <rect x="575" y="190" width="150" height="56" rx="8" fill="#0F766E"/>
+  <rect x="595" y="211" width="112" height="9" rx="4" fill="#CCFBF1"/>
+
+  <rect x="100" y="600" width="260" height="22" rx="11" fill="#0F172A" fill-opacity="0.08"/>
+  <text x="120" y="616" fill="#0F766E" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">MEETING ROOM</text>
+</svg>

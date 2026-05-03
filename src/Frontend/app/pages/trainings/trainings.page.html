@@ -1,0 +1,121 @@
+<div class="trainings-page container">
+  <header class="page-header" aria-label="Breadcrumb">
+    <div class="crumb">
+      <a class="crumb-link" routerLink="/front">Home</a>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-current">Trainings</span>
+    </div>
+  </header>
+
+  <div class="title-row">
+    <h1 class="page-title">English Trainings</h1>
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search courses..."
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          aria-label="Search courses"
+        />
+      </div>
+      <button type="button" class="btn-filters">Filters</button>
+      <div class="level-pills">
+        <button
+          type="button"
+          class="pill"
+          [class.pill-active]="levelFilter() === null"
+          (click)="setLevel(null)"
+        >
+          All
+        </button>
+        @for (lv of levels; track lv) {
+          <button
+            type="button"
+            class="pill"
+            [class.pill-active]="levelFilter() === lv"
+            (click)="setLevel(lv)"
+          >
+            {{ lv }}
+          </button>
+        }
+      </div>
+      <div class="type-pills">
+        <button type="button" class="pill" [class.pill-active]="typeFilter() === 'All'" (click)="setType('All')">All</button>
+        <button type="button" class="pill" [class.pill-active]="typeFilter() === 'Online'" (click)="setType('Online')">Online</button>
+        <button type="button" class="pill" [class.pill-active]="typeFilter() === 'On-site'" (click)="setType('On-site')">On-site</button>
+      </div>
+      <div class="sort-wrap">
+        <label for="sort-by" class="sort-label">Sort by</label>
+        <select id="sort-by" class="sort-select" [value]="sortBy()" (change)="setSortBy($any($event.target).value)">
+          <option value="date">Next session date</option>
+          <option value="title">Course title</option>
+          <option value="level">Level</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="muted loading-msg">Loading courses...</p>
+  }
+
+  @if (error()) {
+    <div class="alert-card">
+      <span class="muted">{{ error() }}</span>
+      <button class="btn btn-primary" type="button" (click)="load()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && filteredCards().length > 0) {
+    <div class="courses-grid">
+      @for (card of filteredCards(); track card.course.id) {
+        <article class="course-card">
+          <h3 class="course-title">
+            <span class="course-title-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 60 30" aria-hidden="true"><rect width="60" height="30" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></svg>
+            </span>
+            {{ card.course.title }}
+          </h3>
+          <div class="badge-online">{{ card.course.type === 'On-site' ? 'ON SITE' : 'ONLINE' }}</div>
+          <div class="detail-pills">
+            <span class="detail-pill">Level {{ card.course.level ?? '—' }}</span>
+            <span class="detail-pill">{{ card.sessionCount }} Session{{ card.sessionCount !== 1 ? 's' : '' }}</span>
+            <span class="detail-pill">{{ card.nextSessionBookings }} Booking{{ card.nextSessionBookings !== 1 ? 's' : '' }}</span>
+          </div>
+          <p class="next-label">Next session</p>
+          <p class="next-date">{{ formatNextSessionDate(card) }}</p>
+          @if (card.nextSessionCapacity > 0) {
+            @if (isFullyBooked(card)) {
+              <span class="badge-full">Fully booked</span>
+            } @else {
+              <p class="seats-left">Seats left: {{ seatsLeft(card) }}</p>
+            }
+          }
+          @if (card.meetingLink) {
+            <p class="meeting-line">
+              <span class="meeting-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              </span>
+              <a [href]="card.meetingLink" target="_blank" rel="noopener noreferrer" class="meeting-link">{{ card.meetingLink }}</a>
+            </p>
+          }
+          <p class="bookings-count">Bookings: {{ card.nextSessionBookings }}</p>
+          <a [routerLink]="['/front/courses', card.course.id]" class="btn-view-details">View Details</a>
+        </article>
+      }
+    </div>
+  }
+
+  @if (!loading() && !error() && filteredCards().length === 0) {
+    <div class="empty-state">
+      <p class="section-title">No courses found</p>
+      <p class="muted">Try changing your search or filters.</p>
+      <button class="btn btn-primary" type="button" (click)="searchQuery.set(''); setLevel(null)">Clear filters</button>
+    </div>
+  }
+</div>

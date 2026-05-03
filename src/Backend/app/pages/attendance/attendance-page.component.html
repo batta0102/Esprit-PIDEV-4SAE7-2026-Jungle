@@ -1,0 +1,635 @@
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 print:py-4">
+  <app-page-stepper
+    class="mb-4 hide-on-print"
+    [currentStep]="'attendance'"
+    [context]="{ sessionId: selectedSessionId(), attendanceType: filterSessionType() === 'On-site' ? 'ONSITE' : 'ONLINE' }"
+    [position]="'top'"
+  ></app-page-stepper>
+
+  <!-- Header -->
+  <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:mb-4">
+    <div>
+      <h1 class="text-2xl sm:text-4xl font-semibold text-gray-800">Attendance Management</h1>
+      <p class="mt-1 text-sm text-gray-500">Track and manage student attendance for course sessions.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 hide-on-print print:hidden">
+      <button
+        type="button"
+        (click)="printReport()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors"
+        title="Print report"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2h-2m-4 1h8M5 7v8h14V7H5z" /></svg>
+        Export / Print
+      </button>
+      <button
+        type="button"
+        (click)="openMarkModal()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-white bg-primary shadow border-0 hover:opacity-90 transition-opacity"
+      >
+        <span class="text-lg">+</span> Take Attendance
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200 flex flex-wrap items-center justify-between gap-2">
+      <span class="flex-1 min-w-0">{{ error() }}</span>
+      <button type="button" (click)="load()" class="px-3 py-1.5 rounded bg-red-200 hover:bg-red-300 text-red-900 font-medium">Retry</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="animate-pulse rounded-xl bg-gray-100 h-24"></div>
+      <div class="animate-pulse grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="h-20 rounded-xl bg-gray-100"></div>
+        <div class="h-20 rounded-xl bg-gray-100"></div>
+        <div class="h-20 rounded-xl bg-gray-100"></div>
+        <div class="h-20 rounded-xl bg-gray-100"></div>
+      </div>
+      <div class="animate-pulse rounded-xl bg-gray-100 h-64"></div>
+    </div>
+  } @else {
+    @if (toast()) {
+      <div class="mb-3 hide-on-print">
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border shadow-sm"
+          [class.bg-green-50]="toast()?.type === 'success'"
+          [class.border-green-200]="toast()?.type === 'success'"
+          [class.text-green-800]="toast()?.type === 'success'"
+          [class.bg-red-50]="toast()?.type === 'error'"
+          [class.border-red-200]="toast()?.type === 'error'"
+          [class.text-red-800]="toast()?.type === 'error'"
+        >
+          <span class="text-xs font-medium">{{ toast()?.message }}</span>
+          <button type="button" class="ml-2 text-[11px] underline" (click)="toast.set(null)">Close</button>
+        </div>
+      </div>
+    }
+    <!-- Section navigation: one section visible at a time -->
+    <nav class="mb-6 flex flex-wrap gap-2 hide-on-print print:hidden" aria-label="Attendance sections">
+      <button
+        type="button"
+        (click)="setActiveSection('alerts')"
+        [class]="activeSection() === 'alerts' ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+        class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Alerts
+        @if (hasAttendanceAlerts()) {
+          <span class="rounded-full bg-amber-600 px-2 py-0.5 text-xs font-semibold text-white">{{ overviewMetrics().atRiskCount }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        (click)="setActiveSection('overview')"
+        [class]="activeSection() === 'overview' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+        class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Overview
+      </button>
+      <button
+        type="button"
+        (click)="setActiveSection('management')"
+        [class]="activeSection() === 'management' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+        class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Attendance
+      </button>
+      <button
+        type="button"
+        (click)="setActiveSection('risk')"
+        [class]="activeSection() === 'risk' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+        class="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Risk Monitoring
+      </button>
+    </nav>
+
+    <div class="mb-6">
+      <app-attendance-cards
+        [totalStudents]="overviewMetrics().totalStudents"
+        [presentCount]="stats().present"
+        [absentCount]="stats().absent"
+        [attendanceRate]="overviewMetrics().avgAttendance"
+      ></app-attendance-cards>
+    </div>
+
+    <p class="mb-4 text-xs text-gray-400 hide-on-print print:hidden">Keyboard shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-xs">1</kbd> Alerts · <kbd class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-xs">2</kbd> Overview · <kbd class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-xs">3</kbd> Attendance · <kbd class="px-1.5 py-0.5 rounded bg-gray-100 font-mono text-xs">4</kbd> Risk</p>
+
+    <!-- ========== Section: Attendance Alerts ========== -->
+    <section id="section-alerts" class="mb-10 scroll-mt-4">
+      @if (hasAttendanceAlerts()) {
+        <div class="space-y-4">
+          <div class="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 shadow-sm flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <p class="text-sm font-semibold text-amber-900">
+                {{ attendanceAlerts().length }} student{{ attendanceAlerts().length !== 1 ? 's' : '' }} at risk (attendance &lt; 60%).
+              </p>
+              <p class="text-xs text-amber-800 mt-1">Review these students first and plan follow-up actions.</p>
+            </div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            @for (s of attendanceAlerts(); track s.id) {
+              @let stats = getStudentAttendanceStats(s.id);
+              <article class="rounded-xl border border-red-200 bg-white shadow-sm p-4 flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700 font-semibold">
+                    {{ s.name.charAt(0) }}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ s.name }}</p>
+                    <p class="text-xs text-red-700 font-medium">Attendance {{ s.rate }}%</p>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Attendance</span>
+                    <span>{{ stats.present }}/{{ stats.total }} sessions</span>
+                  </div>
+                  <div class="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+                    <div class="h-full rounded-full bg-red-500" [style.width.%]="s.rate"></div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-600">
+                  <span>Last missed</span>
+                  <span class="font-medium text-gray-800">
+                    {{ stats.lastMissed ? formatDateShort(stats.lastMissed) : 'No data' }}
+                  </span>
+                </div>
+                <div class="mt-1 flex gap-2">
+                  <button type="button" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                    View
+                  </button>
+                  <button type="button" class="flex-1 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
+                    History
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="rounded-xl border border-green-200 bg-green-50 p-8 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-green-700 font-semibold">No students at risk</p>
+          <p class="text-sm text-green-600 mt-1">No student is currently below 60% attendance.</p>
+        </div>
+      }
+    </section>
+
+    <!-- ========== Section: Overview (Analytics Dashboard) ========== -->
+    <section id="section-overview" class="mb-10 scroll-mt-4">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+            <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 flex items-center gap-3 transition-shadow hover:shadow-md">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 01-12 0v1zm0 0h-6m6 0V7" /></svg>
+              </div>
+              <div>
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Students</div>
+                <div class="text-xl font-bold text-gray-800">{{ overviewMetrics().totalStudents }}</div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-green-50/50 p-4 flex items-center gap-3 transition-shadow hover:shadow-md">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <div>
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Average Attendance</div>
+                <div class="text-xl font-bold text-green-600">{{ overviewMetrics().avgAttendance }}%</div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-red-50/50 p-4 flex items-center gap-3 transition-shadow hover:shadow-md">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <div>
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">At-Risk Students</div>
+                <div class="text-xl font-bold text-red-600">{{ overviewMetrics().atRiskCount }}</div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-orange-50/50 p-4 flex items-center gap-3 transition-shadow hover:shadow-md">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+              </div>
+              <div>
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">At-Risk Rate</div>
+                <div class="text-xl font-bold text-orange-600">{{ overviewMetrics().atRiskRate }}%</div>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-gray-200 pt-5 flex flex-col sm:flex-row gap-6">
+            <!-- Donut gauge: At-Risk Rate -->
+            <div class="flex shrink-0 items-center gap-4 rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+              <div class="relative h-28 w-28">
+                <svg class="h-28 w-28 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" class="stroke-gray-200" stroke-width="3" />
+                  <circle cx="18" cy="18" r="15" fill="none" [class]="overviewMetrics().atRiskRate > 50 ? 'stroke-red-500' : overviewMetrics().atRiskRate > 20 ? 'stroke-orange-500' : 'stroke-green-500'" stroke-width="3" stroke-linecap="round" stroke-dasharray="94.25" [attr.stroke-dashoffset]="94.25 - (overviewMetrics().atRiskRate / 100) * 94.25" style="transition: stroke-dashoffset 0.6s ease-out;" />
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800">{{ overviewMetrics().atRiskRate }}%</span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-700">At-Risk Rate</p>
+                <p class="text-xs text-gray-500">Share of students below 80% attendance</p>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <app-attendance-chart
+                [summary]="attendanceSummary()"
+                [weekly]="weeklyAttendance()"
+              ></app-attendance-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Section: Attendance Management (filters + table) ========== -->
+    <section id="section-management" class="mb-10 scroll-mt-4">
+      <div class="flex items-center gap-2 mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 class="text-lg font-semibold text-gray-800">Attendance Management</h2>
+      </div>
+
+      <div class="space-y-5">
+          <!-- Filters + Search -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="flex flex-col gap-4">
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  (click)="filterSessionType.set('all')"
+                  [class]="filterSessionType() === 'all' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  (click)="filterSessionType.set('Online')"
+                  [class]="filterSessionType() === 'Online' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                >
+                  Online
+                </button>
+                <button
+                  type="button"
+                  (click)="filterSessionType.set('On-site')"
+                  [class]="filterSessionType() === 'On-site' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  class="rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                >
+                  On Site
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="flex-1 min-w-[220px] flex items-center rounded-lg border border-gray-300 bg-white">
+                  <span class="pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  </span>
+                  <input
+                    id="attendance-search"
+                    type="text"
+                    [ngModel]="searchQuery()"
+                    (ngModelChange)="searchQuery.set($event)"
+                    placeholder="Search student, session or note..."
+                    class="flex-1 min-w-0 rounded-r-lg border-0 py-2 pr-3 text-gray-800 placeholder-gray-400 focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <select
+                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary min-w-[200px]"
+                    [ngModel]="selectedSessionId()"
+                    (ngModelChange)="selectedSessionId.set($event)"
+                  >
+                    <option [ngValue]="null">Select session</option>
+                    @for (s of sessionOptions(); track s.id) {
+                      <option [ngValue]="num(s.id)">Session #{{ s.id }} ({{ courseMap()[str(s.courseId)] || s.courseId }})</option>
+                    }
+                  </select>
+                  <button
+                    type="button"
+                    (click)="load()"
+                    [disabled]="!selectedSessionId()"
+                    class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40"
+                  >
+                    Load Students
+                  </button>
+                  <select
+                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary min-w-[180px]"
+                    [ngModel]="filterCourseId()"
+                    (ngModelChange)="filterCourseId.set($event || null)"
+                  >
+                    <option value="">All courses</option>
+                    @for (c of courses(); track c.id) {
+                      <option [ngValue]="str(c.id)">{{ c.title }}</option>
+                    }
+                  </select>
+                  <select
+                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary min-w-[160px]"
+                    [ngModel]="filterStatus()"
+                    (ngModelChange)="filterStatus.set($event || null)"
+                  >
+                    <option [ngValue]="null">All statuses</option>
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [ngValue]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          @if (draftPrompt()) {
+            <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-800">
+              <span>Draft found for this session. Restore your unsaved edits?</span>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  (click)="restoreDraft()"
+                  class="px-3 py-1 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700"
+                >
+                  Restore
+                </button>
+                <button
+                  type="button"
+                  (click)="discardDraft()"
+                  class="px-3 py-1 rounded-lg border border-amber-300 bg-white font-semibold text-amber-700 hover:bg-amber-100"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Record stats (compact) + Student Attendance Table -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-500">Records</span>
+              <span class="text-lg font-bold text-gray-800">{{ stats().total }}</span>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-500">Present</span>
+              <span class="text-lg font-bold text-green-600">{{ stats().present }}</span>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-500">Absent</span>
+              <span class="text-lg font-bold text-red-600">{{ stats().absent }}</span>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-500">Late</span>
+              <span class="text-lg font-bold text-orange-600">{{ stats().late }}</span>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-500">Excused</span>
+              <span class="text-lg font-bold text-blue-600">{{ stats().excused }}</span>
+            </div>
+          </div>
+
+          @if (isUsingMockData()) {
+            <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 font-semibold">
+              Donnees simulees
+            </div>
+          }
+
+          @if (loadingAttendance()) {
+            <div class="rounded-lg border border-gray-200 bg-white px-4 py-6 flex items-center gap-3 text-gray-600">
+              <span class="inline-block h-5 w-5 rounded-full border-2 border-gray-300 border-t-primary animate-spin"></span>
+              <span>Chargement des donnees de presence...</span>
+            </div>
+          } @else if (attendanceError()) {
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800 flex items-center justify-between gap-3">
+              <span>{{ attendanceError() }}</span>
+              <button type="button" (click)="load()" class="px-3 py-1.5 rounded bg-red-200 hover:bg-red-300 text-red-900 font-medium">Retry</button>
+            </div>
+          } @else if (isEmptyState()) {
+            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-gray-700">
+              Aucune donnee de presence pour cette session
+            </div>
+          } @else {
+            <app-attendance-table
+              [records]="pagedRecords()"
+              [paginationInfo]="paginationInfo()"
+              [currentPage]="currentPage()"
+              [totalPages]="totalPages()"
+              [hasPendingChanges]="hasPendingChanges()"
+              [bulkSaving]="bulkSaving()"
+              [selectedSessionId]="selectedSessionId()"
+              [pendingStatus]="pendingStatus()"
+              [dirtyMap]="dirtyMap()"
+              [getStudentName]="getStudentName.bind(this)"
+              [getStudentInitial]="getStudentInitial.bind(this)"
+              [formatDateShort]="formatDateShort.bind(this)"
+              [effectiveStatus]="effectiveStatus.bind(this)"
+              [recordKey]="recordKey.bind(this)"
+              [effectiveNote]="effectiveNote.bind(this)"
+              (saveAll)="saveAllChanges()"
+              (changePage)="goToPage($event)"
+              (rowStatusChange)="changeRowStatus($event.record, $event.status)"
+              (rowNoteChange)="changeRowNote($event.record, $event.note)"
+              (undoRow)="undoRow($event)"
+              (saveRow)="saveRowChange($event)"
+            ></app-attendance-table>
+          }
+      </div>
+    </section>
+
+    <!-- ========== Section: Students At Risk ========== -->
+    <section class="mb-10 scroll-mt-4">
+      <div class="flex items-center gap-2 mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <h2 class="text-lg font-semibold text-gray-800">Early Warning</h2>
+      </div>
+
+      @if (loadingEarlyWarnings()) {
+        <div class="rounded-lg border border-gray-200 bg-white px-4 py-6 flex items-center gap-3 text-gray-600">
+          <span class="inline-block h-5 w-5 rounded-full border-2 border-gray-300 border-t-indigo-600 animate-spin"></span>
+          <span>Chargement des alertes early warning...</span>
+        </div>
+      } @else if (earlyWarningsError()) {
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+          {{ earlyWarningsError() }}
+        </div>
+      } @else if (earlyWarnings().length === 0) {
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-gray-700">
+          Aucune alerte early warning.
+        </div>
+      } @else {
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          @for (warning of earlyWarnings(); track warning.studentId + '-' + warning.warningLevel) {
+            <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <p class="text-sm font-semibold text-gray-900 truncate">{{ warning.studentName }}</p>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold" [class]="warningLevelBadgeClass(warning.warningLevel)">
+                  {{ warning.warningLevel }}
+                </span>
+              </div>
+              <div class="space-y-1 text-sm text-gray-700">
+                <p>
+                  <span class="text-gray-500">Current rate:</span>
+                  <span class="font-semibold">{{ warning.currentRate }}%</span>
+                </p>
+                <p>
+                  <span class="text-gray-500">Predicted in 2 weeks:</span>
+                  <span class="font-semibold">{{ warning.predictedRateIn2Weeks }}%</span>
+                </p>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section id="section-risk" class="mb-10 scroll-mt-4">
+      <div class="flex items-center gap-2 mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h2 class="text-lg font-semibold text-gray-800">Students At Risk</h2>
+      </div>
+
+      <div class="max-w-2xl">
+        <app-attendance-risk
+          [high]="studentsByRisk().high"
+          [medium]="studentsByRisk().medium"
+          [low]="studentsByRisk().low"
+          [topAtRisk]="topAtRiskStudents()"
+        ></app-attendance-risk>
+      </div>
+    </section>
+
+    <p class="text-xs text-gray-500 max-w-3xl">
+      Risk is based on attendance: High &lt; 60%, Medium 60–80%, Low ≥ 80%. A student is at risk if attendance is below 80%.
+    </p>
+  }
+
+  <!-- Take Attendance Modal -->
+  @if (modalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" (click)="closeModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full border border-gray-200" (click)="$event.stopPropagation()">
+        <div class="p-6">
+          <h2 id="modal-title" class="text-lg font-semibold text-gray-800 mb-4">Take Attendance</h2>
+          @if (modalError()) {
+            <div class="mb-4 p-3 rounded-lg bg-red-50 text-red-800 text-sm">{{ modalError() }}</div>
+          }
+          <form (ngSubmit)="submitMarkAttendance()" class="space-y-4">
+            <div>
+              <label for="form-session-type" class="block text-sm font-medium text-gray-700 mb-1">Session Type</label>
+              <select
+                id="form-session-type"
+                [ngModel]="formSessionType()"
+                (ngModelChange)="formSessionType.set($event); formSessionId.set(null)"
+                name="sessionType"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option value="ONLINE">Online</option>
+                <option value="ONSITE">On-Site</option>
+              </select>
+            </div>
+            <div>
+              <label for="form-session" class="block text-sm font-medium text-gray-700 mb-1">Session</label>
+              <select
+                id="form-session"
+                [ngModel]="formSessionId()"
+                (ngModelChange)="formSessionId.set($event)"
+                name="sessionId"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option [ngValue]="null">Select session</option>
+                @for (s of formSessionOptions(); track s.id) {
+                  <option [ngValue]="num(s.id)">Session #{{ s.id }} ({{ courseMap()[str(s.courseId)] || s.courseId }})</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="form-student" class="block text-sm font-medium text-gray-700 mb-1">Student</label>
+              <select
+                id="form-student"
+                [ngModel]="formStudentId()"
+                (ngModelChange)="formStudentId.set($event)"
+                name="studentId"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option [ngValue]="null">Select student</option>
+                @for (stu of mockStudents; track stu.id) {
+                  <option [ngValue]="stu.id">{{ stu.name }}</option>
+                }
+              </select>
+              <p class="mt-1 text-xs text-gray-500">Mock list – will be replaced by user-service.</p>
+            </div>
+            <div>
+              <label for="form-status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                id="form-status"
+                [ngModel]="formStatus()"
+                (ngModelChange)="formStatus.set($event)"
+                name="status"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                @for (opt of statusOptions; track opt.value) {
+                  <option [ngValue]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="form-note" class="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+              <input
+                id="form-note"
+                type="text"
+                [ngModel]="formNote()"
+                (ngModelChange)="formNote.set($event)"
+                name="note"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-primary focus:ring-1 focus:ring-primary"
+                placeholder="e.g. On time, Traffic"
+              />
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                [disabled]="modalSubmitting()"
+                class="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 disabled:opacity-50"
+              >
+                {{ modalSubmitting() ? 'Saving...' : 'Save' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>

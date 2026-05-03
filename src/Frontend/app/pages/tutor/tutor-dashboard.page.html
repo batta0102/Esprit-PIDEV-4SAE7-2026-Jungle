@@ -1,0 +1,93 @@
+<div class="tutor-dashboard-page container">
+  <header class="page-header">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a class="crumb-link" routerLink="/front">Home</a>
+      <span class="crumb-sep muted">›</span>
+      <a class="crumb-link" routerLink="/front/tutor/dashboard">Tutor</a>
+      <span class="crumb-sep muted">›</span>
+      <span class="crumb-current">Dashboard</span>
+    </nav>
+    <h1 class="page-title">Tutor Dashboard</h1>
+    <p class="page-subtitle">Overview of your sessions and bookings.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted loading-msg">Loading dashboard...</p>
+  }
+
+  @if (error()) {
+    <div class="card alert-card">
+      <div class="card-body">
+        <span class="muted">{{ error() }}</span>
+        <button class="btn btn-primary" type="button" (click)="load()">Retry</button>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <section class="kpis">
+      <div class="kpi-card">
+        <span class="kpi-value">{{ sessionsThisWeek().length }}</span>
+        <span class="kpi-label">Sessions this week</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">{{ pendingBookingsCount() }}</span>
+        <span class="kpi-label">Pending bookings</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">{{ totalStudentsCount() }}</span>
+        <span class="kpi-label">Total students</span>
+      </div>
+      <div class="kpi-card">
+        @if (attendanceStats(); as a) {
+          <span class="kpi-value">{{ a.total }}</span>
+          <span class="kpi-label">Attendance records</span>
+        } @else {
+          <span class="kpi-value">0</span>
+          <span class="kpi-label">Attendance records</span>
+        }
+      </div>
+      <div class="kpi-card">
+        @if (attendanceStats(); as a) {
+          <span class="kpi-value">
+            {{ a.total ? (a.present * 100) / a.total : 0 | number : '1.0-0' }}%
+          </span>
+          <span class="kpi-label">Average attendance</span>
+        } @else {
+          <span class="kpi-value">0%</span>
+          <span class="kpi-label">Average attendance</span>
+        }
+      </div>
+      <div class="kpi-card">
+        @if (attendanceStudentRisk(); as r) {
+          <span class="kpi-value">
+            {{ r.highRisk }}/{{ r.totalStudents }}
+          </span>
+          <span class="kpi-label">High-risk students</span>
+        } @else {
+          <span class="kpi-value">0/0</span>
+          <span class="kpi-label">High-risk students</span>
+        }
+      </div>
+    </section>
+
+    <section class="next-sessions">
+      <h2 class="section-title">Next sessions</h2>
+      @if (nextSessions().length > 0) {
+        <ul class="session-list">
+          @for (s of nextSessions(); track s.id) {
+            <li class="session-item">
+              <span class="session-course">{{ courseMap()[s.courseId] }}</span>
+              <span class="session-date">{{ formatSessionDate(s) }}</span>
+              <span class="session-type">{{ s.type ?? '—' }}</span>
+            </li>
+          }
+        </ul>
+        <a class="btn btn-primary" routerLink="/front/sessions">Manage sessions</a>
+      } @else {
+        <p class="muted">No upcoming sessions. Create sessions from the back office or they will appear here when available.</p>
+        <a class="btn btn-primary" routerLink="/front/sessions">Manage sessions</a>
+      }
+    </section>
+  }
+</div>
