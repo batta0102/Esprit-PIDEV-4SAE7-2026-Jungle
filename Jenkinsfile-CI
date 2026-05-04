@@ -1,0 +1,44 @@
+// Jenkinsfile-CI — microservice GestionCours (Spring Boot)
+// Job Jenkins : Pipeline from SCM → Script Path = Jenkinsfile-CI
+//
+// Étapes : checkout → vérification JDK/Maven → build + tests (mvn verify)
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+    }
+
+    environment {
+        MICROSERVICE_NAME = 'GestionCours'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Check Tools') {
+            steps {
+                sh 'java -version'
+                sh 'mvn -version'
+            }
+        }
+
+        stage('Maven — build & tests') {
+            steps {
+                sh 'mvn -B -ntp clean verify'
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
+        }
+    }
+}
