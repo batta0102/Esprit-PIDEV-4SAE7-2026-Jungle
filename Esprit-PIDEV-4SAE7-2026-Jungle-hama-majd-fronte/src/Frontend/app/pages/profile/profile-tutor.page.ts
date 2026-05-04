@@ -1,0 +1,36 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+
+import { UserContextService, UserRole } from '../../core/user/user-context.service';
+
+@Component({
+  selector: 'app-profile-tutor-page',
+  imports: [RouterLink],
+  templateUrl: './profile-tutor.page.html',
+  styleUrl: './profile-tutor.page.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ProfileTutorPage {
+  private readonly router = inject(Router);
+  private readonly user = inject(UserContextService);
+
+  readonly role = this.user.role;
+
+  setRole(role: string): void {
+    if (role !== 'ETUDIANT' && role !== 'TUTEUR' && role !== 'ADMIN' && role !== 'LIVREUR') return;
+    this.user.setRole(role as UserRole);
+    if (role === 'ADMIN') {
+      void this.router.navigate(['/front/profile/admin']);
+      return;
+    }
+    if (role === 'TUTEUR') {
+      void this.router.navigate(['/front/profile/tutor']);
+      return;
+    }
+    if (role === 'LIVREUR') {
+      void this.router.navigate(['/front/livreur']);
+      return;
+    }
+    void this.router.navigate(['/front/profile/student']);
+  }
+}

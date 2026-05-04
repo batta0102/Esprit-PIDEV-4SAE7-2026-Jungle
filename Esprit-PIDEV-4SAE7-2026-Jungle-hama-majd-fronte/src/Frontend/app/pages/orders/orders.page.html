@@ -1,0 +1,55 @@
+<section class="orders-management-container">
+  <div class="header">
+    <h1>Orders</h1>
+    <button class="btn btn-primary" type="button" (click)="loadOrders()" [disabled]="loading()">Refresh</button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (authService.currentUser()?.role === 'LIVREUR') {
+    <div class="alert alert-info">
+      Deliveries assigned to your account appear in My deliveries, not in Orders.
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading orders...</p>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="empty-state">
+      <h3>No orders yet</h3>
+      <p>Your confirmed orders will appear here.</p>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Created At</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of orders(); track order.id) {
+            <tr>
+              <td>#{{ order.id }}</td>
+              <td>{{ order.createdAt | date: 'short' }}</td>
+              <td>{{ order.status }}</td>
+              <td>{{ order.totalPrice | number:'1.2-2' }} TND</td>
+              <td>
+                <div class="order-items">@for (item of order.items; track item.id) {<div class="order-item">{{ item.productName }} x {{ item.quantity }} ({{ item.subtotal | number:'1.2-2' }} TND)</div>}</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -1,0 +1,69 @@
+import { Routes } from '@angular/router';
+import { FRONT_ROUTES } from './front.routes';
+import { BACK_ROUTES } from './back.routes';
+import { FrontLayoutComponent } from './layouts/front-layout.component';
+import { BackLayoutComponent } from './layouts/back-layout.component';
+import { AuthCallbackPage } from './pages/auth/auth-callback.page';
+import { adminGuard } from './core/auth/admin.guard';
+
+export const routes: Routes = [
+	{
+		path: '',
+		redirectTo: 'front',
+		pathMatch: 'full'
+	},
+	{
+		path: 'auth/callback',
+		component: AuthCallbackPage
+	},
+	{
+		path: 'tracking/:deliveryId',
+		redirectTo: 'front/tracking/:deliveryId'
+	},
+	{
+		path: 'ai-practice',
+		redirectTo: 'front/ai-practice'
+	},
+	{
+		path: 'gamification',
+		redirectTo: 'front/gamification'
+	},
+	{
+		path: 'games/crossword',
+		redirectTo: 'front/games/crossword'
+	},
+	{
+		path: 'games/spelling-battle',
+		redirectTo: 'front/games/spelling-battle'
+	},
+	{
+		path: 'livreur/location-test',
+		redirectTo: 'front/livreur/location-test'
+	},
+	{
+		path: 'delivery/assign-test',
+		redirectTo: 'front/delivery/assign-test'
+	},
+	{
+		path: 'my-deliveries',
+		redirectTo: 'front/my-deliveries'
+	},
+	{
+		path: 'front',
+		component: FrontLayoutComponent,
+		children: FRONT_ROUTES
+	},
+	{
+		path: 'back',
+		component: BackLayoutComponent,
+		children: BACK_ROUTES.map(route => 
+			route.path === 'dashboard' 
+				? { ...route, canActivate: [adminGuard] }
+				: route
+		)
+	},
+	{
+		path: '**',
+		redirectTo: 'front'
+	}
+];

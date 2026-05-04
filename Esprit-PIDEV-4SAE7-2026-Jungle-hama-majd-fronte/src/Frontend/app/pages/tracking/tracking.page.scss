@@ -1,0 +1,82 @@
+.tracking-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel-header .card-body {
+  padding: 1rem 1.25rem;
+}
+
+.heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.info-grid article {
+  padding: 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--jie-border);
+  background: color-mix(in srgb, var(--jie-surface) 82%, white);
+}
+
+.info-grid h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.92rem;
+  color: var(--jie-muted);
+}
+
+.info-grid p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.state {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--jie-border);
+}
+
+.state-loading {
+  background: color-mix(in srgb, #f0f9ff 74%, white);
+}
+
+.state-error {
+  background: color-mix(in srgb, #fee2e2 70%, white);
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.state-warning {
+  background: color-mix(in srgb, #fef3c7 68%, white);
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.map-panel .card-body {
+  padding: 0.9rem;
+}
+
+.map-container {
+  inline-size: 100%;
+  block-size: min(65vh, 520px);
+  min-block-size: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--jie-border);
+}

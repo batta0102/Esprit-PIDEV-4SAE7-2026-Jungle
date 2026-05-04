@@ -1,0 +1,341 @@
+<div class="orders-management-container">
+  <app-admin-page-shell
+    [title]="'Orders'"
+    [addLabel]="'+ Add Order'"
+    [stats]="stats()"
+    [tabs]="tabs"
+    [selectedTab]="selectedTab()"
+    [showSearch]="true"
+    [searchPlaceholder]="'Search by product, status, payment, address...'"
+    [filters]="filters()"
+    (add)="openAddForm()"
+    (tabChange)="onTabChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
+  >
+    @if (error()) {
+      <div class="alert error">
+        <span>{{ error() }}</span>
+        <button class="btn-outline btn-update" type="button" (click)="loadOrders()">Retry</button>
+      </div>
+    }
+
+    @if (loading() && !showForm()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading orders...</p>
+      </div>
+    }
+
+    @if (filterProductId() !== null) {
+      <div class="alert info">
+        <span>
+          Filtering orders for <strong>{{ getProductName(filterProductId()) }}</strong>
+          ({{ displayedOrders().length }})
+        </span>
+        <button class="btn-outline btn-update" type="button" (click)="clearFilter()">Clear Filter</button>
+      </div>
+    }
+
+    @if (!loading() && displayedOrders().length > 0) {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Total Amount</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Payment Method</th>
+              <th>Order Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of displayedOrders(); track order.idOrder || $index) {
+              <tr>
+                <td>
+                  @if (order.product?.name) {
+                    {{ order.product?.name }}
+                  } @else if (order.product?.idProduct) {
+                    {{ getProductName(order.product?.idProduct) }}
+                  } @else if (order.productName) {
+                    {{ order.productName }}
+                  } @else {
+                    N/A
+                  }
+                </td>
+                <td>{{ order.totalAmount.toFixed(2) }} TND</td>
+                <td>{{ order.address || 'N/A' }}</td>
+                <td><span class="badge">{{ order.status }}</span></td>
+                <td>{{ order.paymentMethod }}</td>
+                <td>{{ order.orderDate ? (order.orderDate | date:'short') : 'N/A' }}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-outline" type="button" (click)="openCreateDeliveryForm(order)">Add Delivery</button>
+                    <button class="btn-outline btn-update" type="button" (click)="openEditForm(order)">Update</button>
+                    <button class="btn-outline btn-delete" type="button" (click)="deleteOrder(order)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!loading() && displayedOrders().length === 0 && !error()) {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No Orders Found</h3>
+        <p>Try changing filters or add a new order.</p>
+      </div>
+    }
+  </app-admin-page-shell>
+
+  <!-- Order Form Modal -->
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditMode() ? 'Edit Order' : 'Add New Order' }}</h2>
+          <button class="btn-close" (click)="closeForm()">✕</button>
+        </div>
+
+        <form class="order-form" (ngSubmit)="saveOrder()">
+          <div class="form-group">
+            <label for="productId">Product *</label>
+            @if (productList().length > 0) {
+              <select
+                id="productId"
+                class="form-control"
+                [class.is-invalid]="productError()"
+                [value]="currentOrder().product?.idProduct || 0"
+                (change)="updateProductId(+$any($event.target).value); validateField('product')"
+                (blur)="validateField('product')"
+                required
+              >
+                <option value="0">-- Select a Product --</option>
+                @for (product of productList(); track product.idProduct) {
+                  <option [value]="product.idProduct">
+                    {{ product.name }} ({{ product.price?.toFixed(2) }} TND)
+                  </option>
+                }
+              </select>
+              @if (productError()) {
+                <span class="field-error">{{ productError() }}</span>
+              }
+            } @else {
+              <input
+                id="productId"
+                type="number"
+                class="form-control"
+                [class.is-invalid]="productError()"
+                [value]="currentOrder().product?.idProduct || 0"
+                (input)="updateProductId(+$any($event.target).value); validateField('product')"
+                (blur)="validateField('product')"
+                placeholder="Enter product ID"
+                required
+              />
+              <small class="form-text text-muted">Products not loaded. Enter Product ID manually.</small>
+              @if (productError()) {
+                <span class="field-error">{{ productError() }}</span>
+              }
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="productName">Product Name</label>
+            <input
+              id="productName"
+              type="text"
+              class="form-control"
+              [value]="getProductName(currentOrder().product?.idProduct)"
+              disabled
+              placeholder="Product name (auto-filled)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="totalAmount">Total Amount (TND) * (≥ 0.01)</label>
+            <input
+              id="totalAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              class="form-control"
+              [class.is-invalid]="totalAmountError()"
+              [value]="currentOrder().totalAmount"
+              (input)="updateField('totalAmount', +$any($event.target).value); validateField('totalAmount')"
+              (blur)="validateField('totalAmount')"
+              placeholder="0.00"
+              required
+            />
+            @if (totalAmountError()) {
+              <span class="field-error">{{ totalAmountError() }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address * (≥ 5 characters)</label>
+            <input
+              id="address"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="addressError()"
+              [value]="currentOrder().address"
+              (input)="updateField('address', $any($event.target).value); validateField('address')"
+              (blur)="validateField('address')"
+              placeholder="Enter delivery address"
+              required
+            />
+            @if (addressError()) {
+              <span class="field-error">{{ addressError() }}</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="status">Status *</label>
+              <select
+                id="status"
+                class="form-control"
+                [class.is-invalid]="statusError()"
+                [value]="currentOrder().status"
+                (change)="updateField('status', $any($event.target).value); validateField('status')"
+                (blur)="validateField('status')"
+                required
+              >
+                <option value="">Select Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              @if (statusError()) {
+                <span class="field-error">{{ statusError() }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="paymentMethod">Payment Method *</label>
+              <select
+                id="paymentMethod"
+                class="form-control"
+                [class.is-invalid]="paymentMethodError()"
+                [value]="currentOrder().paymentMethod"
+                (change)="updateField('paymentMethod', $any($event.target).value); validateField('paymentMethod')"
+                (blur)="validateField('paymentMethod')"
+                required
+              >
+                <option value="">Select Payment Method</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="PayPal">PayPal</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cash">Cash</option>
+              </select>
+              @if (paymentMethodError()) {
+                <span class="field-error">{{ paymentMethodError() }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="loading() || !isFormValid()">
+              {{ isEditMode() ? 'Update Order' : 'Add Order' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Create Delivery Modal -->
+  @if (showDeliveryForm()) {
+    <div class="modal-overlay" (click)="closeDeliveryForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>🚚 Create Delivery</h2>
+          <button class="btn-close" (click)="closeDeliveryForm()">✕</button>
+        </div>
+
+        <form class="order-form" (ngSubmit)="createDeliveryForOrder()">
+          <!-- Order Info (Read-only) -->
+          <div class="form-group">
+            <label>Order</label>
+            <div class="form-control readonly-control">
+              Order #{{ currentDeliveryOrder()?.idOrder }} - 
+              {{ getProductName(currentDeliveryOrder()?.product?.idProduct) }}
+            </div>
+          </div>
+
+          <!-- Delivery Address -->
+          <div class="form-group">
+            <label for="deliveryAddress">Delivery Address *</label>
+            <textarea
+              id="deliveryAddress"
+              class="form-control"
+              rows="3"
+              [value]="deliveryAddress()"
+              (input)="deliveryAddress.set($any($event.target).value)"
+              placeholder="Enter delivery address"
+              required
+            ></textarea>
+            <small class="form-text text-muted">Pre-filled from order address</small>
+          </div>
+
+          <!-- Delivery Status -->
+          <div class="form-group">
+            <label for="deliveryStatus">Delivery Status *</label>
+            <select
+              id="deliveryStatus"
+              class="form-control"
+              [value]="deliveryStatus()"
+              (change)="deliveryStatus.set($any($event.target).value)"
+              required
+            >
+              @for (status of deliveryStatusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Delivery Date (Optional) -->
+          <div class="form-group">
+            <label for="deliveryDate">Delivery Date (optional)</label>
+            <input
+              id="deliveryDate"
+              type="date"
+              class="form-control"
+              [value]="deliveryDate()"
+              (input)="deliveryDate.set($any($event.target).value)"
+            />
+          </div>
+
+          <div class="alert info delivery-note">
+            <span class="note-label">ℹ️ Note:</span> Tracking number will be generated automatically by the system.
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeDeliveryForm()" [disabled]="deliveryLoading()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="deliveryLoading()">
+              @if (deliveryLoading()) {
+                Creating...
+              } @else {
+                Create Delivery
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

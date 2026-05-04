@@ -1,0 +1,60 @@
+<main class="mx-auto max-w-6xl px-6 py-8">
+  <header class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-semibold">Games</h1>
+  </header>
+
+  <!-- Search -->
+  <div class="mb-6">
+    <div class="relative max-w-md">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+      <input placeholder="Search games..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" class="w-full pl-10 pr-4 py-2 border rounded placeholder-gray-400" />
+    </div>
+  </div>
+
+  <section class="grid gap-6 lg:grid-cols-3">
+    <div class="lg:col-span-2 space-y-4">
+      <div *ngFor="let g of pagedGames()" class="p-4 border rounded bg-white shadow-sm">
+        <h3 class="font-medium">{{ g.title }}</h3>
+        <p class="text-sm text-secondary">{{ g.description }}</p>
+        <div class="text-xs text-muted mt-1">{{ g.category }} · {{ g.xpReward || 0 }} XP</div>
+        <div class="mt-3">
+          @if (routeFor(g); as route) {
+            <a class="btn btn-primary" [routerLink]="[route]">Play</a>
+          } @else {
+            <span class="text-sm text-muted">Coming soon</span>
+          }
+        </div>
+      </div>
+
+      <div *ngIf="filteredGames().length === 0" class="text-center py-8 text-gray-500">
+        No games found. Try a different search.
+      </div>
+
+      <!-- Pagination -->
+      <nav *ngIf="pageCount() > 1" class="mt-6 flex items-center justify-center gap-2">
+        <button (click)="prevPage()" [disabled]="page() <= 1" class="px-3 py-2 rounded border text-gray-500 hover:bg-gray-100 disabled:opacity-40">‹</button>
+        <button *ngFor="let p of pagesArray()" (click)="setPage(p)" [class.bg-blue-600]="p === page()" [class.text-white]="p === page()" class="px-3 py-2 rounded border hover:bg-gray-100">{{ p }}</button>
+        <button (click)="nextPage()" [disabled]="page() >= pageCount()" class="px-3 py-2 rounded border text-gray-500 hover:bg-gray-100 disabled:opacity-40">›</button>
+      </nav>
+    </div>
+
+    <aside class="space-y-6">
+      <div class="p-4 border rounded bg-white">
+        <h4 class="font-medium mb-2">Avatars</h4>
+        <ul class="space-y-2">
+          <li *ngFor="let a of avatars" class="flex items-center gap-3">
+            <img [src]="a.imageUrl || '/assets/default-avatar.svg'" class="w-10 h-10 rounded" />
+            <div>{{ a.type }}</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="p-4 border rounded bg-white">
+        <h4 class="font-medium mb-2">Skins</h4>
+        <ul class="space-y-2">
+          <li *ngFor="let s of skins">{{ s.name }} <span class="text-sm text-muted">({{ s.category }})</span></li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+</main>

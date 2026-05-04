@@ -1,0 +1,65 @@
+<section class="assign-test container section">
+  <header class="card">
+    <div class="card-body heading">
+      <div>
+        <h1 class="page-title">Assign Livreur to Delivery</h1>
+        <p class="page-subtitle">Test assign-livreur endpoint through API Gateway</p>
+      </div>
+      <div class="links">
+        <a class="btn btn-ghost" [routerLink]="['/front/livreur/location-test']">Driver GPS Test</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="card-body">
+      <form class="form-grid" (submit)="$event.preventDefault(); assign()">
+        <div class="field">
+          <label for="deliveryId">Delivery ID</label>
+          <input
+            id="deliveryId"
+            name="deliveryId"
+            type="number"
+            min="1"
+            [ngModel]="deliveryId()"
+            (ngModelChange)="deliveryId.set($event)"
+            placeholder="Example: 1"
+          />
+        </div>
+
+        <div class="field">
+          <label for="livreurId">Livreur ID</label>
+          <input
+            id="livreurId"
+            name="livreurId"
+            type="number"
+            min="1"
+            [ngModel]="livreurId()"
+            (ngModelChange)="livreurId.set($event)"
+            placeholder="Example: 2"
+          />
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" [disabled]="loading()">
+            {{ loading() ? 'Assigning...' : 'Assign Livreur' }}
+          </button>
+        </div>
+      </form>
+
+      @if (successMessage()) {
+        <p class="state state-success">{{ successMessage() }}</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="state state-error">{{ errorMessage() }}</p>
+      }
+
+      @if (assignedDeliveryId(); as id) {
+        <div class="next-action">
+          <a class="btn btn-primary" [routerLink]="['/front/tracking', id]">Open Tracking for Delivery {{ id }}</a>
+        </div>
+      }
+    </div>
+  </section>
+</section>

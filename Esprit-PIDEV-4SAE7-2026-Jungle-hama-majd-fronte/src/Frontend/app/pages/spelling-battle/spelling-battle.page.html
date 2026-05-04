@@ -1,0 +1,174 @@
+<main class="spell-wrap" [class.shake]="screenShake()">
+  @if (phase() === 'lobby') {
+    <section class="lobby card">
+      <h1>Spelling Battle</h1>
+      <p class="lead">Enter a room, take turns, spell your word in 10 seconds, and survive elimination.</p>
+
+      <label class="field" for="roomSize">Room size (1 to 10)</label>
+      <input
+        id="roomSize"
+        type="range"
+        min="1"
+        max="10"
+        [ngModel]="roomSize()"
+        (ngModelChange)="roomSize.set($event)"
+      />
+      <div class="room-count">{{ roomSize() }} players</div>
+
+      <ul class="rules" aria-label="Game rules">
+        <li>Each turn gives one word and 10 seconds.</li>
+        <li>Correct spelling keeps you in the game.</li>
+        <li>Wrong spelling eliminates the player instantly.</li>
+        <li>Last player standing wins the match.</li>
+      </ul>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="button" (click)="startBattle()">Start Match</button>
+        <a class="btn btn-ghost" [routerLink]="['/front/gamification']">Back</a>
+      </div>
+    </section>
+  }
+
+  @if (phase() === 'playing') {
+    <section class="arena">
+      <header class="arena-head card">
+        <div class="head-left">
+          <strong>Round {{ round() }}</strong>
+          @if (prepCountdown() > 0) {
+            <span>Get ready: {{ prepCountdown() }}</span>
+          } @else {
+            <span>{{ alivePlayers().length }} players alive</span>
+          }
+        </div>
+        <div class="head-actions">
+          <select class="voice-select" [ngModel]="narratorProvider()" (ngModelChange)="updateNarratorProvider($event)">
+            <option value="browser">Browser Voice</option>
+            <option value="external">External API (beta)</option>
+          </select>
+          @if (narratorProvider() === 'browser') {
+            <select class="voice-select" [ngModel]="browserVoice()" (ngModelChange)="updateBrowserVoice($event)">
+              @for (v of browserVoices(); track v.id) {
+                <option [value]="v.id">{{ v.label }}</option>
+              }
+            </select>
+            <button class="btn btn-ghost" type="button" (click)="refreshBrowserVoices()">Refresh Voices</button>
+          } @else {
+            <select class="voice-select" [ngModel]="narratorVoice()" (ngModelChange)="updateNarratorVoice($event)">
+              @for (v of narratorVoices(); track v.id) {
+                <option [value]="v.id">{{ v.label }}</option>
+              }
+            </select>
+          }
+          <button class="btn btn-ghost" type="button" (click)="toggleNarrator()">
+            {{ narratorMuted() ? 'Narrator Off' : 'Narrator On' }}
+          </button>
+          <button class="btn btn-ghost" type="button" (click)="previewNarrator()">Test Voice</button>
+        </div>
+      </header>
+
+      <div class="stage">
+        <div class="arena-glow" [style.animation-delay.ms]="turnMotionTick() * 40"></div>
+
+        <aside class="players-list card">
+          <h3>Players</h3>
+          <ul>
+            @for (p of players(); track p.id) {
+              <li [class.current]="p.id === currentTurnPlayerId()" [class.out]="p.eliminated">
+                <span class="icon">{{ p.avatar }}</span>
+                <span class="label">{{ p.name }}</span>
+                @if (p.id === currentTurnPlayerId()) {
+                  <span class="tag">TURN</span>
+                }
+                @if (p.eliminated) {
+                  <span class="tag out">OUT</span>
+                }
+              </li>
+            }
+          </ul>
+        </aside>
+
+        <div class="center-focus" role="status" aria-live="polite">
+          <div class="active-player card" [style.animation-delay.ms]="turnMotionTick() * 35">
+            <div class="avatar">{{ currentPlayer()?.avatar || '🧑' }}</div>
+            <div class="name">{{ currentPlayer()?.name || 'Waiting...' }}</div>
+            @if (isMyTurn()) {
+              <div class="pill active">Your turn</div>
+            } @else {
+              <div class="pill">Spectating</div>
+            }
+          </div>
+
+          <div class="scoreboard card">
+            <div class="score-top">
+              <strong>Turn Board</strong>
+              <span class="timer" [class.low]="timeLeft() <= 3 && prepCountdown() === 0">
+                @if (prepCountdown() > 0) {
+                  READY {{ prepCountdown() }}
+                } @else {
+                  {{ timeLeft() }}s
+                }
+              </span>
+            </div>
+            <div class="word-line">Word: <b>{{ currentWord() || '...' }}</b></div>
+            <div class="typed-line">{{ boardText() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spectators card">
+        @for (p of otherPlayers(); track p.id) {
+          <div class="spectator" [class.out]="p.eliminated">
+            <span class="s-avatar">{{ p.avatar }}</span>
+            <span class="s-name">{{ p.name }}</span>
+            @if (p.eliminated) {
+              <span class="s-state">OUT</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="controls card">
+        @if (isMyTurn()) {
+          <form (ngSubmit)="submitTurn()" class="entry-form">
+            <input
+              name="spellingInput"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Type the word exactly"
+              [ngModel]="turnInput()"
+              (ngModelChange)="onTypingInput($event)"
+            />
+            <button class="btn btn-primary" type="submit">Spell It</button>
+          </form>
+        } @else {
+          <p class="waiting">Waiting for {{ currentPlayer()?.name }} to finish this turn...</p>
+        }
+      </div>
+
+      <aside class="log card">
+        <h2>Battle Feed</h2>
+        <ul>
+          @for (line of logs(); track $index) {
+            <li>{{ line }}</li>
+          }
+        </ul>
+      </aside>
+    </section>
+  }
+
+  @if (phase() === 'finished') {
+    <section class="finish card">
+      <h2>Match Finished</h2>
+      @if (winner()) {
+        <p class="winner">Winner: {{ winner()?.avatar }} {{ winner()?.name }}</p>
+      } @else {
+        <p class="winner">No winner in this round.</p>
+      }
+      <div class="actions">
+        <button class="btn btn-primary" type="button" (click)="startBattle()">Play Again</button>
+        <button class="btn btn-ghost" type="button" (click)="restart()">Back To Lobby</button>
+      </div>
+    </section>
+  }
+</main>
