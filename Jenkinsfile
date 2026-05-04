@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.9-eclipse-temurin-17'
-            reuseNode true
-        }
-    }
+    agent any
 
     stages {
         stage('Checkout') {
@@ -13,12 +8,10 @@ pipeline {
             }
         }
 
-        // TEMPORAIRE — retirer une fois Java 17 + Maven Docker confirmés dans les logs Jenkins
-        stage('Debug') {
+        stage('Check Tools') {
             steps {
                 sh 'java -version'
                 sh 'mvn -version'
-                sh 'echo $JAVA_HOME'
             }
         }
 
