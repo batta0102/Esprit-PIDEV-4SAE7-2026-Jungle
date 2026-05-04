@@ -69,7 +69,10 @@ public class OnSiteCourseServiceImpl implements OnSiteCourseService {
     public OnSiteCourse updateCourse(Long id, OnSiteCourse course) {
         log.info("Attempting to update on-site course with ID: {}", id);
         validateId(id);
-        validateInput(course);
+        if (course == null) {
+            log.warn("⚠️ Validation failed: On-site course patch is null");
+            throw new InvalidInputException("On-site course cannot be null");
+        }
 
         OnSiteCourse existingCourse = repository.findById(id)
                 .orElseThrow(() -> {
@@ -90,6 +93,9 @@ public class OnSiteCourseServiceImpl implements OnSiteCourseService {
         if (course.getTutorId() != null) {
             existingCourse.setTutorId(course.getTutorId());
         }
+
+        // Valider l’entité persistée après fusion (mise à jour partielle : le patch peut omettre level / tutorId)
+        validateInput(existingCourse);
 
         OnSiteCourse updatedCourse = repository.save(existingCourse);
         courseNotificationPublisher.notifyOnSiteCourseUpdated(updatedCourse);

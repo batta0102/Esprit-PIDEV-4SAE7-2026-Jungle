@@ -69,7 +69,10 @@ public class OnlineCourseServiceImpl implements OnlineCourseService {
     public OnlineCourse updateCourse(Long id, OnlineCourse course) {
         log.info("Attempting to update course with ID: {}", id);
         validateId(id);
-        validateInput(course);
+        if (course == null) {
+            log.error("❌ Validation failed: Course patch is null");
+            throw new InvalidInputException("Course cannot be null");
+        }
 
         OnlineCourse existingCourse = repository.findById(id)
                 .orElseThrow(() -> {
@@ -90,6 +93,9 @@ public class OnlineCourseServiceImpl implements OnlineCourseService {
         if (course.getTutorId() != null) {
             existingCourse.setTutorId(course.getTutorId());
         }
+
+        // Valider l’entité après fusion (mise à jour partielle possible)
+        validateInput(existingCourse);
 
         OnlineCourse updatedCourse = repository.save(existingCourse);
         courseNotificationPublisher.notifyOnlineCourseUpdated(updatedCourse);
@@ -130,8 +136,8 @@ public class OnlineCourseServiceImpl implements OnlineCourseService {
             log.error("❌ Validation failed: Course object is null");
             throw new InvalidInputException("Course cannot be null");
         }
-        if (course.getTitle() == null || course.getTitle().isEmpty()) {
-            log.error("❌ Validation failed: Course title is null or empty");
+        if (course.getTitle() == null || course.getTitle().isBlank()) {
+            log.error("❌ Validation failed: Course title is null or blank");
             throw new InvalidInputException("Course title is required");
         }
         if (course.getLevel() == null) {
