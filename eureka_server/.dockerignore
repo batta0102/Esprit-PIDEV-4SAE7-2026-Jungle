@@ -1,0 +1,19 @@
+# Build
+target/
+.mvn/
+mvnw*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Others
+.DS_Store
+*.log
+node_modules/

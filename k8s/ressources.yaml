@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ressources
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ressources
+  template:
+    metadata:
+      labels:
+        app: ressources
+    spec:
+      containers:
+        - name: ressources
+          image: ressource-test:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8089
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-ressources:3306/ressources_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "root"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka:8761/eureka"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ressources
+spec:
+  selector:
+    app: ressources
+  ports:
+    - port: 8089
+      targetPort: 8089
