@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-games
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-games
+  template:
+    metadata:
+      labels:
+        app: mysql-games
+    spec:
+      containers:
+        - name: mysql-games
+          image: mysql:8
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+            - name: MYSQL_DATABASE
+              value: games_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-games
+spec:
+  selector:
+    app: mysql-games
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
