@@ -1,0 +1,65 @@
+/**
+ * Pipeline CD — déploiement Kubernetes (kubectl)
+ *
+ * Prérequis agent : kubectl configuré (~/.kube/config) ou fichier kubeconfig via credentials.
+ * Le dépôt doit contenir le dossier k8s/ (deployment + service).
+ *
+ * Après apply, l’image du conteneur « gestioncours » est mise à jour pour correspondre au tag CI.
+ */
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+    }
+
+    parameters {
+        string(name: 'K8S_NAMESPACE', defaultValue: 'jungle', description: 'Namespace Kubernetes')
+        string(name: 'REGISTRY_HOST', defaultValue: 'nexus.example.com:8083',
+            description: 'Même valeur que le job CI (hôte:port du registry)')
+        string(name: 'IMAGE_PATH', defaultValue: 'gestioncours',
+            description: 'Même valeur que le job CI')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Tag à déployer')
+        string(name: 'KUBECONFIG_CREDENTIALS_ID', defaultValue: '',
+            description: 'Optionnel : id du secret Jenkins « Secret file » (kubeconfig). Vide = utiliser KUBECONFIG de l’agent')
+    }
+
+    environment {
+        FULL_IMAGE = "${params.REGISTRY_HOST}/${params.IMAGE_PATH}:${params.IMAGE_TAG}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Déploiement Kubernetes') {
+            steps {
+                script {
+                    def ns = params.K8S_NAMESPACE.trim()
+                    def img = "${params.REGISTRY_HOST}/${params.IMAGE_PATH}:${params.IMAGE_TAG}"
+                    def cred = params.KUBECONFIG_CREDENTIALS_ID?.trim()
+
+                    if (cred) {
+                        withCredentials([file(credentialsId: cred, variable: 'KUBE_FILE')]) {
+                            sh """
+                                export KUBECONFIG="\${KUBE_FILE}"
+                                kubectl apply -f k8s/ -n ${ns}
+                                kubectl set image deployment/gestioncours gestioncours=${img} -n ${ns} --record
+                                kubectl rollout status deployment/gestioncours -n ${ns} --timeout=300s
+                            """
+                        }
+                    } else {
+                        sh """
+                            kubectl apply -f k8s/ -n ${ns}
+                            kubectl set image deployment/gestioncours gestioncours=${img} -n ${ns} --record
+                            kubectl rollout status deployment/gestioncours -n ${ns} --timeout=300s
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

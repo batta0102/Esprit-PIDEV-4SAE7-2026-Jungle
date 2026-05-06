@@ -1,0 +1,93 @@
+/**
+ * Pipeline CI — GestionCours (Spring Boot / Java 17)
+ *
+ * Prérequis agent : JDK 17, Maven, Docker CLI.
+ * Credentials Jenkins (type « Username with password ») id : nexus-docker — utilisateur / mot de passe du registry Docker Nexus.
+ * SonarQube : Jenkins > Administration > Configuration système > SonarQube servers — nom identique au paramètre SONARQUBE_SERVER (ou valeur SKIP).
+ */
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'REGISTRY_HOST', defaultValue: 'nexus.example.com:8083',
+            description: 'Hôte:port du registry Docker (identique au début du nom d’image)')
+        string(name: 'IMAGE_PATH', defaultValue: 'gestioncours',
+            description: 'Chemin dans le registry (ex. docker-hosted/gestioncours)')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Tag de l’image')
+        string(name: 'SONARQUBE_SERVER', defaultValue: 'SonarQube',
+            description: 'Nom du serveur SonarQube dans Jenkins, ou SKIP pour désactiver l’analyse')
+        booleanParam(name: 'SKIP_DOCKER_PUSH', defaultValue: false,
+            description: 'Si coché : build d’image uniquement, pas de push Nexus')
+    }
+
+    environment {
+        FULL_IMAGE = "${params.REGISTRY_HOST}/${params.IMAGE_PATH}:${params.IMAGE_TAG}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & tests Maven') {
+            steps {
+                sh 'mvn -B -ntp clean verify'
+            }
+        }
+
+        stage('Analyse SonarQube') {
+            when {
+                expression { return params.SONARQUBE_SERVER?.trim() && params.SONARQUBE_SERVER.trim() != 'SKIP' }
+            }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    withSonarQubeEnv(params.SONARQUBE_SERVER.trim()) {
+                        sh '''
+                            mvn -B -ntp sonar:sonar \
+                              -Dsonar.projectKey=gestioncours \
+                              -Dsonar.projectName=GestionCours
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build image Docker') {
+            steps {
+                sh "docker build -t ${env.FULL_IMAGE} ."
+            }
+        }
+
+        stage('Push Nexus') {
+            when {
+                expression { return !params.SKIP_DOCKER_PUSH }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-docker', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                    sh """
+                        set +x
+                        echo "\${REG_PASS}" | docker login ${params.REGISTRY_HOST} -u "\${REG_USER}" --password-stdin
+                        set -x
+                        docker push ${env.FULL_IMAGE}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+        }
+        success {
+            echo "Image : ${env.FULL_IMAGE}"
+        }
+    }
+}

@@ -1,0 +1,61 @@
+# Image par défaut : alignez-la sur votre registry Nexus ou laissez le job CD (kubectl set image) la remplacer.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestioncours
+  labels:
+    app: gestioncours
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gestioncours
+  template:
+    metadata:
+      labels:
+        app: gestioncours
+    spec:
+      # Si le registry Nexus est privé :
+      # imagePullSecrets:
+      #   - name: nexus-registry
+      containers:
+        - name: gestioncours
+          image: nexus.example.com:8083/gestioncours:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8098
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            # À adapter : base MySQL dans le cluster (Service, ConfigMap ou secrets).
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/gestioncours?useSSL=false&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            # Mot de passe : créer un Secret « gestioncours-db » (clé password) ou surcharger via patch / Helm.
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ""
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            tcpSocket:
+              port: 8098
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 8098
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
