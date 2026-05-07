@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gestion-cours
+  labels:
+    app: gestion-cours
+spec:
+  type: ClusterIP
+  selector:
+    app: gestion-cours
+  ports:
+    - name: http
+      port: 8098
+      targetPort: http

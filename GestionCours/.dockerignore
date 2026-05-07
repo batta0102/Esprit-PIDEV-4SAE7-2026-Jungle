@@ -1,0 +1,20 @@
+# Build output (rebuilt inside Docker or supplied by CI)
+target/
+
+# VCS / IDE
+.git
+.gitignore
+.idea
+*.iml
+
+# Frontend (backend image only)
+frontend/
+
+# Docs & tooling not needed in image
+*.md
+.editorconfig
+
+# Jenkins / K8s not needed in runtime image
+Jenkinsfile*
+jenkinsfile*
+k8s/

@@ -1,0 +1,95 @@
+// Jenkinsfile-CI — microservice GestionCours (Spring Boot)
+// Job Jenkins : Pipeline from SCM → Script Path = jenkinsfile-CI
+//
+// Étapes : workspace propre → checkout branche src → Maven verify (tests) → image Docker locale (tags ci-<build> et ci-latest)
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        MICROSERVICE_NAME   = 'GestionCours'
+        DOCKER_IMAGE_NAME   = 'gestion-cours'
+        GIT_READY           = 'false'
+    }
+
+    stages {
+        stage('Init workspace') {
+            steps {
+                // deleteDir() est natif Pipeline ; cleanWs() exige le plugin Workspace Cleanup
+                deleteDir()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/src']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'CloneOption', shallow: false, noTags: false, timeout: 20]
+                        ],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ])
+
+                    sh '''
+                        set -e
+                        git rev-parse --is-inside-work-tree
+                        git checkout src
+                        git branch --show-current | grep -x src
+                        git log -1 --oneline
+                    '''
+                    env.GIT_READY = 'true'
+                }
+            }
+        }
+
+        stage('Check Tools') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                sh 'java -version'
+                sh 'mvn -version'
+                sh 'docker version'
+            }
+        }
+
+        stage('Maven — verify (tests + package)') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                sh 'mvn -B -ntp clean verify'
+            }
+        }
+
+        stage('Docker — build image (CI)') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                script {
+                    def tagBuild = "ci-${env.BUILD_NUMBER}"
+                    sh """
+                        docker build -t '${DOCKER_IMAGE_NAME}:${tagBuild}' -t '${DOCKER_IMAGE_NAME}:ci-latest' -f Dockerfile .
+                        docker images '${DOCKER_IMAGE_NAME}'
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: false
+        }
+    }
+}

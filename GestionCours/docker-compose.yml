@@ -1,0 +1,13 @@
+# MySQL pour développement local (aligné avec application.properties : port 3306, DB gestioncours).
+# Démarrage : docker compose up -d
+# Arrêt : docker compose down
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: gestioncours-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: gestioncours
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

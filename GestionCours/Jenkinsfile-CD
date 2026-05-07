@@ -1,0 +1,114 @@
+// Jenkinsfile-CD — microservice GestionCours : image Docker + déploiement Kubernetes (kubectl)
+// Job Jenkins : Pipeline from SCM → Script Path = Jenkinsfile-CD
+//
+// Prérequis agent : Docker CLI, kubectl ; credentials (IDs à adapter) :
+//   - nexus-docker : user/password registry (optionnel si pas de push)
+//   - kubeconfig   : fichier kubeconfig (plugin Kubernetes CLI) ou KUBECONFIG sur l’agent
+//
+// Paramètres : registry, tag image, namespace K8s
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        // Important en Pipeline from SCM : on gère le checkout explicitement
+        skipDefaultCheckout(true)
+    }
+
+    parameters {
+        string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Ex. registry:8082 (sans https://). Vide = variable env DOCKER_REGISTRY Jenkins')
+        string(name: 'IMAGE_TAG', defaultValue: '', description: 'Tag image. Vide = BUILD_NUMBER')
+        string(name: 'K8S_NAMESPACE', defaultValue: 'default', description: 'Namespace Kubernetes')
+    }
+
+    environment {
+        DOCKER_IMAGE_NAME = 'gestion-cours'
+        REGISTRY          = "${params.DOCKER_REGISTRY?.trim() ?: env.DOCKER_REGISTRY ?: 'docker.registry.local:8082'}"
+        TAG               = "${params.IMAGE_TAG?.trim() ?: "${env.BUILD_NUMBER}"}"
+        GIT_READY         = 'false'
+    }
+
+    stages {
+        stage('Init workspace') {
+            steps {
+                // deleteDir() est natif Pipeline ; cleanWs() exige le plugin Workspace Cleanup
+                deleteDir()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                script {
+                    // Pipeline from SCM : checkout explicite + branche src forcée
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/src']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'CloneOption', shallow: false, noTags: false, timeout: 20]
+                        ],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ])
+
+                    sh '''
+                        set -e
+                        git rev-parse --is-inside-work-tree
+                        git checkout src
+                        git branch --show-current | grep -x src
+                        git log -1 --oneline
+                    '''
+                    env.GIT_READY = 'true'
+                }
+            }
+        }
+
+        stage('Docker — build') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                script {
+                    env.FULL_IMAGE = "${REGISTRY}/${DOCKER_IMAGE_NAME}:${TAG}"
+                    sh "docker build -t '${env.FULL_IMAGE}' -f Dockerfile ."
+                }
+            }
+        }
+
+        stage('Docker — push registry') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'nexus-docker', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                        sh '''
+                            echo "$REG_PASS" | docker login "$REGISTRY" -u "$REG_USER" --password-stdin
+                            docker push "$FULL_IMAGE"
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Kubernetes — apply') {
+            when {
+                expression { env.GIT_READY == 'true' }
+            }
+            steps {
+                script {
+                    env.RENDERED = "${env.WORKSPACE}/k8s/deployment-rendered.yaml"
+                    def tpl = readFile(file: 'k8s/deployment.yaml')
+                    writeFile file: env.RENDERED, text: tpl.replace('__DOCKER_IMAGE__', env.FULL_IMAGE)
+                }
+                withKubeConfig([credentialsId: 'kubeconfig']) {
+                    sh """
+                        kubectl apply -n ${params.K8S_NAMESPACE} -f '${env.RENDERED}'
+                        kubectl apply -n ${params.K8S_NAMESPACE} -f k8s/service.yaml
+                        kubectl rollout status -n ${params.K8S_NAMESPACE} deployment/gestion-cours --timeout=300s
+                    """
+                }
+            }
+        }
+    }
+}

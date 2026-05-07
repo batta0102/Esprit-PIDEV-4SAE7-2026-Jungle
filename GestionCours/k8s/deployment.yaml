@@ -1,0 +1,64 @@
+# Remplace __DOCKER_IMAGE__ par la pipeline CD (ex. nexus.societe.com:8082/gestion-cours:123-abc4567).
+# Adaptez les variables d'environnement (MySQL, Eureka) à votre cluster ou utilisez ConfigMap / Secrets.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestion-cours
+  labels:
+    app: gestion-cours
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gestion-cours
+  template:
+    metadata:
+      labels:
+        app: gestion-cours
+    spec:
+      containers:
+        - name: gestion-cours
+          image: __DOCKER_IMAGE__
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8098
+          env:
+            # --- Base de données (ajuster à vos services cluster ou Secrets) ---
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/gestioncours?useSSL=false&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gestion-cours-db
+                  key: password
+                  optional: true
+            # --- Eureka ---
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              value: "http://eureka-server:8762/eureka/"
+          readinessProbe:
+            httpGet:
+              path: /v3/api-docs
+              port: http
+            initialDelaySeconds: 25
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /v3/api-docs
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"

@@ -1,0 +1,13 @@
+{
+  "user_id": 1,
+  "course_ids": [10, 11, 12],
+  "top_k": 5,
+  "prior_score": 72.5,
+  "time_spent_min": 45,
+  "completion_rate_pct": 80.0,
+  "resources_consulted_count": 3,
+  "explicit_rating": 4,
+  "difficulty_level": "Intermediate",
+  "learning_style": "visual",
+  "subject": "Math"
+}
