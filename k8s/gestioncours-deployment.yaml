@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-gestioncours
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-gestioncours
+  template:
+    metadata:
+      labels:
+        app: mysql-gestioncours
+    spec:
+      containers:
+        - name: mysql-gestioncours
+          image: mysql:8
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+            - name: MYSQL_DATABASE
+              value: gestioncours_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-gestioncours
+spec:
+  selector:
+    app: mysql-gestioncours
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestioncours
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestioncours
+  template:
+    metadata:
+      labels:
+        app: gestioncours
+    spec:
+      containers:
+        - name: gestioncours
+          image: gestioncours-test:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8098
+          env:
+            - name: SERVER_PORT
+              value: "8098"
+
+            - name: SPRING_APPLICATION_NAME
+              value: gestioncours
+
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql-gestioncours:3306/gestioncours_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
+
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://eureka:8761/eureka

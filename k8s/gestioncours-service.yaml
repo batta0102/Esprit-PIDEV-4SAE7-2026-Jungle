@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gestioncours
+spec:
+  selector:
+    app: gestioncours
+  ports:
+    - port: 8098
+      targetPort: 8098
+      nodePort: 30098
+  type: NodePort
