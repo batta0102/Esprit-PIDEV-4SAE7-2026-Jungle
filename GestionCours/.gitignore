@@ -32,3 +32,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/apache-maven-3.9.12/
+/apache-maven-3.9.12-bin.zip
